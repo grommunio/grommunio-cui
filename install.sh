@@ -51,7 +51,7 @@ if [ $userid -eq 0 ]; then
   echo >> "${tmp}/${file}"
   echo "export PYTHONPATH=\"\$PYTHONPATH:/opt/urwid:$(pwd)\"" >> "${tmp}/${file}"
   echo >> "${tmp}/${file}"
-  echo "python3 $(pwd)/cui.py \$@" >> "${tmp}/${file}"
+  echo "python3 $(pwd)/cui/__init__.py \$@" >> "${tmp}/${file}"
   echo >> "${tmp}/${file}"
 
   echo "Installing ${tmp}/${file} to ${target}"

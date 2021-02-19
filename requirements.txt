@@ -24,4 +24,5 @@ slip==0.6.5
 slip.dbus==0.6.5
 tabulate==0.8.7
 urlscan==0.9.2
-urwid==2.0.1
+# urwid==2.0.1 #  Please use `git clone https://github.com/urwid/urwid.git` instead!
+    

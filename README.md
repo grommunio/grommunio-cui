@@ -18,6 +18,7 @@ Instead use git:
 
 ... bash
 
+    cd /opt/
     git clone https://github.com/urwid/urwid.git
 
 1.2) Installing the GIT resources (Optional)

@@ -1,0 +1,7 @@
+trash*
+.idea/
+*tmp*
+venv/
+*__pycache__*
+test.*
+bla.*
