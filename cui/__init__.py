@@ -14,12 +14,12 @@ import time
 from orderedset import OrderedSet
 from psutil._common import snicstats, snicaddr
 from getpass import getuser
-from cui.scroll import ScrollBar, Scrollable
-from cui.button import GButton, GBoxButton
-from cui.menu import MenuItem, MultiMenuItem
-from cui.interface import ApplicationHandler, WidgetDrawer
-from cui.common import DeviceInfo, DNSInfo, ifcfginfo
-from cui.util import authenticate_user, get_clockstring, get_palette, get_system_info, get_next_palette_name
+from scroll import ScrollBar, Scrollable
+from button import GButton, GBoxButton
+from menu import MenuItem, MultiMenuItem
+from interface import ApplicationHandler, WidgetDrawer
+from common import DeviceInfo, DNSInfo, ifcfginfo
+from util import authenticate_user, get_clockstring, get_palette, get_system_info, get_next_palette_name
 from urwid import AttrWrap, ExitMainLoop, Padding, Columns, Text, ListBox, Frame, LineBox, SimpleListWalker, MainLoop, \
     LEFT, CENTER, SPACE, Filler, Pile, Edit, Button, connect_signal, AttrMap, GridFlow, Overlay, Widget, Terminal, \
     SimpleFocusListWalker, set_encoding, MIDDLE, TOP, RadioButton, ListWalker, raw_display
