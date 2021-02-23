@@ -9,7 +9,7 @@ from typing import Any, List, Tuple, Dict
 import psutil
 import os
 import time
-from orderedset import OrderedSet
+from ordered_set import OrderedSet
 from psutil._common import snicstats, snicaddr
 from getpass import getuser
 from scroll import ScrollBar, Scrollable
@@ -1059,8 +1059,6 @@ Prepares log file viewer widget and fills last lines of file content.
         if_stat: snicstats
         if_stats = psutil.net_if_stats()
         self.devices: List[str] = if_stats.keys()
-        # header_fields: OrderedSet[str] = OrderedSet(['startmode', 'bootproto', 'ipaddr', 'netmask', 'gateway'])
-        # fieldsizes: Dict[str, int] = {'startmode' : 1, 'bootproto' : 1, 'ipaddr' : 1, 'netmask' : 1, 'gateway' : 1}
         header_fields: OrderedSet[str] = OrderedSet(['bootproto', 'ipaddr', 'netmask', 'gateway'])
         fieldsizes: Dict[str, int] = {'bootproto': 1, 'ipaddr': 1, 'netmask': 1, 'gateway': 1}
         for dev in self.devices:
@@ -1082,9 +1080,8 @@ Prepares log file viewer widget and fills last lines of file content.
             items[f"{id}) {dev}"] = Columns(cols)
         table_header = Columns([
             ('weight', 1, Text('Device')),
-            (
-                'weight', len(header_fields),
-                Columns([('weight', fieldsizes.get(t, 1), Text(t.title())) for t in header_fields])),
+            ('weight', len(header_fields),
+            Columns([('weight', fieldsizes.get(t, 1), Text(t.title())) for t in header_fields])),
             # ('weight', 4, Columns([Text('Uplink'), Text('Duplex'), Text('Speed'), Text('MTU')])),
         ])
         return table_header, items
