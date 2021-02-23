@@ -258,11 +258,11 @@ class DNSInfo(object):
         Fills all properties by trying to set automatically.
         """
         i = self.get_resolv_conf()
-        self.auto = i.auto == 'auto'
-        self.primary = i.primary
-        self.secondary = i.secondary
-        self.hostname = i.hostname
-        self.search = i.search
+        self.auto = i.auto == 'auto' if i.auto is not None else ''
+        self.primary = i.primary if i.primary is not None else ''
+        self.secondary = i.secondary if i.secondary is not None else ''
+        self.hostname = i.hostname if i.hostname is not None else ''
+        self.search = i.search if i.search is not None else ''
 
     def write_config(self, resolv_conf: str = None, hostname_conf: str = None) -> bool:
         """
