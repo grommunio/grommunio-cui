@@ -1054,14 +1054,12 @@ Prepares log file viewer widget and fills last lines of file content.
 
     def get_device_config_info_dynamic(self) -> Tuple[Columns, Dict[str, Columns]]:
         """TODO: The formatting is still completely wrong. Solve!"""
-        ifcfg_path: str = "/etc/sysconfig/network/"
-        self.devices = [str(f).split('-')[1] for f in listdir(ifcfg_path)
-                        if isfile(join(ifcfg_path, f)) and str(f).startswith('ifcfg-')]
         items = {}
         id: int = 0
         if_info: ifcfginfo
         if_stat: snicstats
         if_stats = psutil.net_if_stats()
+        self.devices: List[str] = if_stats.keys()
         # header_fields: OrderedSet[str] = OrderedSet(['startmode', 'bootproto', 'ipaddr', 'netmask', 'gateway'])
         # fieldsizes: Dict[str, int] = {'startmode' : 1, 'bootproto' : 1, 'ipaddr' : 1, 'netmask' : 1, 'gateway' : 1}
         header_fields: OrderedSet[str] = OrderedSet(['bootproto', 'ipaddr', 'netmask', 'gateway'])
@@ -1099,19 +1097,18 @@ Prepares log file viewer widget and fills last lines of file content.
 
         :return: The tuple containing first the table header and second the items as Dict.
         """
-        ifcfg_path: str = "/etc/sysconfig/network/"
-        self.devices = [str(f).split('-')[1] for f in listdir(ifcfg_path)
-                        if isfile(join(ifcfg_path, f)) and str(f).startswith('ifcfg-')]
         items = {}
+        id: int = 0
+        if_info: ifcfginfo
+        if_stat: snicstats
+        if_addr: snicaddr
+        if_stats = psutil.net_if_stats()
+        self.devices: List[str] = if_stats.keys()
         table_header = Columns([
             ('weight', 1, Text('Device')),
             ('weight', 4, Columns([Text('DHCP'), Text('IP-Address'), Text('Netmask'), Text('Gateway')])),
         ])
-        id: int = 0
         if_name: str
-        if_info: ifcfginfo
-        if_stat: snicstats
-        if_addr: snicaddr
         for if_name in self.devices:
             id += 1
             di = DeviceInfo(if_name)
