@@ -122,9 +122,9 @@ class DeviceInfo(object):
         i = self.get_ifcfg_info()
         s = self.get_if_stats()
         a = self.get_if_addr()
-        self.dhcp = i.bootproto
-        self.ipaddr = a.address
-        self.netmask = a.netmask
+        self.dhcp = i.bootproto if i.bootproto is not None else ''
+        self.ipaddr = a.address if a.address is not None else ''
+        self.netmask = a.netmask if a.netmask is not None else ''
 
     def write_config(self, filename: str = None) -> bool:
         """
