@@ -132,7 +132,7 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
         rv += [
             u"\n", "Console User Interface", "\n", u"\xa9 2020 ", "grammm GmbH", u"\n",
         ]
-        rv.append(f"Distribution: {distro} Version: {version}")
+        rv.append(f"Distribution: {distro} Version: {version}" if distro.lower().startswith('grammm') else '')
         rv.append("\n")
         rv.append("\n")
         rv.append(f"{psutil.cpu_count(logical=False)} x {uname.processor} CPUs a {get_hr(cpufreq.current * 1000 * 1000, 'Hz', 1000)}")
@@ -145,12 +145,6 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
         if_addrs = psutil.net_if_addrs()
         boot_time_timestamp = psutil.boot_time()
         bt = datetime.fromtimestamp(boot_time_timestamp)
-        year: str = pad(bt.year, '0', 4)
-        month: str = pad(bt.month, '0', 2)
-        day: str = pad(bt.day, '0', 2)
-        hour: str = pad(bt.hour, '0', 2)
-        minute: str = pad(bt.minute, '0', 2)
-        second: str = pad(bt.second, '0', 2)
         rv += [
             u"\n", "For further configuration you can use following URLs:", u"\n"
         ]
@@ -170,7 +164,6 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
                 else:
                     continue
         rv.append(f"Boot Time: ")
-        # rv.append(('reverse', f'{hour}:{minute}:{second} {day}.{month}.{year}'))
         rv.append(('reverse', f'{bt.isoformat()}'))
         rv.append("\n")
         rv.append("\n")
