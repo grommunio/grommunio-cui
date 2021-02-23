@@ -111,18 +111,16 @@ class DeviceInfo(object):
                             confs[k.lower()] = v.strip()
                         else:
                             self.ext_stats[k.lower()] = v.strip()
-        # return ifcfginfo(confs.get('bootproto'), confs.get('ipaddr'), confs.get('netmask'), confs.get('gateway'),
-        #                  confs.get('network'), confs.get('startmode'), confs.get('usercontrol'), confs.get('firewall'))
         return ifcfginfo(confs.get('bootproto'), confs.get('ipaddr'), confs.get('netmask'), confs.get('gateway'))
 
     def autofill(self):
         """
         Fills all properties by trying to set automatically.
         """
-        i = self.get_ifcfg_info()
-        s = self.get_if_stats()
+        ic = self.get_ifcfg_info()
+        # s = self.get_if_stats()
         a = self.get_if_addr()
-        self.dhcp = i.bootproto if i.bootproto is not None else ''
+        self.dhcp = ic.bootproto if ic.bootproto is not None else ''
         self.ipaddr = a.address if a.address is not None else ''
         self.netmask = a.netmask if a.netmask is not None else ''
 

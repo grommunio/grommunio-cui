@@ -1,8 +1,6 @@
-GPUtil==1.4.0
 netifaces==0.10.9
 orderedset==2.0.3
 pamela==1.0.0
 psutil==5.8.0
-tabulate==0.8.9
 # urwid==2.0.1 #  Please use `git clone https://github.com/urwid/urwid.git` instead!
 
