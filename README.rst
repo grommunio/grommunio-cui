@@ -8,7 +8,14 @@ grammm basic configurations.
 --------------
 
 To get the CUI running you have to install the Python Urwid library,
-the Urwid GIT Project (Optional) and the CUI source itself.
+the Urwid GIT Project and the CUI source itself.
+We assume in this guide that you have already installed:
+
+ - gcc
+ - python3
+ - python3-devel
+
+These will be used for the build and install process.
 
 1.1) Installing the Urwid Module for Python
 -------------------------------------------
@@ -34,11 +41,11 @@ of the urwid project.
 1.3) Copy the source files
 --------------------------
 
-Untar the source files via tar:
+Use also git to fetch the current cui version:
 
 .. code-block::
 
-    tar xvzf cui.tgz
+    git clone https://vcs.grammm.com/grammm/cui.git
 
 In the cui folder you can find the requirements.txt and can install it via
 

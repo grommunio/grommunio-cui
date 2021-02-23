@@ -23,7 +23,6 @@ from util import authenticate_user, get_clockstring, get_palette, get_system_inf
 from urwid import AttrWrap, ExitMainLoop, Padding, Columns, Text, ListBox, Frame, LineBox, SimpleListWalker, MainLoop, \
     LEFT, CENTER, SPACE, Filler, Pile, Edit, Button, connect_signal, AttrMap, GridFlow, Overlay, Widget, Terminal, \
     SimpleFocusListWalker, set_encoding, MIDDLE, TOP, RadioButton, ListWalker, raw_display
-from urwid import CheckDeppOpt
 
 
 print(sys.path)
