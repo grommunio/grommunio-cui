@@ -14,7 +14,8 @@ import re
 from psutil._common import snicstats, snicaddr
 
 
-_PRODUCTIVE: bool = False
+# _PRODUCTIVE: bool = False
+_PRODUCTIVE: bool = True
 path_prefix: str = "/"
 
 # ifcfginfo = namedtuple('ifcfginfo', ['bootproto', 'ipaddr', 'netmask', 'gateway', 'network', 'startmode',
@@ -49,25 +50,25 @@ class DeviceInfo(object):
     netmask: str = ""
     gateway: str = ""
     ext_stats: Dict[str, str] = {}
-    
+
     reserved_keys: List[str] = ['bootproto', 'startmode', 'ipaddr', 'netmask', 'gateway']
-    
+
     def __init__(self, devicename: str):
         _init()
         self.name = devicename
         self.autofill()
-    
+
     def get_if_stats(self) -> snicstats:
         """
         Returns a stat object of the NIC.
-        
+
         :return: The snicstat object.
         """
         if_stats = psutil.net_if_stats()
         if self.name == 'None':
             return snicstats(None, None, None, None)
-        return if_stats[self.name]
-    
+        return if_stats.get(self.name)
+
     def get_if_addr(self) -> snicaddr:
         """
         Returns a addr object of NICs.
@@ -78,14 +79,14 @@ class DeviceInfo(object):
         if self.name == 'None':
             return snicaddr(None, None, None, None, None)
         addr: snicaddr
-        for addr in if_addrs[self.name]:
+        for addr in if_addrs.get(self.name):
             if str(addr.family) == 'AddressFamily.AF_INET':
                 return addr
-    
+
     def get_ifcfg_info(self) -> ifcfginfo:
         """
         Returns an info object containing information of the ifcfg* files in /etc/sysconfig/network/
-        
+
         :return: The ifcfginfo object.
         """
         global ifcfg_path
@@ -97,10 +98,10 @@ class DeviceInfo(object):
                 line = f.readline()
                 if line.startswith('default '):
                     confs['gateway'] = line.split('default ')[1].strip().split(' ')[0]
-                    self.gateway = confs['gateway']
+                    self.gateway = confs.get('gateway')
         else:
             confs['gateway'] = netifaces.gateways()['default'][netifaces.AF_INET][0]
-            self.gateway = confs['gateway']
+            self.gateway = confs.get('gateway')
         if exists(f"{ifcfg_path}/ifcfg-{self.name}") and access(f"{ifcfg_path}/ifcfg-{self.name}", R_OK):
             with open(f"{ifcfg_path}/ifcfg-{self.name}", "r") as f:
                 for line in f.readlines():
@@ -113,7 +114,7 @@ class DeviceInfo(object):
         # return ifcfginfo(confs.get('bootproto'), confs.get('ipaddr'), confs.get('netmask'), confs.get('gateway'),
         #                  confs.get('network'), confs.get('startmode'), confs.get('usercontrol'), confs.get('firewall'))
         return ifcfginfo(confs.get('bootproto'), confs.get('ipaddr'), confs.get('netmask'), confs.get('gateway'))
-    
+
     def autofill(self):
         """
         Fills all properties by trying to set automatically.
@@ -124,11 +125,11 @@ class DeviceInfo(object):
         self.dhcp = i.bootproto
         self.ipaddr = a.address
         self.netmask = a.netmask
-    
+
     def write_config(self, filename: str = None) -> bool:
         """
         Writes all properties to config file, usually /etc/sysconfig/network/ifcfg-*
-        
+
         :param filename: Filename to which the information should be written.
         :return: True is file could be written, False otherwise.
         """
@@ -186,23 +187,23 @@ class DNSInfo(object):
     hostname: str = ""
     search: str = ""
     ext_stats: Dict[str, str] = {}
-    
+
     reserved_keys: List[str] = ['nameserver', 'search']
-    
+
     def __init__(self):
         _init()
         self.autofill()
-    
+
     def get_resolv_conf(self) -> dnsinfo:
         """
         Returns an info object containing information of the /etc/resolv.conf
-        
+
         :return: The dnsinfo object.
         """
         global resolv_path, hostname_path
         props = list(dnsinfo._fields)
         confs: Dict[str, str] = {'commentlines': '# File generated automatically by grammm console user interface.\n'}
-        confs['commentlines'] = ''.join([confs['commentlines'], '# DO NOT EDIT BY HAND!!!\n', '\n'])
+        confs['commentlines'] = ''.join([confs.get('commentlines'), '# DO NOT EDIT BY HAND!!!\n', '\n'])
         # props = [prop for prop in dir(ifcfginfo) if not prop.startswith('_')]
         if exists(config_path) and access(config_path, R_OK):
             with open(config_path, 'r') as f:
@@ -228,7 +229,7 @@ class DNSInfo(object):
                 count: int = 0
                 for line in f.readlines():
                     if line.startswith('#'):
-                        confs['commentlines'] = ''.join([confs['commentlines'], line])
+                        confs['commentlines'] = ''.join([confs.get('commentlines'), line])
                     elif line.startswith('search '):
                         confs['search'] = line.split('search ')[1].strip()
                     elif line.startswith('nameserver'):
@@ -240,7 +241,7 @@ class DNSInfo(object):
                             confs[k.lower()] = v.strip()
                         else:
                             self.ext_stats[k.lower()] = v.strip()
-                self.ext_stats['commentlines'] = confs['commentlines']
+                self.ext_stats['commentlines'] = confs.get('commentlines')
         else:
             confs['search'] = ""
             confs['nameserver1'] = ""
@@ -251,7 +252,7 @@ class DNSInfo(object):
                 confs["hostname"] = line.strip()
         return dnsinfo(confs.get('auto'), confs.get('nameserver1'), confs.get('nameserver2'), confs.get('hostname'),
                        confs.get('search'))
-    
+
     def autofill(self):
         """
         Fills all properties by trying to set automatically.
@@ -262,11 +263,11 @@ class DNSInfo(object):
         self.secondary = i.secondary
         self.hostname = i.hostname
         self.search = i.search
-    
+
     def write_config(self, resolv_conf: str = None, hostname_conf: str = None) -> bool:
         """
         Writes all properties to config file, usually /etc/resolv.conf, /etc/hostname and /etc/sysconfig/network/config.
-        
+
         :param resolv_conf: Filename to which the information should be written.
         :param hostname_conf: Filename to which the information should be written.
         :return: True is file could be written, False otherwise.
@@ -328,14 +329,14 @@ if __name__ == '__main__':
         s = test.get_if_stats()
         i = test.get_ifcfg_info()
         print(f"Device {test.name} has stats ({s}) and info ({i})")
-    
+
     test = DeviceInfo('lo')
     test.name = 'ethTEST'
     test.dhcp = 'static'
     test.ipaddr = '193.99.72.111'
     test.ext_stats['bla'] = 'blubb'
     print(f"and writing returned {test.write_config()}!")
-    
+
     dns = DNSInfo()
     print(f"{list(dns.get_resolv_conf())}")
     # dns.auto = False

@@ -32,6 +32,7 @@ try:
 except ImportError:
     import trollius as asyncio
 
+_PRODUCTIVE: bool = True
 loop: AbstractEventLoop
 _MAIN: str = 'MAIN'
 _MAIN_MENU: str = 'MAIN-MENU'
@@ -39,7 +40,6 @@ _TERMINAL: str = 'TERMINAL'
 _LOGIN: str = 'LOGIN'
 _NETWORK_CONFIG_MENU: str = 'NETWORK-CONFIG-MENU'
 _UNSUPPORTED: str = 'UNSUPPORTED'
-_UNSUPPORTED: str = 'UN'
 _PASSWORD: str = 'PASSWORD'
 _DEVICE_CONFIG: str = 'DEVICE-CONFIG'
 _IP_CONFIG: str = 'IP-CONFIG'
@@ -299,6 +299,7 @@ class Application(ApplicationHandler):
                 represented value like 'enter', 'up', 'down', etc.
             :type: Any
         """
+        log_finished: bool = False
         self.current_event = event
         if type(event) == str:
             # event was a key stroke
@@ -316,7 +317,7 @@ class Application(ApplicationHandler):
                     self.current_window = _LOGIN
                 elif key == 'f12':
                     os.system("sudo shutdown -r now")
-                elif key == 'l':  # TODO disable before production
+                elif key == 'l' and not _PRODUCTIVE:
                     self.open_main_menu()
                 elif key == 'tab':
                     self.vsplitbox.focus_position = 0 if self.vsplitbox.focus_position == 1 else 1
@@ -425,6 +426,7 @@ class Application(ApplicationHandler):
                     self.current_window = self.log_file_caller
                     self._body = self._log_file_caller_body
                     self.reset_layout()
+                    log_finished = True
                 elif self._hidden_pos < len(_UNSUPPORTED) and key == _UNSUPPORTED.lower()[self._hidden_pos]:
                     self._hidden_input += key
                     self._hidden_pos += 1
@@ -436,7 +438,7 @@ class Application(ApplicationHandler):
                     self._hidden_pos = 0
 
             elif self.current_window == _UNSUPPORTED:
-                if key in ['ctrl a', 'A']:
+                if key in ['ctrl d', 'esc', 'meta f1']:
                     self.current_window = self.log_file_caller
                     self._body = self._log_file_caller_body
                     self.reset_layout()
@@ -448,14 +450,16 @@ class Application(ApplicationHandler):
             elif key == 'f1' or key == 'c':
                 # self.change_colormode('dark' if self._current_colormode == 'light' else 'light')
                 self.switch_next_colormode()
-            elif key in ['meta f1', 'H'] and not self.current_window == _LOG_VIEWER:
-                self.open_log_viewer('test', 10)
+            elif key in ['meta f1', 'H'] and self.current_window != _LOG_VIEWER and not log_finished:
+                # self.open_log_viewer('test', 10)
+                self.open_log_viewer('syslog')
 
         elif type(event) == tuple:
             # event is a mouse event in the form ('mouse press or release', button, column, line)
             event: Tuple[str, float, int, int] = tuple(event)
             if event[0] == 'mouse press' and event[1] == 1:
                 self.handle_event('mouseclick left enter')
+
         self.print(self.current_bottom_info)
 
     @staticmethod
@@ -671,7 +675,7 @@ class Application(ApplicationHandler):
         ]))
         self.dns_config_menu.base_widget.focus_position = 2 if dns_state else 3
 
-    def prepare_log_viewer(self, logfile: str = 'syslog', lines: int = 200):
+    def prepare_log_viewer(self, logfile: str = 'syslog', lines: int = 0):
         """
 Prepares log file viewer widget and fills last lines of file content.
 
@@ -689,7 +693,7 @@ Prepares log file viewer widget and fills last lines of file content.
             # self.log_file_content = log.read_text('utf-8')[:lines * -1]
             if os.access(str(log), os.R_OK):
                 with log.open('r') as f:
-                    self.log_file_content = [line.strip() for line in f]
+                    self.log_file_content = [line.strip() for line in f][-1 * lines:]
 
         self.log_viewer = LineBox(Pile([ScrollBar(Scrollable(Pile([Text(line) for line in self.log_file_content])))]))
 
@@ -709,7 +713,7 @@ Prepares log file viewer widget and fills last lines of file content.
                 dns = True
             self.open_dns_config(dns)
 
-    def open_log_viewer(self, logfile: str, lines: int = 200):
+    def open_log_viewer(self, logfile: str, lines: int = 0):
         """
         Opens log file viewer.
         """
@@ -717,7 +721,7 @@ Prepares log file viewer widget and fills last lines of file content.
         self._log_file_caller_body = self._body
         self.current_window = _LOG_VIEWER
         self.print(f"Log file viewer has to open file {logfile} ...")
-        self.prepare_log_viewer(logfile)
+        self.prepare_log_viewer(logfile, lines)
         self._body = self.log_viewer
         self._loop.widget = self._body
 
@@ -898,7 +902,7 @@ Prepares log file viewer widget and fills last lines of file content.
         """
         menu_items: List[MenuItem] = []
         for id, caption in enumerate(items.keys(), 1):
-            item = MenuItem(id, caption, items[caption], self)
+            item = MenuItem(id, caption, items.get(caption), self)
             connect_signal(item, 'activate', self.handle_event)
             menu_items.append(AttrMap(item, 'selectable', 'focus'))
         return menu_items
@@ -918,7 +922,7 @@ Prepares log file viewer widget and fills last lines of file content.
         for id, caption in enumerate(items.keys(), 1):
             item = RadioButton(menu_items, caption, on_state_change=self.handle_click)
             my_items.append(AttrMap(item, 'MMI-selectable', 'MMI.focus'))
-            my_items_content.append(AttrMap(items[caption], 'MMI-selectable', 'MMI.focus'))
+            my_items_content.append(AttrMap(items.get(caption), 'MMI-selectable', 'MMI.focus'))
         return my_items, my_items_content
 
     def create_multi_menu_items(self, items: Dict[str, Widget], selected: str = None) -> List[MultiMenuItem]:
@@ -942,7 +946,7 @@ Prepares log file viewer widget and fills last lines of file content.
                     state = False
             else:
                 state = 'first True'
-            item = MultiMenuItem(menu_items, id, caption_wo_no, items[caption], state=state,
+            item = MultiMenuItem(menu_items, id, caption_wo_no, items.get(caption), state=state,
                                  on_state_change=MultiMenuItem.handle_menu_changed, app=self)
             my_items.append(item)
             # connect_signal(item, 'activate', self.handle_event)
@@ -1077,14 +1081,14 @@ Prepares log file viewer widget and fills last lines of file content.
                 v = f"{getattr(if_info, f, '')}"
                 item = Text(v)
                 size = len(v)
-                fieldsizes[f] = size if fieldsizes.get(f, 0) <= size else fieldsizes[f]
+                fieldsizes[f] = size if fieldsizes.get(f, 0) <= size else fieldsizes.get(f, 0)
                 cols.append(('weight', size, item))
             items[f"{id}) {dev}"] = Columns(cols)
         table_header = Columns([
             ('weight', 1, Text('Device')),
             (
                 'weight', len(header_fields),
-                Columns([('weight', fieldsizes[t], Text(t.title())) for t in header_fields])),
+                Columns([('weight', fieldsizes.get(t, 1), Text(t.title())) for t in header_fields])),
             # ('weight', 4, Columns([Text('Uplink'), Text('Duplex'), Text('Speed'), Text('MTU')])),
         ])
         return table_header, items
