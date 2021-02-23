@@ -4,8 +4,6 @@
 #
 import sys
 from asyncio.events import AbstractEventLoop
-from os import listdir
-from os.path import isfile, join
 from pathlib import Path
 from typing import Any, List, Tuple, Dict
 import psutil
@@ -25,7 +23,7 @@ from urwid import AttrWrap, ExitMainLoop, Padding, Columns, Text, ListBox, Frame
     SimpleFocusListWalker, set_encoding, MIDDLE, TOP, RadioButton, ListWalker, raw_display
 
 
-print(sys.path)
+# print(sys.path)
 try:
     import asyncio
 except ImportError:
@@ -774,11 +772,12 @@ Prepares log file viewer widget and fills last lines of file content.
         self._body = self.mainframe
         self._loop.widget = self._body
 
-    def check_login(self):
+    def check_login(self, w: Widget = None):
         """
         Checks login data and switch to authenticate on if successful.
         """
         msg = f"checking user {self.user_edit.get_edit_text()} with pass {self.pass_edit.get_edit_text()} ..."
+        msg += f"activated by {w}!"
         if self.current_window == _LOGIN:
             if authenticate_user(self.user_edit.get_edit_text(), self.pass_edit.get_edit_text()):
                 self.open_main_menu()
