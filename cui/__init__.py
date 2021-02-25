@@ -35,6 +35,7 @@ _MAIN: str = 'MAIN'
 _MAIN_MENU: str = 'MAIN-MENU'
 _TERMINAL: str = 'TERMINAL'
 _LOGIN: str = 'LOGIN'
+_LOGOUT: str = 'LOGOUT'
 _NETWORK_CONFIG_MENU: str = 'NETWORK-CONFIG-MENU'
 _UNSUPPORTED: str = 'UNSUPPORTED'
 _PASSWORD: str = 'PASSWORD'
@@ -306,14 +307,17 @@ class Application(ApplicationHandler):
                     # user has successfully logged in
                     if key == 'f4':
                         self.open_main_menu()
-                if key == 'f2':
+                if key in ['f2', 'f12', 'S' if self.debug else 'f12']:
                     self.login_body.focus_position = 0 if getuser() == '' else 1  # focus on passwd if user detected
+                    if key != 'f2':
+                        self.user_edit.edit_text = "root"  # need to be superuser for shutdown
                     self.dialog(body=LineBox(Padding(Filler(self.login_body))), header=self.login_header,
                                 footer=self.login_footer, focus_part='body', align='center', valign='middle',
                                 width=40, height=10)
-                    self.current_window = _LOGIN
-                elif key == 'f12':
-                    os.system("sudo shutdown -r now")
+                    if key == 'f2':
+                        self.current_window = _LOGIN
+                    elif key in ['S', 'f12']:
+                        self.current_window = _LOGOUT
                 elif key == 'l' and not _PRODUCTIVE:
                     self.open_main_menu()
                 elif key == 'tab':
@@ -337,9 +341,9 @@ class Application(ApplicationHandler):
                 if key == 'close enter' or key == 'esc':
                     self.open_main_menu()
 
-            elif self.current_window == _LOGIN:
+            elif self.current_window in [_LOGIN, _LOGOUT]:
                 self.handle_standard_tab_behaviour(key)
-                if key == 'login enter':
+                if key.endswith('enter'):
                     self.check_login()
                 elif key == 'esc':
                     self.open_mainframe()
@@ -455,7 +459,8 @@ class Application(ApplicationHandler):
             # event is a mouse event in the form ('mouse press or release', button, column, line)
             event: Tuple[str, float, int, int] = tuple(event)
             if event[0] == 'mouse press' and event[1] == 1:
-                self.handle_event('mouseclick left enter')
+                # self.handle_event('mouseclick left enter')
+                self.handle_event('my mouseclick left button')
 
         self.print(self.current_bottom_info)
 
@@ -782,7 +787,18 @@ Prepares log file viewer widget and fills last lines of file content.
             if authenticate_user(self.user_edit.get_edit_text(), self.pass_edit.get_edit_text()):
                 self.open_main_menu()
             else:
+                self.message_box(f'You have taken a wrong password, {self.user_edit.get_edit_text()}!')
                 self.print(f"Login wrong! ({msg})")
+        elif self.current_window == _LOGOUT:
+            if self.user_edit.get_edit_text() != 'root':
+                self.message_box('You need to be superuser!')
+                self.user_edit.edit_text = 'root'
+            elif authenticate_user(self.user_edit.get_edit_text(), self.pass_edit.get_edit_text()):
+                self.message_box('After pressing OK, the system will be shut down!\nBe sure to leave nothing undone.')
+                os.system('/sbin/shutdown -h now')
+            else:
+                self.print(f"Login wrong! ({msg})")
+                self.message_box(f'You have taken a wrong password, {self.user_edit.get_edit_text()}!')
 
     def press_button(self, button: Widget, *args, **kwargs):
         """
