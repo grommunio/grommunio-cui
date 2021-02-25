@@ -1156,7 +1156,8 @@ Prepares log file viewer widget and fills last lines of file content.
         self.footer_text.set_text([text])
         self.current_bottom_info = string
 
-    def message_box(self, msg: Any, title: str = None):
+    def message_box(self, msg: Any, title: str = None, align: str = CENTER, width: int = 45,
+                    valign: str = MIDDLE, height: int = 9):
         """
         Creates a message box dialog with an optional title. The message also can be a list of urwid formatted tuples.
 
@@ -1170,7 +1171,12 @@ Prepares log file viewer widget and fills last lines of file content.
                     self.reset_layout()
 
         :param msg: List or one element of urwid formatted tuple containing the message content.
+        :type: Any
         :param title: Optional title as simple string.
+        :param align: Horizontal align.
+        :param width: The width of the box.
+        :param valign: Vertical align.
+        :param height: The height of the box.
         """
         self.message_box_caller = self.current_window
         self._message_box_caller_body = self._loop.widget
@@ -1181,7 +1187,7 @@ Prepares log file viewer widget and fills last lines of file content.
         self.dialog(
             body=body, header=Text(title, CENTER),
             footer=self.ok_button_footer, focus_part='footer',
-            align=CENTER, width=45, valign=MIDDLE, height=9
+            align=align, width=width, valign=valign, height=height
         )
 
     def printf(self, *strings):
@@ -1282,7 +1288,7 @@ Prepares log file viewer widget and fills last lines of file content.
         self._loop.run()
 
     def dialog(self, body: Widget = None, header: Widget = None, footer: Widget = None, focus_part: str = None,
-               align: str = CENTER, width: int = 40, valign: str = 'middle', height: int = 10):
+               align: str = CENTER, width: int = 40, valign: str = MIDDLE, height: int = 10):
         """
         Overlays a dialog box on top of the console UI
 
@@ -1291,6 +1297,10 @@ Prepares log file viewer widget and fills last lines of file content.
             header (Widget): The header widget.
             footer (Widget): The footer widget.
             focus_part (str): The part getting the focus. ('header', 'body' or 'footer')
+            align (str): Horizontal align.
+            width (int): The width of the box.
+            valign (str): Vertical align.
+            height (int): The height of the box.
         """
         # Body
         if body is None:
