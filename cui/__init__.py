@@ -452,8 +452,8 @@ class Application(ApplicationHandler):
                 # self.change_colormode('dark' if self._current_colormode == 'light' else 'light')
                 self.switch_next_colormode()
             elif key in ['meta f1', 'H'] and self.current_window != _LOG_VIEWER and not log_finished:
-                self.open_log_viewer('test', 10)
-                # self.open_log_viewer('syslog', 200)
+                # self.open_log_viewer('test', 10)
+                self.open_log_viewer('syslog', 200)
 
         elif type(event) == tuple:
             # event is a mouse event in the form ('mouse press or release', button, column, line)
