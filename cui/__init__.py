@@ -17,7 +17,7 @@ from button import GButton, GBoxButton
 from menu import MenuItem, MultiMenuItem
 from interface import ApplicationHandler, WidgetDrawer
 from common import DeviceInfo, DNSInfo, ifcfginfo
-from util import authenticate_user, get_clockstring, get_palette, get_system_info, get_next_palette_name
+from util import authenticate_user, get_clockstring, get_palette, get_system_info, get_next_palette_name, fast_tail
 from urwid import AttrWrap, ExitMainLoop, Padding, Columns, Text, ListBox, Frame, LineBox, SimpleListWalker, MainLoop, \
     LEFT, CENTER, SPACE, Filler, Pile, Edit, Button, connect_signal, AttrMap, GridFlow, Overlay, Widget, Terminal, \
     SimpleFocusListWalker, set_encoding, MIDDLE, TOP, RadioButton, ListWalker, raw_display
@@ -271,7 +271,7 @@ class Application(ApplicationHandler):
             "If this is not that what you expected to see,",
             "You probably have insufficient permissions!?"
         ]
-        self.prepare_log_viewer()
+        self.prepare_log_viewer('syslog', 200)
 
         # UNSUPPORTED shell
         self.unsupported_term = Terminal(None, encoding='utf-8')
@@ -452,8 +452,8 @@ class Application(ApplicationHandler):
                 # self.change_colormode('dark' if self._current_colormode == 'light' else 'light')
                 self.switch_next_colormode()
             elif key in ['meta f1', 'H'] and self.current_window != _LOG_VIEWER and not log_finished:
-                # self.open_log_viewer('test', 10)
-                self.open_log_viewer('syslog')
+                self.open_log_viewer('test', 10)
+                # self.open_log_viewer('syslog', 200)
 
         elif type(event) == tuple:
             # event is a mouse event in the form ('mouse press or release', button, column, line)
@@ -694,8 +694,7 @@ Prepares log file viewer widget and fills last lines of file content.
         if log.exists():
             # self.log_file_content = log.read_text('utf-8')[:lines * -1]
             if os.access(str(log), os.R_OK):
-                with log.open('r') as f:
-                    self.log_file_content = [line.strip() for line in f][-1 * lines:]
+                self.log_file_content = fast_tail(str(log.absolute()), lines)
 
         self.log_viewer = LineBox(Pile([ScrollBar(Scrollable(Pile([Text(line) for line in self.log_file_content])))]))
 

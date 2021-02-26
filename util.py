@@ -248,3 +248,21 @@ def get_palette(mode: str = 'light') -> List[Tuple[str, ...]]:
     global _PALETTES
     rv: List[Tuple[str, ...]] = _PALETTES[mode]
     return rv
+
+
+def fast_tail(file: str, n: int = 0) -> List[str]:
+    assert n >= 0, "Line count n musst be greater equal 0!"
+    pos: int = n + 1
+    lines: List[str] = []
+    fname: Path = Path(file)
+    with fname.open('r') as f:
+        while len(lines) <= n:
+            try:
+                f.seek(-pos, 2)
+            except IOError as e:
+                f.seek(0)
+                break
+            finally:
+                lines = list(f)
+            pos *= 2
+    return [line.strip() for line in lines[-n:]]
