@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-#
-#  Copyright (c) 2020 by grammm GmbH.
-#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# SPDX-FileCopyrightText: 2021 grammm GmbH
 import sys
 from asyncio.events import AbstractEventLoop
 from pathlib import Path

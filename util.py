@@ -1,6 +1,5 @@
-#
-#  Copyright (c) 2020 by grammm GmbH.
-#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# SPDX-FileCopyrightText: 2021 grammm GmbH
 from pathlib import Path
 
 from pamela import authenticate, PAMError
@@ -130,7 +129,7 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
         svmem = psutil.virtual_memory()
         distro, version = get_os_release()
         rv += [
-            u"\n", "Console User Interface", "\n", u"\xa9 2020 ", "grammm GmbH", u"\n",
+            u"\n", "Console User Interface", "\n", u"© 2021 ", "grammm GmbH", u"\n",
         ]
         rv.append(f"Distribution: {distro} Version: {version}" if distro.lower().startswith('grammm') else '')
         rv.append("\n")

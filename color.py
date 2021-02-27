@@ -1,7 +1,6 @@
 #!/usr/bin/env python
-#
-#  Copyright (c) 2020 by grammm GmbH.
-#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# SPDX-FileCopyrightText: 2021 grammm GmbH
 
 import sys, re
 from typing import List, Tuple

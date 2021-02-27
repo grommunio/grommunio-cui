@@ -1,6 +1,5 @@
-#
-#  Copyright (c) 2020 by grammm GmbH.
-#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# SPDX-FileCopyrightText: 2021 grammm GmbH
 
 import ipaddress
 from collections import namedtuple
