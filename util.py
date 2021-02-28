@@ -135,7 +135,10 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
         rv.append(f"Distribution: {distro} Version: {version}" if distro.lower().startswith('grammm') else '')
         rv.append("\n")
         rv.append("\n")
-        rv.append(f"{psutil.cpu_count(logical=False)} x {uname.processor} CPUs a {get_hr(cpufreq.current * 1000 * 1000, 'Hz', 1000)}")
+        if cpufreq:
+             rv.append(f"{psutil.cpu_count(logical=False)} x {uname.processor} CPUs a {get_hr(cpufreq.current * 1000 * 1000, 'Hz', 1000)}")
+        else:
+             rv.append(f"{psutil.cpu_count(logical=False)} x {uname.processor} CPUs")
         rv.append("\n")
         rv.append(f"Memory {get_hr(svmem.used)} used of {get_hr(svmem.total)}. {get_hr(svmem.available)} free.")
         rv.append("\n")
