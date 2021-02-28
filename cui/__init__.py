@@ -1383,7 +1383,7 @@ Prepares log file viewer widget and fills last lines of file content.
         else:
             msg += ["without success"]
         msg += ['!']
-        self.print(msg)
+        self.print(''.join(msg))
 
     def check_config_write(self, di) -> bool:
         title: str = "Success on writing!"
