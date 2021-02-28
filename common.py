@@ -82,6 +82,7 @@ class DeviceInfo(object):
         for addr in if_addrs.get(self.name):
             if str(addr.family) == 'AddressFamily.AF_INET':
                 return addr
+        return snicaddr(None, None, None, None, None)
 
     def get_ifcfg_info(self) -> ifcfginfo:
         """
@@ -100,7 +101,10 @@ class DeviceInfo(object):
                     confs['gateway'] = line.split('default ')[1].strip().split(' ')[0]
                     self.gateway = confs.get('gateway')
         else:
-            confs['gateway'] = netifaces.gateways()['default'][netifaces.AF_INET][0]
+            if len(netifaces.gateways()['default']) > 0:
+                confs['gateway'] = netifaces.gateways()['default'][netifaces.AF_INET][0]
+            else:
+                confs['gateway'] = ''
             self.gateway = confs.get('gateway')
         if exists(f"{ifcfg_path}/ifcfg-{self.name}") and access(f"{ifcfg_path}/ifcfg-{self.name}", R_OK):
             with open(f"{ifcfg_path}/ifcfg-{self.name}", "r") as f:
@@ -111,6 +115,9 @@ class DeviceInfo(object):
                             confs[k.lower()] = v.strip()
                         else:
                             self.ext_stats[k.lower()] = v.strip()
+        else:
+            for p in props:
+                confs[p] = confs.get(p, '')
         return ifcfginfo(confs.get('bootproto'), confs.get('ipaddr'), confs.get('netmask'), confs.get('gateway'))
 
     def autofill(self):
