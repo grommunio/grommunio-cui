@@ -1346,7 +1346,7 @@ Prepares log file viewer widget and fills last lines of file content.
         Writes down ip config if apply or ok is being done.
         """
         di = DeviceInfo(self.active_device)
-        if self.ip_config_menu.base_widget[2][0].body[0].state:
+        if self.ip_config_menu.base_widget[2][0].body[0].base_widget.state:
             di.dhcp = "'dhcp'"
             di.ipaddr = self.ip_config_menu.base_widget[3][0][1].get_text()
             di.netmask = self.ip_config_menu.base_widget[3][1][1].get_text()
@@ -1356,7 +1356,16 @@ Prepares log file viewer widget and fills last lines of file content.
             di.ipaddr = self.ip_config_menu.base_widget[3][0][1].edit_text
             di.netmask = self.ip_config_menu.base_widget[3][1][1].edit_text
             di.gateway = self.ip_config_menu.base_widget[3][2][1].edit_text
-        self.message_box(["Config written", (' ' if di.write_config() else ('important', ' not ')), "successfully."])
+        title = "Success on writing!"
+        height = 9
+        msg = ["Config written"]
+        if di.write_config():
+            msg += [' ', "successfully."]
+        else:
+            title = "Writing failed!"
+            height += 1
+            msg += [('important', ' not '), "successfully.", "\n", "Maybe you have insufficient rights?"]
+        self.message_box(msg, title=title, height=height)
 
     def write_dns_config(self):
         """
