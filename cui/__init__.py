@@ -337,7 +337,7 @@ class Application(ApplicationHandler):
 
             elif self.current_window == _PASSWORD:
                 self.handle_standard_tab_behaviour(key)
-                if key == 'close enter' or key == 'esc':
+                if key.lower().endswith('close enter') or key == 'esc':
                     self.open_main_menu()
 
             elif self.current_window in [_LOGIN, _LOGOUT]:
