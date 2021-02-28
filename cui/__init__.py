@@ -1355,7 +1355,8 @@ Prepares log file viewer widget and fills last lines of file content.
             di.ipaddr = self.ip_config_menu.base_widget[3][0][1].edit_text
             di.netmask = self.ip_config_menu.base_widget[3][1][1].edit_text
             di.gateway = self.ip_config_menu.base_widget[3][2][1].edit_text
-        self.check_config_write(di)
+        if self.check_config_write(di):
+            self.restart_network_service()
 
     def write_dns_config(self):
         """
@@ -1372,19 +1373,32 @@ Prepares log file viewer widget and fills last lines of file content.
             di.primary = self.dns_config_menu.base_widget[3][0][1].edit_text
             di.secondary = self.dns_config_menu.base_widget[3][1][1].edit_text
             di.hostname = self.dns_config_menu.base_widget[3][2][1].edit_text
-        self.check_config_write(di)
+        if self.check_config_write(di):
+            self.restart_network_service()
 
-    def check_config_write(self, di):
-        title = "Success on writing!"
-        height = 9
-        msg = ["Config written"]
+    def restart_network_service(self):
+        msg: List[str] = ["Network restartet "]
+        if os.system('systemctl restart network') == 0:
+            msg += ["successfully"]
+        else:
+            msg += ["without success"]
+        msg += ['!']
+        self.print(msg)
+
+    def check_config_write(self, di) -> bool:
+        title: str = "Success on writing!"
+        height: int = 9
+        msg: List[str] = ["Config written"]
+        rv: bool = True
         if di.write_config():
             msg += [' ', "successfully."]
         else:
             title = "Writing failed!"
             height += 1
             msg += [('important', ' not '), "successfully.", "\n", "Maybe you have insufficient rights?"]
+            rv = False
         self.message_box(msg, title=title, height=height)
+        return rv
 
 
 if __name__ == '__main__':
