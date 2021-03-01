@@ -1373,8 +1373,10 @@ Prepares log file viewer widget and fills last lines of file content.
             di.primary = self.dns_config_menu.base_widget[3][0][1].edit_text
             di.secondary = self.dns_config_menu.base_widget[3][1][1].edit_text
             di.hostname = self.dns_config_menu.base_widget[3][2][1].edit_text
-        if self.check_config_write(di):
-            self.restart_network_service()
+        if not self.check_config_write(di):
+            self.message_box("Writing DNS config failed!")
+        else:
+            self.message_box("Writing DNS config succeeded!")
 
     def restart_network_service(self):
         msg: List[str] = ["Network restartet "]

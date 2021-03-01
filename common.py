@@ -287,10 +287,14 @@ class DNSInfo(object):
                 memcopy: List[str] = f.readlines()
                 f.close()
             with open(config_path, 'w') as f:
+                found: bool = False
                 for i, line in enumerate(memcopy):
                     grep_auto = re.findall('NETCONFIG_DNS_POLICY', line)
                     if len(grep_auto) > 0:
                         memcopy[i] = f'NETCONFIG_DNS_POLICY="{"auto" if self.auto else ""}"\n'
+                        found = True
+                if not found:
+                    memcopy.append(f'NETCONFIG_DNS_POLICY="{"auto" if self.auto else ""}"\n')
                 f.write(''.join(memcopy))
         if hostname_conf is None:
             hostname_conf = hostname_path
