@@ -1363,7 +1363,7 @@ Prepares log file viewer widget and fills last lines of file content.
         Writes down dns config if apply or ok is being done.
         """
         di = DNSInfo()
-        if self.dns_config_menu.base_widget[2][0].body[0].state:
+        if self.dns_config_menu.base_widget[2][0].body[0].base_widget.state:
             di.auto = True
             di.primary = self.dns_config_menu.base_widget[3][0][1].get_text()
             di.secondary = self.dns_config_menu.base_widget[3][1][1].get_text()
