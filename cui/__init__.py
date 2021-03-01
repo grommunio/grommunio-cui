@@ -239,22 +239,10 @@ class Application(ApplicationHandler):
         self.network_menu = self.wrap_menu(self.network_menu_list)
 
         # Terminal Dialog
-        # self.terminal_footer = GridFlow([self.close_button], 10, 1, 1, 'center')
-        self.terminal_footer = self.close_button_footer
-        self.term = Terminal(None)
-        self.terminal_frame = LineBox(
-            Pile([
-                ('weight', 70, self.term),
-            ]),
-        )
+        self.prepare_terminal_dialog()
 
         # Password Dialog
-        self.password = Terminal(["passwd"])
-        self.password_frame = LineBox(
-            Pile([
-                ('weight', 70, self.password),
-            ]),
-        )
+        self.prepare_password_dialog()
 
         # Device Config Menu
         self.prepare_device_config()
@@ -273,10 +261,7 @@ class Application(ApplicationHandler):
         self.prepare_log_viewer('syslog', 200)
 
         # UNSUPPORTED shell
-        self.unsupported_term = Terminal(None, encoding='utf-8')
-        for w in self.unsupported_term.signals:
-            connect_signal(self.unsupported_term, w, lambda widget: self.listen_unsupported(w, widget))
-        self.unsupported_frame = LineBox(Pile([self.unsupported_term]))
+        self.prepare_unsupported_shell()
 
         # some settings
         MultiMenuItem.application = self
@@ -515,6 +500,7 @@ class Application(ApplicationHandler):
         """
         self.reset_layout()
         self.current_window = _TERMINAL
+        self.prepare_terminal_dialog()
         self.dialog(
             header=Text(f"Terminal for user {getuser()}", align='center'),
             body=self.terminal_frame, footer=self.terminal_footer, focus_part='body',
@@ -528,6 +514,7 @@ class Application(ApplicationHandler):
         """
         self.reset_layout()
         self.current_window = _UNSUPPORTED
+        self.prepare_unsupported_shell()
         self._body = self.unsupported_frame
         self._loop.widget = self._body
 
@@ -538,11 +525,35 @@ class Application(ApplicationHandler):
         self.reset_layout()
         self.current_window = _PASSWORD
         self.print('Opening change password dialog.')
+        self.prepare_password_dialog()
         self.dialog(
             header=Text(f"Change password for user {getuser()}", align='center'),
             body=self.password_frame, footer=self.close_button_footer, focus_part='body',
             align=CENTER, valign='middle', width=80, height=25
         )
+
+    def prepare_password_dialog(self):
+        self.password = Terminal(["passwd"])
+        self.password_frame = LineBox(
+            Pile([
+                ('weight', 70, self.password),
+            ]),
+        )
+
+    def prepare_terminal_dialog(self):
+        self.terminal_footer = self.close_button_footer
+        self.term = Terminal(None)
+        self.terminal_frame = LineBox(
+            Pile([
+                ('weight', 70, self.term),
+            ]),
+        )
+
+    def prepare_unsupported_shell(self):
+        self.unsupported_term = Terminal(None, encoding='utf-8')
+        for w in self.unsupported_term.signals:
+            connect_signal(self.unsupported_term, w, lambda widget: self.listen_unsupported(w, widget))
+        self.unsupported_frame = LineBox(Pile([self.unsupported_term]))
 
     def prepare_device_config(self, selected: str = None):
         """
@@ -1405,6 +1416,7 @@ if __name__ == '__main__':
     set_encoding('utf-8')
     # print(sys.argv)
     time.sleep(2)
+    _PRODUCTIVE = True
     if "--help" in sys.argv:
         print(f"Usage: {sys.argv[0]} [OPTIONS]")
         print(f"\tOPTIONS:")
@@ -1416,4 +1428,8 @@ if __name__ == '__main__':
             app.set_debug(True)
         else:
             app.set_debug(False)
+
+        if "--hidden-login" in sys.argv:
+            _PRODUCTIVE = False
+
         app.start()
