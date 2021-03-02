@@ -112,7 +112,7 @@ def get_os_release() -> Tuple[str, str]:
                 k, name = line.strip().split('=')
             elif line.startswith('VERSION'):
                 k, version = line.strip().split('=')
-    return name, version
+    return name.strip('"'), version.strip('"')
 
 
 def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
