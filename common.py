@@ -3,7 +3,7 @@
 
 import ipaddress
 from collections import namedtuple
-from os import listdir, remove, access, R_OK, W_OK
+from os import listdir, remove, access, R_OK, W_OK, system
 from os.path import isfile, join, exists, dirname
 from typing import Dict, List
 
@@ -11,6 +11,7 @@ import netifaces
 import psutil
 import re
 from psutil._common import snicstats, snicaddr
+from socket import gethostbyname
 
 
 # _PRODUCTIVE: bool = False
@@ -26,10 +27,11 @@ dnsinfo = namedtuple('dnsinfo', ['auto', 'primary', 'secondary', 'hostname', 'se
 resolv_path: str = f'{path_prefix}etc/resolv.conf'
 hostname_path: str = f'{path_prefix}etc/hostname'
 config_path: str = f'{path_prefix}etc/sysconfig/network/config'
+hosts_path: str = f'{path_prefix}etc/hosts'
 
 
 def _init():
-    global path_prefix, ifcfg_path, resolv_path, hostname_path, config_path
+    global path_prefix, ifcfg_path, resolv_path, hostname_path, config_path, hosts_path
     if _PRODUCTIVE:
         path_prefix = "/"
     else:
@@ -38,6 +40,7 @@ def _init():
     resolv_path = f'{path_prefix}etc/resolv.conf'
     hostname_path = f'{path_prefix}etc/hostname'
     config_path = f'{path_prefix}etc/sysconfig/network/config'
+    hosts_path = f'{path_prefix}etc/hosts'
 
 
 class DeviceInfo(object):
@@ -191,11 +194,13 @@ class DNSInfo(object):
     hostname: str = ""
     search: str = ""
     ext_stats: Dict[str, str] = {}
+    ip: str = ""
 
     reserved_keys: List[str] = ['nameserver', 'search']
 
-    def __init__(self):
+    def __init__(self, ip: str = ""):
         _init()
+        self.ip = ip
         self.autofill()
 
     def get_resolv_conf(self) -> dnsinfo:
@@ -268,12 +273,14 @@ class DNSInfo(object):
         self.hostname = i.hostname if i.hostname is not None else ''
         self.search = i.search if i.search is not None else ''
 
-    def write_config(self, resolv_conf: str = None, hostname_conf: str = None) -> bool:
+    def write_config(self, resolv_conf: str = None, hostname_conf: str = None, hosts_conf: str = None) -> bool:
         """
-        Writes all properties to config file, usually /etc/resolv.conf, /etc/hostname and /etc/sysconfig/network/config.
+        Writes all properties to config file, usually /etc/resolv.conf, 
+        /etc/hostname, /etc/hosts and /etc/sysconfig/network/config.
 
         :param resolv_conf: Filename to which the information should be written.
         :param hostname_conf: Filename to which the information should be written.
+        :param hosts_conf: Filename to which the information should be written.
         :return: True is file could be written, False otherwise.
         """
         global config_path, hostname_path, resolv_path
@@ -293,25 +300,34 @@ class DNSInfo(object):
                     if len(grep_auto) > 0:
                         memcopy[i] = f'NETCONFIG_DNS_POLICY="{"auto" if self.auto else ""}"\n'
                         found = True
+                        break
                 if not found:
                     memcopy.append(f'NETCONFIG_DNS_POLICY="{"auto" if self.auto else ""}"\n')
                 f.write(''.join(memcopy))
+
+        # update /etc/hostname
         if hostname_conf is None:
             hostname_conf = hostname_path
         if not self.hostname == "":
             if not exists(hostname_conf):
-                with open(hostname_conf, 'a') as f:
-                    f.close()
+                if access(dirname(hostname_conf), W_OK):
+                    with open(hostname_conf, 'a') as f:
+                        f.close()
             if access(hostname_conf, W_OK):
                 with open(hostname_conf, 'w') as f:
                     f.writelines(f"{self.hostname}\n")
             else:
                 rv = False
+        if system(f"hostname {self.hostname}") > 0:
+            rv = False
+
+        # update /etc/resolv.conf
         if resolv_conf is None:
             resolv_conf = resolv_path
         if not exists(resolv_conf):
-            with open(resolv_conf, 'a') as f:
-                f.close()
+            if access(dirname(resolv_conf), W_OK):
+                with open(resolv_conf, 'a') as f:
+                    f.close()
         if access(resolv_conf, W_OK):
             with open(resolv_conf, 'w') as f:
                 if not self.search == "":
@@ -322,7 +338,42 @@ class DNSInfo(object):
                     f.write(f"nameserver {self.secondary}\n")
         else:
             rv = False
+
+        # update /etc/hosts
+        disabled = True
+        if not disabled:
+            if not hosts_conf:
+                hosts_conf = hosts_path
+            if not exists(hosts_conf):
+                if access(dirname(hosts_conf), W_OK):
+                    with open(hosts_conf, 'a') as f:
+                        f.close()
+            self.ip = gethostbyname(self.hostname)
+            if self.ip != "":
+                if access(hosts_conf, W_OK):
+                    with open(hosts_conf, 'r') as f:
+                        memcopy: List[str] = f.readlines()
+                        f.close()
+                    with open(hosts_conf, 'w') as f:
+                        found: bool = False
+                        for i, line in enumerate(memcopy):
+                            grep_auto = re.findall(self.hostname, line)
+                            if len(grep_auto) > 0:
+                                memcopy[i] = "{self.get_hosts_line()}\n"
+                                found = True
+                                break
+                        if not found:
+                            memcopy.append("{self.get_hosts_line()}\n")
+                        f.write(''.join(memcopy))
+
         return rv
+
+        def get_hosts_line(self) -> str:
+            rv: str = f"{self.ip}\t"
+            for dom in self.search:
+                rv += "{self.hostname}.{dom}\t"
+            rv += "{self.hostname}"
+            return rv
 
 
 if __name__ == '__main__':

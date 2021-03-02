@@ -1073,7 +1073,7 @@ Prepares log file viewer widget and fills last lines of file content.
             prim[1].edit_text = di.primary
             sec[1].edit_text = di.secondary
             host[1].edit_text = di.hostname
-            host[1].edit_text = di.search
+            search[1].edit_text = di.search
         return Pile([prim, sec, host, search])
 
     def get_device_config_info_dynamic(self) -> Tuple[Columns, Dict[str, Columns]]:
@@ -1358,9 +1358,9 @@ Prepares log file viewer widget and fills last lines of file content.
         di = DeviceInfo(self.active_device)
         if self.ip_config_menu.base_widget[2][0].body[0].base_widget.state:
             di.dhcp = "'dhcp'"
-            di.ipaddr = self.ip_config_menu.base_widget[3][0][1].get_text()
-            di.netmask = self.ip_config_menu.base_widget[3][1][1].get_text()
-            di.gateway = self.ip_config_menu.base_widget[3][2][1].get_text()
+            di.ipaddr = self.ip_config_menu.base_widget[3][0][1].get_text()[0]
+            di.netmask = self.ip_config_menu.base_widget[3][1][1].get_text()[0]
+            di.gateway = self.ip_config_menu.base_widget[3][2][1].get_text()[0]
         else:
             di.dhcp = 'static'
             di.ipaddr = self.ip_config_menu.base_widget[3][0][1].edit_text
@@ -1376,18 +1376,15 @@ Prepares log file viewer widget and fills last lines of file content.
         di = DNSInfo()
         if self.dns_config_menu.base_widget[2][0].body[0].base_widget.state:
             di.auto = True
-            di.primary = self.dns_config_menu.base_widget[3][0][1].get_text()
-            di.secondary = self.dns_config_menu.base_widget[3][1][1].get_text()
-            di.hostname = self.dns_config_menu.base_widget[3][2][1].get_text()
+            di.primary = self.dns_config_menu.base_widget[3][0][1].get_text()[0]
+            di.secondary = self.dns_config_menu.base_widget[3][1][1].get_text()[0]
+            di.hostname = self.dns_config_menu.base_widget[3][2][1].get_text()[0]
         else:
             di.auto = False
             di.primary = self.dns_config_menu.base_widget[3][0][1].edit_text
             di.secondary = self.dns_config_menu.base_widget[3][1][1].edit_text
             di.hostname = self.dns_config_menu.base_widget[3][2][1].edit_text
-        if not self.check_config_write(di):
-            self.message_box("Writing DNS config failed!")
-        else:
-            self.message_box("Writing DNS config succeeded!")
+        self.check_config_write(di)
 
     def restart_network_service(self):
         msg: List[str] = ["Network restartet "]
