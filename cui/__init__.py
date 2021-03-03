@@ -620,7 +620,7 @@ class Application(ApplicationHandler):
         self.ip_config_menu: LineBox = LineBox(Pile([
             (3, AttrMap(Filler(Text('IP Config Menu', CENTER), TOP), 'body')),
             (1, table_header),
-            AttrMap(Columns([self.ip_config_menu_listbox]), 'MMI.selectable'),
+            (2, AttrMap(Columns([self.ip_config_menu_listbox]), 'MMI.selectable')),
             AttrMap(Filler(self.ip_config_menu_content, TOP), 'MMI.selectable'),
         ]))
         self.ip_config_menu.base_widget.focus_position = 2 if dhcp_state else 3
@@ -656,7 +656,7 @@ class Application(ApplicationHandler):
                 ('weight', 50, Columns([self.toggle_button, self.apply_button])),
                 ('weight', 30, Columns([self.ok_button, self.cancel_button]))
             ]), 'buttonbar'), focus_part='body',
-            align=CENTER, valign=MIDDLE, width=80, height=15
+            align=CENTER, valign=MIDDLE, width=80, height=16
         )
         # self.current_menu_state = self.ip_config_menu_list[0].get_selected_id()
 
@@ -685,7 +685,7 @@ class Application(ApplicationHandler):
         self.dns_config_menu: LineBox = LineBox(Pile([
             (3, AttrMap(Filler(Text('DNS Config Menu', CENTER), TOP), 'body')),
             (1, table_header),
-            AttrMap(Columns([self.dns_config_menu_listbox]), 'MMI.selectable'),
+            (2, AttrMap(Columns([self.dns_config_menu_listbox]), 'MMI.selectable')),
             AttrMap(Filler(self.dns_config_menu_content, TOP), 'MMI.selectable'),
         ]))
         self.dns_config_menu.base_widget.focus_position = 2 if dns_state else 3
@@ -752,7 +752,7 @@ Prepares log file viewer widget and fills last lines of file content.
                 ('weight', 50, Columns([self.toggle_button, self.apply_button])),
                 ('weight', 30, Columns([self.ok_button, self.cancel_button]))
             ]), 'buttonbar'), focus_part='body',
-            align=CENTER, valign=MIDDLE, width=80, height=15
+            align=CENTER, valign=MIDDLE, width=80, height=17
         )
 
     def open_network_config(self):
