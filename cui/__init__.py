@@ -287,10 +287,10 @@ class Application(ApplicationHandler):
             # event was a key stroke
             key: str = str(event)
             if self.current_window == _MAIN:
-                if len(self.authorized_options) > 0:
-                    # user has successfully logged in
-                    if key == 'f4':
-                        self.open_main_menu()
+                # if len(self.authorized_options) > 0:
+                #     # user has successfully logged in
+                #     if key == 'f4':
+                #         self.open_main_menu()
                 if key in ['f2', 'f12', 'S' if self.debug else 'f12']:
                     self.login_body.focus_position = 0 if getuser() == '' else 1  # focus on passwd if user detected
                     if key != 'f2':
@@ -432,7 +432,7 @@ class Application(ApplicationHandler):
             if key in ['f10', 'Q']:
                 raise ExitMainLoop()
             elif key == 'f4' and len(self.authorized_options) > 0:
-                self.open_mainframe()
+                self.open_main_menu()
             elif key == 'f1' or key == 'c':
                 # self.change_colormode('dark' if self._current_colormode == 'light' else 'light')
                 self.switch_next_colormode()
