@@ -176,9 +176,9 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
                 if str(address.family) == 'AddressFamily.AF_INET':
                     rv.append(f"Interface: ")
                     rv.append(('reverse', f"{interface_name}"))
-                    rv.append(f"  Address: https://{address.address}:8080/")
+                    rv.append(f"  Address: http://{address.address}:8080/")
                     rv.append("\n")
-                    rv.append(f"  or https://{uname.node}:8080/")
+                    rv.append(f"  or http://{uname.node}:8080/")
                     rv.append("\n")
                     rv.append("\n")
                 else:
