@@ -12,6 +12,7 @@ import psutil
 import re
 from psutil._common import snicstats, snicaddr
 from socket import gethostbyname
+from util import get_first_ip_not_localhost
 
 
 # _PRODUCTIVE: bool = False
@@ -275,7 +276,7 @@ class DNSInfo(object):
 
     def write_config(self, resolv_conf: str = None, hostname_conf: str = None, hosts_conf: str = None) -> bool:
         """
-        Writes all properties to config file, usually /etc/resolv.conf, 
+        Writes all properties to config file, usually /etc/resolv.conf,
         /etc/hostname, /etc/hosts and /etc/sysconfig/network/config.
 
         :param resolv_conf: Filename to which the information should be written.
@@ -340,7 +341,7 @@ class DNSInfo(object):
             rv = False
 
         # update /etc/hosts
-        disabled = True
+        disabled = False
         if not disabled:
             if not hosts_conf:
                 hosts_conf = hosts_path
@@ -348,32 +349,32 @@ class DNSInfo(object):
                 if access(dirname(hosts_conf), W_OK):
                     with open(hosts_conf, 'a') as f:
                         f.close()
-            self.ip = gethostbyname(self.hostname)
             if self.ip != "":
-                if access(hosts_conf, W_OK):
-                    with open(hosts_conf, 'r') as f:
-                        memcopy: List[str] = f.readlines()
-                        f.close()
-                    with open(hosts_conf, 'w') as f:
-                        found: bool = False
-                        for i, line in enumerate(memcopy):
-                            grep_auto = re.findall(self.hostname, line)
-                            if len(grep_auto) > 0:
-                                memcopy[i] = "{self.get_hosts_line()}\n"
-                                found = True
-                                break
-                        if not found:
-                            memcopy.append("{self.get_hosts_line()}\n")
-                        f.write(''.join(memcopy))
+                self.ip = get_first_ip_not_localhost()
+            if access(hosts_conf, W_OK):
+                with open(hosts_conf, 'r') as f:
+                    memcopy: List[str] = f.readlines()
+                    f.close()
+                with open(hosts_conf, 'w') as f:
+                    found: bool = False
+                    for i, line in enumerate(memcopy):
+                        grep_auto = re.findall(self.hostname, line)
+                        if len(grep_auto) > 0:
+                            memcopy[i] = "{self.get_hosts_line()}\n"
+                            found = True
+                            break
+                    if not found:
+                        memcopy.append("{self.get_hosts_line()}\n")
+                    f.write(''.join(memcopy))
 
         return rv
 
-        def get_hosts_line(self) -> str:
-            rv: str = f"{self.ip}\t"
-            for dom in self.search:
-                rv += "{self.hostname}.{dom}\t"
-            rv += "{self.hostname}"
-            return rv
+    def get_hosts_line(self) -> str:
+        rv: str = f"{self.ip}\t"
+        for dom in self.search:
+            rv += "{self.hostname}.{dom}\t"
+        rv += "{self.hostname}"
+        return rv
 
 
 if __name__ == '__main__':

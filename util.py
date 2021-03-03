@@ -115,6 +115,22 @@ def get_os_release() -> Tuple[str, str]:
     return name.strip('"'), version.strip('"')
 
 
+def get_first_ip_not_localhost() -> str:
+    for ip in get_ip_list():
+        if not ip.strip().startswith('127.'):
+            return ip.strip()
+    return ""
+
+
+def get_ip_list() -> List[str]:
+    rv: List[str] = []
+    addr: psutil._common.snicaddr
+    for addr in psutil.net_if_addrs():
+        if str(addr.family) == "AddressFamily.AF_INET":
+            rv.append(addr.address)
+    return rv
+
+
 def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
     """
     Creates list of informations formatted in urwid stye.
