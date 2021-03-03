@@ -125,9 +125,11 @@ def get_first_ip_not_localhost() -> str:
 def get_ip_list() -> List[str]:
     rv: List[str] = []
     addr: psutil._common.snicaddr
-    for addr in psutil.net_if_addrs():
-        if str(addr.family) == "AddressFamily.AF_INET":
-            rv.append(addr.address)
+    addrs: Dict[str, psutil._common.snicaddr] = psutil.net_if_addrs()
+    for dev, addrlist in addrs.items():
+        for addr in addrlist:
+            if str(addr.family) == "AddressFamily.AF_INET":
+                rv.append(addr.address)
     return rv
 
 

@@ -341,39 +341,37 @@ class DNSInfo(object):
             rv = False
 
         # update /etc/hosts
-        disabled = False
-        if not disabled:
-            if not hosts_conf:
-                hosts_conf = hosts_path
-            if not exists(hosts_conf):
-                if access(dirname(hosts_conf), W_OK):
-                    with open(hosts_conf, 'a') as f:
-                        f.close()
-            if self.ip != "":
-                self.ip = get_first_ip_not_localhost()
-            if access(hosts_conf, W_OK):
-                with open(hosts_conf, 'r') as f:
-                    memcopy: List[str] = f.readlines()
+        if not hosts_conf:
+            hosts_conf = hosts_path
+        if not exists(hosts_conf):
+            if access(dirname(hosts_conf), W_OK):
+                with open(hosts_conf, 'a') as f:
                     f.close()
-                with open(hosts_conf, 'w') as f:
-                    found: bool = False
-                    for i, line in enumerate(memcopy):
-                        grep_auto = re.findall(self.hostname, line)
-                        if len(grep_auto) > 0:
-                            memcopy[i] = "{self.get_hosts_line()}\n"
-                            found = True
-                            break
-                    if not found:
-                        memcopy.append("{self.get_hosts_line()}\n")
-                    f.write(''.join(memcopy))
+        if self.ip == "":
+            self.ip = get_first_ip_not_localhost()
+        if access(hosts_conf, W_OK):
+            with open(hosts_conf, 'r') as f:
+                memcopy: List[str] = f.readlines()
+                f.close()
+            with open(hosts_conf, 'w') as f:
+                found: bool = False
+                for i, line in enumerate(memcopy):
+                    grep_auto = re.findall(self.hostname, line)
+                    if len(grep_auto) > 0:
+                        memcopy[i] = f"{self.get_hosts_line()}\n"
+                        found = True
+                        break
+                if not found:
+                    memcopy.append(f"{self.get_hosts_line()}\n")
+                f.write(''.join(memcopy))
 
         return rv
 
     def get_hosts_line(self) -> str:
         rv: str = f"{self.ip}\t"
-        for dom in self.search:
-            rv += "{self.hostname}.{dom}\t"
-        rv += "{self.hostname}"
+        for dom in self.search.split():
+            rv += f"{self.hostname}.{dom}\t"
+        rv += f"{self.hostname}"
         return rv
 
 
