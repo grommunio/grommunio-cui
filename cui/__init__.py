@@ -407,7 +407,7 @@ class Application(ApplicationHandler):
                     self.open_network_config()
 
             elif self.current_window == _LOG_VIEWER:
-                if key in ['meta f1', 'H']:
+                if key in ['ctrl f1', 'H']:
                     self.current_window = self.log_file_caller
                     self._body = self._log_file_caller_body
                     self.reset_layout()
@@ -423,9 +423,10 @@ class Application(ApplicationHandler):
                     self._hidden_pos = 0
 
             elif self.current_window == _UNSUPPORTED:
-                if key in ['ctrl d', 'esc', 'meta f1']:
+                if key in ['ctrl d', 'esc', 'ctrl f1', 'H']:
                     self.current_window = self.log_file_caller
                     self._body = self._log_file_caller_body
+                    log_finished = True
                     self.reset_layout()
 
             if key in ['f10', 'Q']:
@@ -435,7 +436,9 @@ class Application(ApplicationHandler):
             elif key == 'f1' or key == 'c':
                 # self.change_colormode('dark' if self._current_colormode == 'light' else 'light')
                 self.switch_next_colormode()
-            elif key in ['meta f1', 'H'] and self.current_window != _LOG_VIEWER and not log_finished:
+            elif key in ['ctrl f1', 'H'] \
+                    and self.current_window != _LOG_VIEWER and self.current_window != _UNSUPPORTED \
+                    and not log_finished:
                 # self.open_log_viewer('test', 10)
                 self.open_log_viewer('syslog', 200)
 
