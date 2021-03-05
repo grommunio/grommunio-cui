@@ -1054,16 +1054,17 @@ Prepares log file viewer widget and fills last lines of file content.
         :return: Pile with 3 Lines of Columns([Text("..."), Text(value)]) on readonly
                  or 3 Lines of Columns([Text("..."), Edit(""]) (with .edit_text = value set) if not readonly.
         """
+        offset = 25
         di = DeviceInfo(self.active_device if not self.active_device == 'None' else 'lo')
         cidr = sum(bin(int(x)).count('1') for x in di.netmask.strip().split('.'))
         ipaddr = f"{di.ipaddr}/{cidr}"
         ip = Columns([
-            AttrMap(Text('IP-Address'), 'MMI.selectable', 'MMI.focus'),
+            (offset, AttrMap(Text('IP-Address'), 'MMI.selectable', 'MMI.focus')),
             AttrMap(Text(ipaddr, wrap=ELLIPSIS), 'MMI.selectable', 'MMI.focus')
             if readonly else AttrMap(Edit('', wrap=ELLIPSIS), 'MMI.selectable', 'MMI.focus')
         ])
         gw = Columns([
-            AttrMap(Text('Gateway'), 'MMI.selectable', 'MMI.focus'),
+            (offset, AttrMap(Text('Gateway'), 'MMI.selectable', 'MMI.focus')),
             AttrMap(Text(di.gateway, wrap=ELLIPSIS), 'MMI.selectable', 'MMI.focus')
             if readonly else AttrMap(Edit('', wrap=ELLIPSIS), 'MMI.selectable', 'MMI.focus')
         ])
@@ -1083,24 +1084,25 @@ Prepares log file viewer widget and fills last lines of file content.
         :return: Pile with 4 Lines of Columns([Text("..."), Text(value)]) on readonly
                  or 4 Lines of Columns([Text("..."), Edit(""]) (with .edit_text = value set) if not readonly.
         """
+        offset = 25
         di = DNSInfo()
         prim = Columns([
-            AttrMap(Text('Primary Nameserver'), 'MMI.selectable', 'MMI.focus'),
+            (offset, AttrMap(Text('Primary Nameserver'), 'MMI.selectable', 'MMI.focus')),
             AttrMap(Text(di.primary, wrap=ELLIPSIS), 'MMI.selectable', 'MMI.focus')
             if readonly else AttrMap(Edit('', wrap=ELLIPSIS), 'MMI.selectable', 'MMI.focus')
         ])
         sec = Columns([
-            AttrMap(Text('Secondary Nameserver'), 'MMI.selectable', 'MMI.focus'),
+            (offset, AttrMap(Text('Secondary Nameserver'), 'MMI.selectable', 'MMI.focus')),
             AttrMap(Text(di.secondary, wrap=ELLIPSIS), 'MMI.selectable', 'MMI.focus')
             if readonly else AttrMap(Edit('', wrap=ELLIPSIS), 'MMI.selectable', 'MMI.focus')
         ])
         host = Columns([
-            AttrMap(Text('Hostname'), 'MMI.selectable', 'MMI.focus'),
+            (offset, AttrMap(Text('Hostname'), 'MMI.selectable', 'MMI.focus')),
             AttrMap(Text(di.hostname, wrap=ELLIPSIS), 'MMI.selectable', 'MMI.focus')
             if readonly else AttrMap(Edit('', wrap=ELLIPSIS), 'MMI.selectable', 'MMI.focus')
         ])
         search = Columns([
-            AttrMap(Text('Searchlist'), 'MMI.selectable', 'MMI.focus'),
+            (offset, AttrMap(Text('Searchlist'), 'MMI.selectable', 'MMI.focus')),
             AttrMap(Text(di.search, wrap=ELLIPSIS), 'MMI.selectable', 'MMI.focus')
             if readonly else AttrMap(Edit('', wrap=ELLIPSIS), 'MMI.selectable', 'MMI.focus')
         ])
