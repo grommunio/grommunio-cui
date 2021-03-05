@@ -221,8 +221,8 @@ class DNSInfo(object):
         if exists(config_path) and access(config_path, R_OK):
             with open(config_path, 'r') as f:
                 for line in f.readlines():
-                    grep_auto = re.findall('NETCONFIG_DNS_POLICY', line)
-                    if len(grep_auto) > 0:
+                    grep = re.findall('NETCONFIG_DNS_POLICY', line)
+                    if len(grep) > 0:
                         v = line.split('=')[1].strip()
                         splitchar: str
                         if v.find('"') >= 0:
@@ -359,8 +359,11 @@ class DNSInfo(object):
             with open(hosts_conf, 'w') as f:
                 found: bool = False
                 for i, line in enumerate(memcopy):
-                    grep_auto = re.findall(self.hostname, line)
-                    if len(grep_auto) > 0:
+                    grep_ip = re.findall(self.ip, line)
+                    if len(grep_ip) > 0:
+                        memcopy[i] = ""
+                    grep_hostname = re.findall(self.hostname, line)
+                    if len(grep_hostname) > 0:
                         memcopy[i] = f"{self.get_hosts_line()}\n"
                         found = True
                         break
