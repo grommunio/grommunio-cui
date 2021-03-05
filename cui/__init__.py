@@ -20,6 +20,9 @@ from util import authenticate_user, get_clockstring, get_palette, get_system_inf
 from urwid import AttrWrap, ExitMainLoop, Padding, Columns, Text, ListBox, Frame, LineBox, SimpleListWalker, MainLoop, \
     LEFT, CENTER, SPACE, Filler, Pile, Edit, Button, connect_signal, AttrMap, GridFlow, Overlay, Widget, Terminal, \
     SimpleFocusListWalker, set_encoding, MIDDLE, TOP, RadioButton, ListWalker, raw_display
+from systemd import journal
+import datetime as dt
+import time
 
 
 # print(sys.path)
@@ -258,7 +261,8 @@ class Application(ApplicationHandler):
             "If this is not that what you expected to see,",
             "You probably have insufficient permissions!?"
         ]
-        self.prepare_log_viewer('syslog', 200)
+        # self.prepare_log_viewer('gromox-http', 200)
+        self.prepare_log_viewer('NetworkManager', 200)
 
         # UNSUPPORTED shell
         self.prepare_unsupported_shell()
@@ -440,7 +444,8 @@ class Application(ApplicationHandler):
                     and self.current_window != _LOG_VIEWER and self.current_window != _UNSUPPORTED \
                     and not log_finished:
                 # self.open_log_viewer('test', 10)
-                self.open_log_viewer('syslog', 200)
+                # self.open_log_viewer('gromox-http', 200)
+                self.open_log_viewer('NetworkManager', 200)
 
         elif type(event) == tuple:
             # event is a mouse event in the form ('mouse press or release', button, column, line)
@@ -690,7 +695,7 @@ class Application(ApplicationHandler):
         ]))
         self.dns_config_menu.base_widget.focus_position = 2 if dns_state else 3
 
-    def prepare_log_viewer(self, logfile: str = 'syslog', lines: int = 0):
+    def prepare_log_viewer_old(self, logfile: str = 'syslog', lines: int = 0):
         """
 Prepares log file viewer widget and fills last lines of file content.
 
@@ -708,7 +713,34 @@ Prepares log file viewer widget and fills last lines of file content.
             # self.log_file_content = log.read_text('utf-8')[:lines * -1]
             if os.access(str(log), os.R_OK):
                 self.log_file_content = fast_tail(str(log.absolute()), lines)
+        self.log_viewer = LineBox(Pile([ScrollBar(Scrollable(Pile([Text(line) for line in self.log_file_content])))]))
 
+    def prepare_log_viewer(self, unit: str = 'syslog', lines: int = 0):
+        """
+Prepares log file viewer widget and fills last lines of file content.
+
+:param unit: The journal unit to be viewed.
+        """
+        unitname: str = unit if unit.strip().endswith('.service') else f"{unit}.service"
+
+        h = 60 * 60
+        d = 24 * h
+        sincetime = time.time() - 4 * d
+        r = journal.Reader()
+        r.this_boot()
+        #r.log_level(sj.LOG_INFO)
+        r.add_match(_SYSTEMD_UNIT=unitname)
+        r.seek_realtime(sincetime)
+        l = []
+        for entry in r:
+            if entry.get('__REALTIME_TIMESTAMP', '') == "":
+                continue
+            # ll = entry.get('NM_LOG_LEVEL', 'None')
+            l.append(f"""\
+{entry['__REALTIME_TIMESTAMP'].isoformat():19.19} {entry['_HOSTNAME']:8.8} \
+{entry['_SYSTEMD_UNIT'].split('.service')[0]:>10.10} {entry['_COMM']:>10.10}: {entry['MESSAGE']}\
+            """)
+        self.log_file_content = l[-lines:]
         self.log_viewer = LineBox(Pile([ScrollBar(Scrollable(Pile([Text(line) for line in self.log_file_content])))]))
 
     def check_dns_config(self, rb: RadioButton, state: bool):
@@ -727,15 +759,15 @@ Prepares log file viewer widget and fills last lines of file content.
                 dns = True
             self.open_dns_config(dns)
 
-    def open_log_viewer(self, logfile: str, lines: int = 0):
+    def open_log_viewer(self, unit: str, lines: int = 0):
         """
         Opens log file viewer.
         """
         self.log_file_caller = self.current_window
         self._log_file_caller_body = self._body
         self.current_window = _LOG_VIEWER
-        self.print(f"Log file viewer has to open file {logfile} ...")
-        self.prepare_log_viewer(logfile, lines)
+        self.print(f"Log file viewer has to open file {unit} ...")
+        self.prepare_log_viewer(unit, lines)
         self._body = self.log_viewer
         self._loop.widget = self._body
 
