@@ -11,6 +11,9 @@ import time
 from ordered_set import OrderedSet
 from psutil._common import snicstats, snicaddr
 from getpass import getuser
+
+from urwid.widget import ELLIPSIS
+
 from scroll import ScrollBar, Scrollable
 from button import GButton, GBoxButton
 from menu import MenuItem, MultiMenuItem
@@ -1056,13 +1059,13 @@ Prepares log file viewer widget and fills last lines of file content.
         ipaddr = f"{di.ipaddr}/{cidr}"
         ip = Columns([
             AttrMap(Text('IP-Address'), 'MMI.selectable', 'MMI.focus'),
-            AttrMap(Text(ipaddr), 'MMI.selectable', 'MMI.focus')
-            if readonly else AttrMap(Edit(''), 'MMI.selectable', 'MMI.focus')
+            AttrMap(Text(ipaddr, wrap=ELLIPSIS), 'MMI.selectable', 'MMI.focus')
+            if readonly else AttrMap(Edit('', wrap=ELLIPSIS), 'MMI.selectable', 'MMI.focus')
         ])
         gw = Columns([
             AttrMap(Text('Gateway'), 'MMI.selectable', 'MMI.focus'),
-            AttrMap(Text(di.gateway), 'MMI.selectable', 'MMI.focus')
-            if readonly else AttrMap(Edit(''), 'MMI.selectable', 'MMI.focus')
+            AttrMap(Text(di.gateway, wrap=ELLIPSIS), 'MMI.selectable', 'MMI.focus')
+            if readonly else AttrMap(Edit('', wrap=ELLIPSIS), 'MMI.selectable', 'MMI.focus')
         ])
         if not readonly:
             ip[1].edit_text = ipaddr
@@ -1083,23 +1086,23 @@ Prepares log file viewer widget and fills last lines of file content.
         di = DNSInfo()
         prim = Columns([
             AttrMap(Text('Primary Nameserver'), 'MMI.selectable', 'MMI.focus'),
-            AttrMap(Text(di.primary), 'MMI.selectable', 'MMI.focus')
-            if readonly else AttrMap(Edit(''), 'MMI.selectable', 'MMI.focus')
+            AttrMap(Text(di.primary, wrap=ELLIPSIS), 'MMI.selectable', 'MMI.focus')
+            if readonly else AttrMap(Edit('', wrap=ELLIPSIS), 'MMI.selectable', 'MMI.focus')
         ])
         sec = Columns([
             AttrMap(Text('Secondary Nameserver'), 'MMI.selectable', 'MMI.focus'),
-            AttrMap(Text(di.secondary), 'MMI.selectable', 'MMI.focus')
-            if readonly else AttrMap(Edit(''), 'MMI.selectable', 'MMI.focus')
+            AttrMap(Text(di.secondary, wrap=ELLIPSIS), 'MMI.selectable', 'MMI.focus')
+            if readonly else AttrMap(Edit('', wrap=ELLIPSIS), 'MMI.selectable', 'MMI.focus')
         ])
         host = Columns([
             AttrMap(Text('Hostname'), 'MMI.selectable', 'MMI.focus'),
-            AttrMap(Text(di.hostname), 'MMI.selectable', 'MMI.focus')
-            if readonly else AttrMap(Edit(''), 'MMI.selectable', 'MMI.focus')
+            AttrMap(Text(di.hostname, wrap=ELLIPSIS), 'MMI.selectable', 'MMI.focus')
+            if readonly else AttrMap(Edit('', wrap=ELLIPSIS), 'MMI.selectable', 'MMI.focus')
         ])
         search = Columns([
             AttrMap(Text('Searchlist'), 'MMI.selectable', 'MMI.focus'),
-            AttrMap(Text(di.search), 'MMI.selectable', 'MMI.focus')
-            if readonly else AttrMap(Edit(''), 'MMI.selectable', 'MMI.focus')
+            AttrMap(Text(di.search, wrap=ELLIPSIS), 'MMI.selectable', 'MMI.focus')
+            if readonly else AttrMap(Edit('', wrap=ELLIPSIS), 'MMI.selectable', 'MMI.focus')
         ])
         if not readonly:
             prim[1].edit_text = di.primary
