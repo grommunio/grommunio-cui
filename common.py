@@ -130,9 +130,12 @@ class DeviceInfo(object):
         ic = self.get_ifcfg_info()
         # s = self.get_if_stats()
         a = self.get_if_addr()
-        self.dhcp = ic.bootproto if ic.bootproto is not None else ''
-        self.ipaddr = a.address if a.address is not None else ''
-        self.netmask = a.netmask if a.netmask is not None else ''
+        self.dhcp = ic.bootproto.strip("'") if ic.bootproto else ''
+        self.ipaddr = a.address if a.address else ''
+        self.netmask = a.netmask if a.netmask else ''
+        if self.name == 'lo':
+            self.dhcp = ''
+            self.gateway = ''
 
     def write_config(self, filename: str = None) -> bool:
         """
@@ -163,11 +166,11 @@ class DeviceInfo(object):
             with open(filename, 'w') as f:
                 if self.dhcp.lower().find('dhcp') >= 0:
                     proto = "'dhcp'"
-                    f.write(f"BOOTPROTO={self.dhcp if self.dhcp is not None else proto}\n")
+                    f.write(f"BOOTPROTO='{self.dhcp if self.dhcp else proto}'\n")
                     f.write("STARTMODE='auto'\n")
                 elif self.dhcp.lower().find('static') >= 0:
                     proto = "static"
-                    f.write(f"BOOTPROTO={self.dhcp if self.dhcp is not None else proto}\n")
+                    f.write(f"BOOTPROTO={self.dhcp if self.dhcp else proto}\n")
                     f.write("STARTMODE=nfsroot\n")
                     ip = self.ipaddr if self.ipaddr.find('/') < 0 else self.ipaddr.split('/')[0].strip()
                     nm = ''

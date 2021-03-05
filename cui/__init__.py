@@ -1168,7 +1168,7 @@ Prepares log file viewer widget and fills last lines of file content.
             if_info = di.get_ifcfg_info()
             cidr = sum(bin(int(x)).count('1') for x in di.netmask.strip().split('.'))
             ipaddr = f"{di.ipaddr}/{cidr}"
-            gateway = f"{di.gateway}"
+            gateway = f"{di.gateway}" if if_name != 'lo' else ''
             if if_name == 'lo' or str(if_info.bootproto).lower() == 'static':
                 dhcp = "off"
             else:
