@@ -17,7 +17,8 @@ from menu import MenuItem, MultiMenuItem
 from interface import ApplicationHandler, WidgetDrawer
 from common import DeviceInfo, DNSInfo, ifcfginfo
 from util import authenticate_user, get_clockstring, get_palette, get_system_info, get_next_palette_name, fast_tail
-from urwid import AttrWrap, ExitMainLoop, Padding, Columns, Text, ListBox, Frame, LineBox, SimpleListWalker, MainLoop, \
+from urwid import AttrWrap, ExitMainLoop, Padding, Columns, RIGHT, Text, ListBox, Frame, LineBox, SimpleListWalker, \
+    MainLoop, \
     LEFT, CENTER, SPACE, Filler, Pile, Edit, Button, connect_signal, AttrMap, GridFlow, Overlay, Widget, Terminal, \
     SimpleFocusListWalker, set_encoding, MIDDLE, TOP, RadioButton, ListWalker, raw_display
 from systemd import journal
@@ -1051,14 +1052,11 @@ Prepares log file viewer widget and fills last lines of file content.
                  or 3 Lines of Columns([Text("..."), Edit(""]) (with .edit_text = value set) if not readonly.
         """
         di = DeviceInfo(self.active_device if not self.active_device == 'None' else 'lo')
+        cidr = sum(bin(int(x)).count('1') for x in di.netmask.strip().split('.'))
+        ipaddr = f"{di.ipaddr}/{cidr}"
         ip = Columns([
             AttrMap(Text('IP-Address'), 'MMI.selectable', 'MMI.focus'),
-            AttrMap(Text(di.ipaddr), 'MMI.selectable', 'MMI.focus')
-            if readonly else AttrMap(Edit(''), 'MMI.selectable', 'MMI.focus')
-        ])
-        nm = Columns([
-            AttrMap(Text('Netmask'), 'MMI.selectable', 'MMI.focus'),
-            AttrMap(Text(di.netmask), 'MMI.selectable', 'MMI.focus')
+            AttrMap(Text(ipaddr), 'MMI.selectable', 'MMI.focus')
             if readonly else AttrMap(Edit(''), 'MMI.selectable', 'MMI.focus')
         ])
         gw = Columns([
@@ -1067,10 +1065,9 @@ Prepares log file viewer widget and fills last lines of file content.
             if readonly else AttrMap(Edit(''), 'MMI.selectable', 'MMI.focus')
         ])
         if not readonly:
-            ip[1].edit_text = di.ipaddr
-            nm[1].edit_text = di.netmask
+            ip[1].edit_text = ipaddr
             gw[1].edit_text = di.gateway
-        return Pile([ip, nm, gw])
+        return Pile([ip, gw])
 
     @staticmethod
     def get_dns_config_info(readonly: bool = True) -> Pile:
@@ -1162,27 +1159,22 @@ Prepares log file viewer widget and fills last lines of file content.
         self.devices: List[str] = if_stats.keys()
         table_header = Columns([
             ('weight', 1, Text('Device')),
-            ('weight', 4, Columns([Text('DHCP'), Text('IP-Address'), Text('Netmask'), Text('Gateway')])),
+            ('weight', 3, Columns([Text('DHCP'), Text('IP-Address'), Text('Gateway')])),
         ])
         if_name: str
         for if_name in self.devices:
             id += 1
             di = DeviceInfo(if_name)
             if_info = di.get_ifcfg_info()
-            if_stat = di.get_if_stats()
-            if_addr = di.get_if_addr()
-            if str(if_info.bootproto).lower() == 'static':
-                dhcp = f"{if_info.bootproto}"
-                ipaddr = f"{str(if_info.ipaddr).split('/')[0]}"
-                netmask = f"{if_info.netmask}"
-                gateway = f"{if_info.gateway}"
+            cidr = sum(bin(int(x)).count('1') for x in di.netmask.strip().split('.'))
+            ipaddr = f"{di.ipaddr}/{cidr}"
+            gateway = f"{di.gateway}"
+            if if_name == 'lo' or str(if_info.bootproto).lower() == 'static':
+                dhcp = "off"
             else:
-                dhcp = f"{if_info.bootproto}"
-                ipaddr = f"{str(if_addr.address).split('/')[0]}"
-                netmask = f"{if_addr.netmask}"
-                gateway = f"{if_info.gateway}"
+                dhcp = "on"
             items[f'{id}) {if_name}'] = Columns([
-                Text(str(dhcp)), Text(str(ipaddr)), Text(str(netmask)), Text(str(gateway)),
+                Text(str(dhcp)), Text(str(ipaddr)), Text(str(gateway)),
             ])
         return table_header, items
 
