@@ -5,7 +5,7 @@ from pathlib import Path
 from pamela import authenticate, PAMError
 from typing import Any, Dict, List, Tuple, Union
 from datetime import datetime
-
+import ipaddress
 import platform
 import psutil
 import socket
@@ -167,23 +167,24 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
         boot_time_timestamp = psutil.boot_time()
         bt = datetime.fromtimestamp(boot_time_timestamp)
         rv += [
-            u"\n", "For further configuration you can use following URLs:", u"\n"
+            u"\n", "For further configuration, these URLs can be used:", u"\n"
         ]
         rv.append("\n")
+        rv.append(f"http://{uname.node}:8080/\n");
         for interface_name, interface_addresses in if_addrs.items():
             if interface_name in ['lo']:
                 continue
             for address in interface_addresses:
-                if address.family == socket.AF_INET:
-                    rv.append(f"Interface: ")
-                    rv.append(('reverse', f"{interface_name}"))
-                    rv.append(f"  Address: http://{address.address}:8080/")
-                    rv.append("\n")
-                    rv.append(f"  or http://{uname.node}:8080/")
-                    rv.append("\n")
-                    rv.append("\n")
-                else:
+                if address.family != socket.AF_INET6:
                     continue
+                adr = ipaddress.IPv6Address(address.address.split('%')[0])
+                if adr.is_link_local is True:
+                    continue
+                rv.append(f"http://[{address.address}]:8080/ (interface {interface_name})\n")
+            for address in interface_addresses:
+                if address.family != socket.AF_INET:
+                    continue
+                rv.append(f"http://{address.address}:8080/ (interface {interface_name})\n")
         rv.append(f"Boot Time: ")
         rv.append(('reverse', f'{bt.isoformat()}'))
         rv.append("\n")
