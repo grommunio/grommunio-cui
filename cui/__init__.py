@@ -84,8 +84,8 @@ class Application(ApplicationHandler):
         set_encoding('utf-8')
         self.screen = raw_display.Screen()
         self.old_termios = self.screen.tty_signal_keys()
-        undefined5 = ['undefined' for bla in range(0, 5)]
-        self.screen.tty_signal_keys(*undefined5)
+        self.blank_termios = ['undefined' for bla in range(0, 5)]
+        self.screen.tty_signal_keys(*self.blank_termios)
         self.text_header = (
             u"Welcome to grammm console user interface! UP / DOWN / PAGE UP / PAGE DOWN are scrolling.\n"
             u"<F1> switch to colormode '{colormode}', <F2> for Login{authorized_options} and <F12> for "
@@ -246,9 +246,6 @@ class Application(ApplicationHandler):
         self.network_menu_list = self.prepare_menu_list(items)
         self.network_menu = self.wrap_menu(self.network_menu_list)
 
-        # Terminal Dialog
-        self.prepare_terminal_dialog()
-
         # Password Dialog
         self.prepare_password_dialog()
 
@@ -268,9 +265,6 @@ class Application(ApplicationHandler):
         ]
         # self.prepare_log_viewer('gromox-http', 200)
         self.prepare_log_viewer('NetworkManager', 200)
-
-        # UNSUPPORTED shell
-        self.prepare_unsupported_shell()
 
         # some settings
         MultiMenuItem.application = self
@@ -509,27 +503,16 @@ class Application(ApplicationHandler):
 
     def open_terminal(self):
         """
-        Opens terminal dialog.
+        Jump to a shell prompt
         """
-        self.reset_layout()
-        self.current_window = _TERMINAL
-        self.prepare_terminal_dialog()
-        self.dialog(
-            header=Text(f"Terminal for user {getuser()}", align='center'),
-            body=self.terminal_frame, footer=self.terminal_footer, focus_part='body',
-            align='center', valign='middle', width=80, height=25
-        )
-        self.term.main_loop = self._loop
-
-    def open_unsupported(self):
-        """
-        Opens terminal dialog.
-        """
-        self.reset_layout()
-        self.current_window = _UNSUPPORTED
-        self.prepare_unsupported_shell()
-        self._body = self.unsupported_frame
-        self._loop.widget = self._body
+        self._loop.stop()
+        self.screen.tty_signal_keys(*self.old_termios)
+        print("\x1b[K")
+        print("\x1b[K \x1b[36m▼\x1b[0m To return to the CUI, issue the `exit` command.")
+        print("\x1b[J")
+        os.system("/bin/bash --login")
+        self.screen.tty_signal_keys(*self.blank_termios)
+        self._loop.start()
 
     def open_change_password(self):
         """
@@ -552,21 +535,6 @@ class Application(ApplicationHandler):
                 ('weight', 70, self.password),
             ]),
         )
-
-    def prepare_terminal_dialog(self):
-        self.terminal_footer = self.close_button_footer
-        self.term = Terminal(None)
-        self.terminal_frame = LineBox(
-            Pile([
-                ('weight', 70, self.term),
-            ]),
-        )
-
-    def prepare_unsupported_shell(self):
-        self.unsupported_term = Terminal(None, encoding='utf-8')
-        for w in self.unsupported_term.signals:
-            connect_signal(self.unsupported_term, w, lambda widget: self.listen_unsupported(w, widget))
-        self.unsupported_frame = LineBox(Pile([self.unsupported_term]))
 
     def prepare_device_config(self, selected: str = None):
         """
