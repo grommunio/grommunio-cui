@@ -1445,8 +1445,6 @@ Prepares log file viewer widget and fills last lines of file content.
 
 if __name__ == '__main__':
     set_encoding('utf-8')
-    # print(sys.argv)
-    time.sleep(2)
     _PRODUCTIVE = True
     if "--help" in sys.argv:
         print(f"Usage: {sys.argv[0]} [OPTIONS]")
