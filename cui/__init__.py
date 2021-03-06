@@ -18,7 +18,6 @@ from scroll import ScrollBar, Scrollable
 from button import GButton, GBoxButton
 from menu import MenuItem, MultiMenuItem
 from interface import ApplicationHandler, WidgetDrawer
-from common import DeviceInfo, DNSInfo, ifcfginfo
 from util import authenticate_user, get_clockstring, get_palette, get_system_info, get_next_palette_name, fast_tail
 from urwid import AttrWrap, ExitMainLoop, Padding, Columns, RIGHT, Text, ListBox, Frame, LineBox, SimpleListWalker, \
     MainLoop, \
@@ -217,7 +216,7 @@ class Application(ApplicationHandler):
             ]),
             '2) Network Configuration': Pile([
                 Text('Network Configuration', CENTER), Text(""),
-                Text('Here you can configure the Network. Set up the active device, configure IP address and DNS.')
+                Text('Here you can configure the Network. Set up the active device, configure IP addresses and DNS.')
             ]),
             '3) Terminal': Pile([
                 Text('Terminal', CENTER), Text(""),
@@ -228,35 +227,8 @@ class Application(ApplicationHandler):
         self.main_menu_list = self.prepare_menu_list(items)
         self.main_menu = self.wrap_menu(self.main_menu_list)
 
-        # Network Config Menu
-        items = {
-            '1) Device Configuration': Pile([
-                Text('Device Configuration', CENTER), Text(""),
-                Text('Here you can select your active device.')
-            ]),
-            '2) IP Configuration': Pile([
-                Text('IP Configuration', CENTER), Text(""),
-                Text('Here you can configure the IP Addresses etc. for the Network.')
-            ]),
-            '3) DNS Configuration': Pile([
-                Text('DNS Configuration', CENTER), Text(""),
-                Text('Configure Domain Name Server.')
-            ]),
-        }
-        self.network_menu_list = self.prepare_menu_list(items)
-        self.network_menu = self.wrap_menu(self.network_menu_list)
-
         # Password Dialog
         self.prepare_password_dialog()
-
-        # Device Config Menu
-        self.prepare_device_config()
-
-        # IP Config Menu
-        self.prepare_ip_config()
-
-        # DNS Config Menu
-        self.prepare_dns_config()
 
         # Log file viewer
         self.log_file_content: List[str] = [
@@ -347,67 +319,6 @@ class Application(ApplicationHandler):
                         self.open_terminal()
                 elif key == 'esc':
                     self.open_mainframe()
-
-            elif self.current_window == _NETWORK_CONFIG_MENU:
-                menu_selected: int = self.handle_standard_menu_behaviour(self.network_menu_list, key,
-                                                                         self.network_menu.base_widget.body[1])
-                if key.endswith('enter') or key in range(ord('1'), ord('9') + 1):
-                    if menu_selected == 1:
-                        self.open_device_config(self.active_device)
-                    elif menu_selected == 2:
-                        self.open_ip_config()
-                    elif menu_selected == 3:
-                        self.open_dns_config()
-                elif key == 'esc':
-                    self.open_main_menu()
-
-            elif self.current_window == _DEVICE_CONFIG:
-                self.handle_standard_tab_behaviour(key)
-                menu_selected = 0
-                if key.endswith('enter') or key in range(ord('1'), ord('9') + 1):
-                    if key.lower().find('cancel') > 0:
-                        self.open_network_config()
-                    elif key.lower().find('ok') > 0:
-                        self.active_device = self.get_pure_menu_name(
-                            self.device_config_menu_list[0].get_selected().label)
-                        self.open_network_config()
-                    elif key.lower().find('details') > 0:
-                        self.active_device = self.get_pure_menu_name(
-                            self.device_config_menu_list[0].get_selected().label)
-                        self.open_ip_config()
-                elif key == "multimenuitem  ":
-                    # self.maybe_menu_state = self.device_config_menu_list[0].get_selected_id()
-                    pass
-                elif key == 'esc':
-                    self.open_network_config()
-
-            elif self.current_window == _IP_CONFIG:
-                self.handle_standard_tab_behaviour(key)
-                menu_selected = 0
-                if key.endswith('enter') or key in range(ord('1'), ord('9') + 1):
-                    if key.lower().find('cancel') > 0:
-                        self.open_device_config(self.active_device)
-                    elif key.lower().find('apply') > 0:
-                        self.write_ip_config()
-                    elif key.lower().find('ok') > 0:
-                        self.write_ip_config()
-                        self.open_device_config(self.active_device)
-                elif key == 'esc':
-                    self.open_device_config(self.active_device)
-
-            elif self.current_window == _DNS_CONFIG:
-                self.handle_standard_tab_behaviour(key)
-                menu_selected = 0
-                if key.endswith('enter') or key in range(ord('1'), ord('9') + 1):
-                    if key.lower().find('cancel') > 0:
-                        self.open_network_config()
-                    elif key.lower().find('apply') > 0:
-                        self.write_dns_config()
-                    elif key.lower().find('ok') > 0:
-                        self.write_dns_config()
-                        self.open_network_config()
-                elif key == 'esc':
-                    self.open_network_config()
 
             elif self.current_window == _LOG_VIEWER:
                 if key in ['ctrl f1', 'H']:
@@ -536,138 +447,6 @@ class Application(ApplicationHandler):
             ]),
         )
 
-    def prepare_device_config(self, selected: str = None):
-        """
-        Prepares the device config dialog with selected device.
-
-        :param selected: The device to be selected.
-        """
-        th: Columns
-        th, items = self.get_device_config_info()
-        table_header = AttrMap(Filler(th, TOP), 'reverse')
-        self.device_config_menu_list: List[MultiMenuItem] = self.create_multi_menu_items(items, selected)
-        self.device_config_menu_listbox: ListBox[ListWalker] = self.create_multi_menu_listbox(
-            self.device_config_menu_list)
-        self.device_config_menu: LineBox = self.wrap_multi_menu_listbox(self.device_config_menu_listbox, table_header,
-                                                                        'Device Config Menu')
-
-    def open_device_config(self, selected: str = None):
-        """
-        Opens device config dialog with selected device.
-
-        :param selected: The device to be selected.
-        """
-        self.reset_layout()
-        self.current_window = _DEVICE_CONFIG
-        self.print("Device Config has to open ...")
-        self.prepare_device_config(selected)
-        self.dialog(
-            body=self.device_config_menu, footer=AttrMap(Columns([
-                ('weight', 50, Columns([self.toggle_button, self.details_button])),
-                ('weight', 30, Columns([self.ok_button, self.cancel_button])),
-            ]), 'buttonbar'), focus_part='body',
-            align=CENTER, valign=MIDDLE, width=130, height=15
-        )
-        self.current_menu_state = self.device_config_menu_list[0].get_selected_id()
-
-    def prepare_ip_config(self, dhcp_state: bool = None):
-        """
-        Prepares ip config dialog with dhcp or static set.
-
-        :param dhcp_state: DHCP is on if True, STATIC if false
-        """
-        device: str = self.active_device
-        if self.active_device == 'None':
-            device = 'lo'
-        grp = []
-        th = Text(f"IP configuration of {device}")
-        di = DeviceInfo(device)
-        if dhcp_state is None:
-            dhcp_state = True
-            if di.dhcp.lower().find('dhcp') < 0:
-                dhcp_state = False
-        dhcp = RadioButton(grp, "Configure IP Address automatically (DHCP)", dhcp_state, self.check_ip_config)
-        static = RadioButton(grp, "Configure IP Address manually (STATIC)", not dhcp_state, self.check_ip_config)
-        table_header = AttrMap(Filler(th, TOP), 'reverse')
-        # self.ip_config_menu_list: List[RadioButton] = grp
-        self.ip_config_menu_list: List[RadioButton] = [
-            AttrMap(dhcp, 'MMI.selectable', 'MMI.focus'), AttrMap(static, 'MMI.selectable', 'MMI.focus')
-        ]
-        self.ip_config_menu_listbox: ListBox[ListWalker] = ListBox(SimpleFocusListWalker(self.ip_config_menu_list))
-        self.ip_config_menu_content = self.get_ip_config_info(dhcp_state)
-        self.ip_config_menu: LineBox = LineBox(Pile([
-            (3, AttrMap(Filler(Text('IP Config Menu', CENTER), TOP), 'body')),
-            (1, table_header),
-            (2, AttrMap(Columns([self.ip_config_menu_listbox]), 'MMI.selectable')),
-            AttrMap(Filler(self.ip_config_menu_content, TOP), 'MMI.selectable'),
-        ]))
-        self.ip_config_menu.base_widget.focus_position = 2 if dhcp_state else 3
-
-    def check_ip_config(self, rb: RadioButton, state: bool):
-        """
-        Checks currently selected menu item and reopens ip config dialog.
-        This method is always called if state is switching between dhcp and static.
-
-        :param rb: The RadioButton that is calling.
-        :param state: If rb is set or unset.
-        """
-        if state:
-            dhcp: bool
-            if str(rb.label).lower().find('dhcp') < 0:
-                dhcp = False
-            else:
-                dhcp = True
-            self.open_ip_config(dhcp)
-
-    def open_ip_config(self, dhcp_state: bool = None):
-        """
-        Opens ip config dialog with dhcp or static set.
-
-        :param dhcp_state: DHCP is on if True, STATIC if false
-        """
-        self.reset_layout()
-        self.current_window = _IP_CONFIG
-        self.print("IP Config has to open ...")
-        self.prepare_ip_config(dhcp_state)
-        self.dialog(
-            body=self.ip_config_menu, footer=AttrMap(Columns([
-                ('weight', 50, Columns([self.toggle_button, self.apply_button])),
-                ('weight', 30, Columns([self.ok_button, self.cancel_button]))
-            ]), 'buttonbar'), focus_part='body',
-            align=CENTER, valign=MIDDLE, width=80, height=16
-        )
-        # self.current_menu_state = self.ip_config_menu_list[0].get_selected_id()
-
-    def prepare_dns_config(self, dns_state: bool = None):
-        """
-        Prepares DNS config dialog with auto or manually set.
-
-        :param dns_state: DNS auto is on if True, off if false
-        """
-        grp = []
-        th = Text("DNS configuration")
-        di = DNSInfo()
-        if dns_state is None:
-            dns_state = True
-            if not di.auto:
-                dns_state = False
-        auto = RadioButton(grp, "Obtain DNS IP Address and hostname automatically, ", dns_state, self.check_dns_config)
-        dns = RadioButton(grp, "or use following DNS and host informations.", not dns_state, self.check_dns_config)
-        table_header = AttrMap(Filler(th, TOP), 'reverse')
-        # self.dns_config_menu_list: List[RadioButton] = grp
-        self.dns_config_menu_list: List[RadioButton] = [
-            AttrMap(auto, 'MMI.selectable', 'MMI.focus'), AttrMap(dns, 'MMI.selectable', 'MMI.focus')
-        ]
-        self.dns_config_menu_listbox: ListBox[ListWalker] = ListBox(SimpleFocusListWalker(self.dns_config_menu_list))
-        self.dns_config_menu_content = self.get_dns_config_info(dns_state)
-        self.dns_config_menu: LineBox = LineBox(Pile([
-            (3, AttrMap(Filler(Text('DNS Config Menu', CENTER), TOP), 'body')),
-            (1, table_header),
-            (2, AttrMap(Columns([self.dns_config_menu_listbox]), 'MMI.selectable')),
-            AttrMap(Filler(self.dns_config_menu_content, TOP), 'MMI.selectable'),
-        ]))
-        self.dns_config_menu.base_widget.focus_position = 2 if dns_state else 3
-
     def prepare_log_viewer_old(self, logfile: str = 'syslog', lines: int = 0):
         """
 Prepares log file viewer widget and fills last lines of file content.
@@ -716,22 +495,6 @@ Prepares log file viewer widget and fills last lines of file content.
         self.log_file_content = l[-lines:]
         self.log_viewer = LineBox(Pile([ScrollBar(Scrollable(Pile([Text(line) for line in self.log_file_content])))]))
 
-    def check_dns_config(self, rb: RadioButton, state: bool):
-        """
-        Checks currently selected menu item and reopens dns config dialog.
-        This method is always called if state is switching between DNS auto and manually.
-
-        :param rb: The RadioButton that is calling.
-        :param state: If rb is set or unset.
-        """
-        if state:
-            dns: bool
-            if str(rb.label).lower().find('auto') < 0:
-                dns = False
-            else:
-                dns = True
-            self.open_dns_config(dns)
-
     def open_log_viewer(self, unit: str, lines: int = 0):
         """
         Opens log file viewer.
@@ -744,31 +507,15 @@ Prepares log file viewer widget and fills last lines of file content.
         self._body = self.log_viewer
         self._loop.widget = self._body
 
-    def open_dns_config(self, dns_state: bool = None):
-        """
-        Opens DNS config dialog.
-        """
-        self.reset_layout()
-        self.current_window = _DNS_CONFIG
-        self.print("DNS Config has to open ...")
-        self.prepare_dns_config(dns_state)
-        self.dialog(
-            body=self.dns_config_menu, footer=AttrMap(Columns([
-                ('weight', 50, Columns([self.toggle_button, self.apply_button])),
-                ('weight', 30, Columns([self.ok_button, self.cancel_button]))
-            ]), 'buttonbar'), focus_part='body',
-            align=CENTER, valign=MIDDLE, width=80, height=17
-        )
-
     def open_network_config(self):
-        """
-        Opens network config menu.
-        """
-        self.reset_layout()
-        self.print("Enter network config!")
-        self.current_window = _NETWORK_CONFIG_MENU
-        self._body = self.network_menu
-        self._loop.widget = self._body
+        self._loop.stop()
+        self.screen.tty_signal_keys(*self.old_termios)
+        print("\x1b[K")
+        print("\x1b[K \x1b[36m▼\x1b[0m Please wait while `yast2 lan` is being run.")
+        print("\x1b[J")
+        os.system("yast2 lan")
+        self.screen.tty_signal_keys(*self.blank_termios)
+        self._loop.start()
 
     def open_main_menu(self):
         """
@@ -1013,145 +760,6 @@ Prepares log file viewer widget and fills last lines of file content.
             AttrMap(Columns([listbox]), 'MMI.selectable'),
         ]))
 
-    def get_ip_config_info(self, readonly: bool = True) -> Pile:
-        """
-        Returns pile filled with ip config info area. The area containing IP-address, Netmask and Gateway.
-        The Fields are readonly by default, usually dhcp mode. In the other case editable Edit fields will be returned
-        instead.
-
-        :param readonly: The mode the area will be displayed.
-        :return: Pile with 3 Lines of Columns([Text("..."), Text(value)]) on readonly
-                 or 3 Lines of Columns([Text("..."), Edit(""]) (with .edit_text = value set) if not readonly.
-        """
-        offset = 25
-        di = DeviceInfo(self.active_device if not self.active_device == 'None' else 'lo')
-        cidr = sum(bin(int(x)).count('1') for x in di.netmask.strip().split('.'))
-        ipaddr = f"{di.ipaddr}/{cidr}"
-        ip = Columns([
-            (offset, AttrMap(Text('IP-Address'), 'MMI.selectable', 'MMI.focus')),
-            AttrMap(Text(ipaddr, wrap=ELLIPSIS), 'MMI.selectable', 'MMI.focus')
-            if readonly else AttrMap(Edit('', wrap=ELLIPSIS), 'MMI.selectable', 'MMI.focus')
-        ])
-        gw = Columns([
-            (offset, AttrMap(Text('Gateway'), 'MMI.selectable', 'MMI.focus')),
-            AttrMap(Text(di.gateway, wrap=ELLIPSIS), 'MMI.selectable', 'MMI.focus')
-            if readonly else AttrMap(Edit('', wrap=ELLIPSIS), 'MMI.selectable', 'MMI.focus')
-        ])
-        if not readonly:
-            ip[1].edit_text = ipaddr
-            gw[1].edit_text = di.gateway
-        return Pile([ip, gw])
-
-    @staticmethod
-    def get_dns_config_info(readonly: bool = True) -> Pile:
-        """
-        Returns pile filled with dns config info area. The area containing primary and secondary nameservers, gateway
-        and DNS suffixes. The fields are readonly by default, usually auto mode. In the other case editable Edit
-        fields will be returned instead.
-
-        :param readonly: The mode the area will be displayed.
-        :return: Pile with 4 Lines of Columns([Text("..."), Text(value)]) on readonly
-                 or 4 Lines of Columns([Text("..."), Edit(""]) (with .edit_text = value set) if not readonly.
-        """
-        offset = 25
-        di = DNSInfo()
-        prim = Columns([
-            (offset, AttrMap(Text('Primary Nameserver'), 'MMI.selectable', 'MMI.focus')),
-            AttrMap(Text(di.primary, wrap=ELLIPSIS), 'MMI.selectable', 'MMI.focus')
-            if readonly else AttrMap(Edit('', wrap=ELLIPSIS), 'MMI.selectable', 'MMI.focus')
-        ])
-        sec = Columns([
-            (offset, AttrMap(Text('Secondary Nameserver'), 'MMI.selectable', 'MMI.focus')),
-            AttrMap(Text(di.secondary, wrap=ELLIPSIS), 'MMI.selectable', 'MMI.focus')
-            if readonly else AttrMap(Edit('', wrap=ELLIPSIS), 'MMI.selectable', 'MMI.focus')
-        ])
-        host = Columns([
-            (offset, AttrMap(Text('Hostname'), 'MMI.selectable', 'MMI.focus')),
-            AttrMap(Text(di.hostname, wrap=ELLIPSIS), 'MMI.selectable', 'MMI.focus')
-            if readonly else AttrMap(Edit('', wrap=ELLIPSIS), 'MMI.selectable', 'MMI.focus')
-        ])
-        search = Columns([
-            (offset, AttrMap(Text('Searchlist'), 'MMI.selectable', 'MMI.focus')),
-            AttrMap(Text(di.search, wrap=ELLIPSIS), 'MMI.selectable', 'MMI.focus')
-            if readonly else AttrMap(Edit('', wrap=ELLIPSIS), 'MMI.selectable', 'MMI.focus')
-        ])
-        if not readonly:
-            prim[1].edit_text = di.primary
-            sec[1].edit_text = di.secondary
-            host[1].edit_text = di.hostname
-            search[1].edit_text = di.search
-        return Pile([prim, sec, host, search])
-
-    def get_device_config_info_dynamic(self) -> Tuple[Columns, Dict[str, Columns]]:
-        """TODO: The formatting is still completely wrong. Solve!"""
-        items = {}
-        id: int = 0
-        if_info: ifcfginfo
-        if_stat: snicstats
-        if_stats = psutil.net_if_stats()
-        self.devices: List[str] = if_stats.keys()
-        header_fields: OrderedSet[str] = OrderedSet(['bootproto', 'ipaddr', 'netmask', 'gateway'])
-        fieldsizes: Dict[str, int] = {'bootproto': 1, 'ipaddr': 1, 'netmask': 1, 'gateway': 1}
-        for dev in self.devices:
-            di = DeviceInfo(dev)
-            if_stat = di.get_if_stats()
-            for f in if_stat._fields:
-                header_fields.add(f)
-        for dev in self.devices:
-            id += 1
-            di = DeviceInfo(dev)
-            if_info = di.get_if_stats()
-            cols = []
-            for f in header_fields:
-                v = f"{getattr(if_info, f, '')}"
-                item = Text(v)
-                size = len(v)
-                fieldsizes[f] = size if fieldsizes.get(f, 0) <= size else fieldsizes.get(f, 0)
-                cols.append(('weight', size, item))
-            items[f"{id}) {dev}"] = Columns(cols)
-        table_header = Columns([
-            ('weight', 1, Text('Device')),
-            ('weight', len(header_fields),
-            Columns([('weight', fieldsizes.get(t, 1), Text(t.title())) for t in header_fields])),
-            # ('weight', 4, Columns([Text('Uplink'), Text('Duplex'), Text('Speed'), Text('MTU')])),
-        ])
-        return table_header, items
-
-    def get_device_config_info(self) -> Tuple[Columns, Dict[str, Columns]]:
-        """
-        Returns a tuple of first columns as table_header and second a dictionary with labels as keys and the content
-        columns as values.
-
-        :return: The tuple containing first the table header and second the items as Dict.
-        """
-        items = {}
-        id: int = 0
-        if_info: ifcfginfo
-        if_stat: snicstats
-        if_addr: snicaddr
-        if_stats = psutil.net_if_stats()
-        self.devices: List[str] = if_stats.keys()
-        table_header = Columns([
-            ('weight', 1, Text('Device')),
-            ('weight', 3, Columns([Text('DHCP'), Text('IP-Address'), Text('Gateway')])),
-        ])
-        if_name: str
-        for if_name in self.devices:
-            id += 1
-            di = DeviceInfo(if_name)
-            if_info = di.get_ifcfg_info()
-            cidr = sum(bin(int(x)).count('1') for x in di.netmask.strip().split('.'))
-            ipaddr = f"{di.ipaddr}/{cidr}"
-            gateway = f"{di.gateway}" if if_name != 'lo' else ''
-            if if_name == 'lo' or str(if_info.bootproto).lower() == 'static':
-                dhcp = "off"
-            else:
-                dhcp = "on"
-            items[f'{id}) {if_name}'] = Columns([
-                Text(str(dhcp)), Text(str(ipaddr)), Text(str(gateway)),
-            ])
-        return table_header, items
-
     def print(self, string='', align='left'):
         """
         Prints a string to the console UI
@@ -1353,50 +961,6 @@ Prepares log file viewer widget and fills last lines of file content.
         )
 
         self._loop.widget = w
-
-    def write_ip_config(self):
-        """
-        Writes down ip config if apply or ok is being done.
-        """
-        di = DeviceInfo(self.active_device)
-        if self.ip_config_menu.base_widget[2][0].body[0].base_widget.state:
-            di.dhcp = "'dhcp'"
-            di.ipaddr = self.ip_config_menu.base_widget[3][0][1].get_text()[0]
-            di.netmask = self.ip_config_menu.base_widget[3][1][1].get_text()[0]
-            di.gateway = self.ip_config_menu.base_widget[3][2][1].get_text()[0]
-        else:
-            di.dhcp = 'static'
-            di.ipaddr = self.ip_config_menu.base_widget[3][0][1].edit_text
-            di.netmask = self.ip_config_menu.base_widget[3][1][1].edit_text
-            di.gateway = self.ip_config_menu.base_widget[3][2][1].edit_text
-        if self.check_config_write(di):
-            self.restart_network_service()
-
-    def write_dns_config(self):
-        """
-        Writes down dns config if apply or ok is being done.
-        """
-        di = DNSInfo()
-        if self.dns_config_menu.base_widget[2][0].body[0].base_widget.state:
-            di.auto = True
-            di.primary = self.dns_config_menu.base_widget[3][0][1].get_text()[0]
-            di.secondary = self.dns_config_menu.base_widget[3][1][1].get_text()[0]
-            di.hostname = self.dns_config_menu.base_widget[3][2][1].get_text()[0]
-        else:
-            di.auto = False
-            di.primary = self.dns_config_menu.base_widget[3][0][1].edit_text
-            di.secondary = self.dns_config_menu.base_widget[3][1][1].edit_text
-            di.hostname = self.dns_config_menu.base_widget[3][2][1].edit_text
-        self.check_config_write(di)
-
-    def restart_network_service(self):
-        msg: List[str] = ["Network restartet "]
-        if os.system('systemctl restart network') == 0:
-            msg += ["successfully"]
-        else:
-            msg += ["without success"]
-        msg += ['!']
-        self.print(''.join(msg))
 
     def check_config_write(self, di) -> bool:
         title: str = "Success on writing!"
