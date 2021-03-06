@@ -8,6 +8,7 @@ from datetime import datetime
 
 import platform
 import psutil
+import socket
 
 
 _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
@@ -128,7 +129,7 @@ def get_ip_list() -> List[str]:
     addrs: Dict[str, psutil._common.snicaddr] = psutil.net_if_addrs()
     for dev, addrlist in addrs.items():
         for addr in addrlist:
-            if str(addr.family) == "AddressFamily.AF_INET":
+            if addr.family == socket.AF_INET:
                 rv.append(addr.address)
     return rv
 
@@ -173,7 +174,7 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
             if interface_name in ['lo']:
                 continue
             for address in interface_addresses:
-                if str(address.family) == 'AddressFamily.AF_INET':
+                if address.family == socket.AF_INET:
                     rv.append(f"Interface: ")
                     rv.append(('reverse', f"{interface_name}"))
                     rv.append(f"  Address: http://{address.address}:8080/")

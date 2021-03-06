@@ -10,8 +10,8 @@ from typing import Dict, List
 import netifaces
 import psutil
 import re
+import socket
 from psutil._common import snicstats, snicaddr
-from socket import gethostbyname
 from util import get_first_ip_not_localhost
 
 
@@ -83,7 +83,7 @@ class DeviceInfo(object):
             return snicaddr(None, None, None, None, None)
         addr: snicaddr
         for addr in if_addrs.get(self.name):
-            if str(addr.family) == 'AddressFamily.AF_INET':
+            if addr.family == socket.AF_INET:
                 return addr
         return snicaddr(None, None, None, None, None)
 
