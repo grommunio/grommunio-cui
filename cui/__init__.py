@@ -83,6 +83,7 @@ class Application(ApplicationHandler):
         # MAIN Page
         set_encoding('utf-8')
         self.screen = raw_display.Screen()
+        self.old_termios = self.screen.tty_signal_keys()
         undefined5 = ['undefined' for bla in range(0, 5)]
         self.screen.tty_signal_keys(*undefined5)
         self.text_header = (
@@ -1327,6 +1328,8 @@ Prepares log file viewer widget and fills last lines of file content.
         Starts the console UI
         """
         self._loop.run()
+        if self.old_termios is not None:
+            self.screen.tty_signal_keys(*self.old_termios)
 
     def dialog(self, body: Widget = None, header: Widget = None, footer: Widget = None, focus_part: str = None,
                align: str = CENTER, width: int = 40, valign: str = MIDDLE, height: int = 10):
