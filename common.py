@@ -104,10 +104,14 @@ class DeviceInfo(object):
                     confs['gateway'] = line.split('default ')[1].strip().split(' ')[0]
                     self.gateway = confs.get('gateway')
         else:
+            confs['gateway'] = ''
             if len(netifaces.gateways()['default']) > 0:
-                confs['gateway'] = netifaces.gateways()['default'][netifaces.AF_INET][0]
-            else:
-                confs['gateway'] = ''
+                if netifaces.gateways()['default'].get(netifaces.AF_INET):
+                    if len(netifaces.gateways()['default'].get(netifaces.AF_INET)) > 0:
+                        confs['gateway'] = netifaces.gateways()['default'][netifaces.AF_INET][0]
+                elif netifaces.gateways()['default'].get(netifaces.AF_INET6):
+                    if len(netifaces.gateways()['default'].get(netifaces.AF_INET6)) > 0:
+                        confs['gateway'] = netifaces.gateways()['default'][netifaces.AF_INET6][0]
             self.gateway = confs.get('gateway')
         if exists(f"{ifcfg_path}/ifcfg-{self.name}") and access(f"{ifcfg_path}/ifcfg-{self.name}", R_OK):
             with open(f"{ifcfg_path}/ifcfg-{self.name}", "r") as f:
