@@ -6,3 +6,4 @@ venv/
 test.*
 bla.*
 *.swp
+get-pip.py
