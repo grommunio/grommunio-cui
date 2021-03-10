@@ -11,9 +11,6 @@ import time
 from ordered_set import OrderedSet
 from psutil._common import snicstats, snicaddr
 from getpass import getuser
-
-from urwid.widget import ELLIPSIS
-
 from scroll import ScrollBar, Scrollable
 from button import GButton, GBoxButton
 from menu import MenuItem, MultiMenuItem
