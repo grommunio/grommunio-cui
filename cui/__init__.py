@@ -8,7 +8,6 @@ from typing import Any, List, Tuple, Dict
 import psutil
 import os
 import time
-from ordered_set import OrderedSet
 from psutil._common import snicstats, snicaddr
 from getpass import getuser
 from scroll import ScrollBar, Scrollable

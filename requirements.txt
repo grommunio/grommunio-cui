@@ -1,4 +1,3 @@
-ordered_set>=3.1.1
 pamela>=1.0.0
 psutil>=5.4.8
 systemd>=0.16.1
