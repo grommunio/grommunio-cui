@@ -214,7 +214,11 @@ class Application(ApplicationHandler):
                 Text('Network Configuration', CENTER), Text(""),
                 Text('Here you can configure the Network. Set up the active device, configure IP addresses and DNS.')
             ]),
-            '3) Terminal': Pile([
+            '3) grammm setup wizard': Pile([
+                Text('Setup Wizard', CENTER), Text(""),
+                Text('Use this for the initial creation of the SQL database and TLS certificates.')
+            ]),
+            '4) Terminal': Pile([
                 Text('Terminal', CENTER), Text(""),
                 # Text('Starts Terminal and closes everything else.'),
                 Text('Starts Terminal in a sub window.')
@@ -312,6 +316,8 @@ class Application(ApplicationHandler):
                     elif menu_selected == 2:
                         self.open_network_config()
                     elif menu_selected == 3:
+                        self.open_setup_wizard()
+                    elif menu_selected == 4:
                         self.open_terminal()
                 elif key == 'esc':
                     self.open_mainframe()
@@ -510,6 +516,13 @@ Prepares log file viewer widget and fills last lines of file content.
         print("\x1b[K \x1b[36m▼\x1b[0m Please wait while `yast2 lan` is being run.")
         print("\x1b[J")
         os.system("yast2 lan")
+        self.screen.tty_signal_keys(*self.blank_termios)
+        self._loop.start()
+
+    def open_setup_wizard(self):
+        self._loop.stop()
+        self.screen.tty_signal_keys(*self.old_termios)
+        os.system("/usr/sbin/grammm-setup")
         self.screen.tty_signal_keys(*self.blank_termios)
         self._loop.start()
 
