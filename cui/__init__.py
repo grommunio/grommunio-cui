@@ -423,7 +423,9 @@ class Application(ApplicationHandler):
         print("\x1b[K")
         print("\x1b[K \x1b[36m▼\x1b[0m To return to the CUI, issue the `exit` command.")
         print("\x1b[J")
-        os.system("/bin/bash --login")
+        # We have no environment, and so need su instead of just bash to launch
+        # a proper PAM session and set $HOME, etc.
+        os.system("/usr/bin/su -l")
         self.screen.tty_signal_keys(*self.blank_termios)
         self._loop.start()
 
