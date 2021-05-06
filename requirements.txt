@@ -1,4 +1,4 @@
 pamela>=1.0.0
 psutil>=5.4.8
-systemd>=234
+systemd-python>=234
 urwid>=2.0.1
