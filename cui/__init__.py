@@ -16,9 +16,9 @@ from menu import MenuItem, MultiMenuItem
 from interface import ApplicationHandler, WidgetDrawer
 from util import authenticate_user, get_clockstring, get_palette, get_system_info, get_next_palette_name, fast_tail
 from urwid import AttrWrap, ExitMainLoop, Padding, Columns, RIGHT, Text, ListBox, Frame, LineBox, SimpleListWalker, \
-    MainLoop, \
-    LEFT, CENTER, SPACE, Filler, Pile, Edit, Button, connect_signal, AttrMap, GridFlow, Overlay, Widget, Terminal, \
-    SimpleFocusListWalker, set_encoding, MIDDLE, TOP, RadioButton, ListWalker, raw_display
+    MainLoop, LEFT, CENTER, SPACE, Filler, Pile, Edit, Button, connect_signal, AttrMap, GridFlow, Overlay, Widget, \
+    Terminal, SimpleFocusListWalker, set_encoding, MIDDLE, TOP, RadioButton, ListWalker, raw_display, curses_display
+import urwid
 from systemd import journal
 import datetime as dt
 import time
@@ -77,7 +77,8 @@ class Application(ApplicationHandler):
     def __init__(self):
         # MAIN Page
         set_encoding('utf-8')
-        self.screen = raw_display.Screen()
+        # self.screen = raw_display.Screen()
+        self.screen = curses_display.Screen()
         self.old_termios = self.screen.tty_signal_keys()
         self.blank_termios = ['undefined' for bla in range(0, 5)]
         self.screen.tty_signal_keys(*self.blank_termios)
@@ -119,10 +120,11 @@ class Application(ApplicationHandler):
         self._loop = MainLoop(
             self._body,
             get_palette(self._current_colormode),
-            unhandled_input=self.handle_event
+            unhandled_input=self.handle_event,
+            screen=self.screen
         )
         self._loop.set_alarm_in(1, self.update_clock)
-        self._loop.screen.set_terminal_properties(colors=256)
+        # self._loop.screen.set_terminal_properties(colors=256)
 
         # Login Dialog
         self.login_header = AttrMap(Text(('header', 'Please Login'), align='center'), 'header')
