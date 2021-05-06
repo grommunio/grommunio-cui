@@ -77,8 +77,7 @@ class Application(ApplicationHandler):
     def __init__(self):
         # MAIN Page
         set_encoding('utf-8')
-        # self.screen = raw_display.Screen()
-        self.screen = curses_display.Screen()
+        self.screen = raw_display.Screen()
         self.old_termios = self.screen.tty_signal_keys()
         self.blank_termios = ['undefined' for bla in range(0, 5)]
         self.screen.tty_signal_keys(*self.blank_termios)
@@ -121,7 +120,8 @@ class Application(ApplicationHandler):
             self._body,
             get_palette(self._current_colormode),
             unhandled_input=self.handle_event,
-            screen=self.screen
+            screen=self.screen,
+            handle_mouse=False
         )
         self._loop.set_alarm_in(1, self.update_clock)
         # self._loop.screen.set_terminal_properties(colors=256)
