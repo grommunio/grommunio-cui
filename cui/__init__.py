@@ -558,8 +558,10 @@ Prepares log file viewer widget and fills last lines of file content.
         """
         Checks login data and switch to authenticate on if successful.
         """
-        msg = f"checking user {self.user_edit.get_edit_text()} with pass {self.pass_edit.get_edit_text()} ..."
-        msg += f"activated by {w}!"
+        if self.user_edit.get_edit_text() != getuser() and os.getegid() != 0:
+            self.message_box("You must have root privileges if you want to use another user!", height=10)
+            return
+        msg = f"checking user {self.user_edit.get_edit_text()} with pass ***** ..."
         if self.current_window == _LOGIN:
             if authenticate_user(self.user_edit.get_edit_text(), self.pass_edit.get_edit_text()):
                 self.open_main_menu()
