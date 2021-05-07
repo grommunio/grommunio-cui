@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # SPDX-FileCopyrightText: 2021 grammm GmbH
+import subprocess
 import sys
 from asyncio.events import AbstractEventLoop
 from pathlib import Path
@@ -8,6 +9,8 @@ from typing import Any, List, Tuple, Dict
 import psutil
 import os
 import time
+
+import yaml
 from psutil._common import snicstats, snicaddr
 from getpass import getuser
 from scroll import ScrollBar, Scrollable
@@ -66,6 +69,8 @@ class Application(ApplicationHandler):
     maybe_menu_state: int = -1
     active_device: str = 'lo'
     active_ips: Dict[str, List[Tuple[str, str, str, str]]] = {}
+    config: Dict[str, Any] = {}
+    log_units: Dict[str, str] = {}
 
     # The default color palette
     _current_colormode: str = 'light'
@@ -81,13 +86,20 @@ class Application(ApplicationHandler):
         self.old_termios = self.screen.tty_signal_keys()
         self.blank_termios = ['undefined' for bla in range(0, 5)]
         self.screen.tty_signal_keys(*self.blank_termios)
+        p = subprocess.Popen(["grammm-admin", "config", "dump"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = p.communicate()
+        self.config = yaml.load(out)
+        self.log_units = self.config.get('logs', {})
         self.text_header = (
             u"Welcome to grammm console user interface! UP / DOWN / PAGE UP / PAGE DOWN are scrolling.\n"
             u"<F1> switch to colormode '{colormode}', <F2> for Login{authorized_options} and <F12> for "
             u"exit/reboot.")
         self.authorized_options = ''
-        text_intro = [u"Here is the ", ('HL.body', u"grammm"), u" terminal console user interface", u"\n",
-                      u"   From here you can configure your system"]
+        text_intro = [
+            u"Here is the ", ('HL.body', u"grammm"), u" terminal console user interface.", u"\n",
+            u"   From here you can configure your system.", u"\n",
+            u"If you need help, please try pressing 'H' to view the logs!", u"\n"
+        ]
         self.tb_intro = Text(text_intro, align=CENTER, wrap=SPACE)
         text_sysinfo_top = get_system_info("grammm_top")
         self.tb_sysinfo_top = Text(text_sysinfo_top, align=LEFT, wrap=SPACE)
@@ -358,8 +370,8 @@ class Application(ApplicationHandler):
                     and self.current_window != _LOG_VIEWER and self.current_window != _UNSUPPORTED \
                     and not log_finished:
                 # self.open_log_viewer('test', 10)
-                # self.open_log_viewer('gromox-http', 200)
-                self.open_log_viewer('NetworkManager', 200)
+                self.open_log_viewer('gromox-http', 200)
+                # self.open_log_viewer('NetworkManager', 200)
 
         elif type(event) == tuple:
             # event is a mouse event in the form ('mouse press or release', button, column, line)
