@@ -76,6 +76,8 @@ class Application(ApplicationHandler):
     active_ips: Dict[str, List[Tuple[str, str, str, str]]] = {}
     config: Dict[str, Any] = {}
     log_units: Dict[str, str] = {}
+    current_log_unit: int = 0
+    log_line_count: int = 200
 
     # The default color palette
     _current_colormode: str = 'light'
@@ -245,16 +247,16 @@ class Application(ApplicationHandler):
         # Password Dialog
         self.prepare_password_dialog()
 
+        # Read in logging units
+        self._load_journal_units()
+
         # Log file viewer
         self.log_file_content: List[str] = [
             "If this is not that what you expected to see,",
             "You probably have insufficient permissions!?"
         ]
-        # self.prepare_log_viewer('gromox-http', 200)
-        self.prepare_log_viewer('NetworkManager', 200)
-
-        # Read in logging units
-        self._load_journal_units()
+        # self.prepare_log_viewer('gromox-http', self.log_line_count)
+        self.prepare_log_viewer('NetworkManager', self.log_line_count)
 
         # some settings
         MultiMenuItem.application = self
@@ -346,6 +348,24 @@ class Application(ApplicationHandler):
                     self._body = self._log_file_caller_body
                     self.reset_layout()
                     log_finished = True
+                elif key in ['left', 'right', '+', '-']:
+                    if key == '-':
+                        self.log_line_count -= 100
+                    elif key == '+':
+                        self.log_line_count += 100
+                    elif key == 'left':
+                        self.current_log_unit -= 1
+                    elif key == 'right':
+                        self.current_log_unit += 1
+                    if self.log_line_count < 200:
+                        self.log_line_count = 200
+                    elif self.log_line_count > 10000:
+                        self.log_line_count = 10000
+                    if self.current_log_unit < 0:
+                        self.current_log_unit = 0
+                    elif self.current_log_unit > len(self.log_units):
+                        self.current_log_unit = len(self.log_units)
+                    self.open_log_viewer(self.get_log_unit_by_id(self.current_log_unit), self.log_line_count)
                 elif self._hidden_pos < len(_UNSUPPORTED) and key == _UNSUPPORTED.lower()[self._hidden_pos]:
                     self._hidden_input += key
                     self._hidden_pos += 1
@@ -374,8 +394,8 @@ class Application(ApplicationHandler):
                     and self.current_window != _LOG_VIEWER and self.current_window != _UNSUPPORTED \
                     and not log_finished:
                 # self.open_log_viewer('test', 10)
-                self.open_log_viewer('gromox-http', 200)
-                # self.open_log_viewer('NetworkManager', 200)
+                self.open_log_viewer('gromox-http', self.log_line_count)
+                # self.open_log_viewer('NetworkManager', self.log_line_count)
 
         elif type(event) == tuple:
             # event is a mouse event in the form ('mouse press or release', button, column, line)
@@ -389,12 +409,24 @@ class Application(ApplicationHandler):
     def _load_journal_units(self):
         p = subprocess.Popen(["/usr/sbin/grammm-admin", "config", "dump"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = p.communicate()
+        if type(out) is bytes:
+            out = out.decode()
         if out == "":
             # self.message_box(err, "An Error occured!!", width=60, height=11)
-            self.config = {'logs': {'Gromox http': 'grammm-http.service'}}
+            self.config = {'logs': {'Gromox http': {'source': 'grammm-http.service'}}}
         else:
             self.config = yaml.load(out, Loader=SafeLoader)
         self.log_units = self.config.get('logs', {})
+        for i, k in enumerate(self.log_units.keys()):
+            if k == 'Gromox http':
+                self.current_log_unit = i
+                break
+
+    def get_log_unit_by_id(self, id) -> str:
+        for i, k in enumerate(self.log_units.keys()):
+            if id == i:
+                return self.log_units[k].get('source')[:-8]
+        return ''
 
     @staticmethod
     def get_pure_menu_name(label: str) -> str:
@@ -514,7 +546,7 @@ Prepares log file viewer widget and fills last lines of file content.
         r.this_boot()
         #r.log_level(sj.LOG_INFO)
         r.add_match(_SYSTEMD_UNIT=unitname)
-        r.seek_realtime(sincetime)
+        #r.seek_realtime(sincetime)
         l = []
         for entry in r:
             if entry.get('__REALTIME_TIMESTAMP', '') == "":
@@ -538,8 +570,10 @@ Prepares log file viewer widget and fills last lines of file content.
                     pre.append(src[:-8])
                 else:
                     post.append(src[:-8])
+        header = 'Use arrow keys to switch between the logfiles. <LEFT> and <RIGHT> changes the logfile, ' \
+                 'while <+> and <-> changes the line count to view. ({})'.format(self.log_line_count)
         self.log_viewer = LineBox(AttrMap(Pile([
-            (1, Filler(Padding(Text(('body', 'Use arrow keys to switch between the logfiles.'), CENTER), CENTER, RELATIVE_100))),
+            (2, Filler(Padding(Text(('body', header), CENTER), CENTER, RELATIVE_100))),
             (1, Columns([Filler(Text([
                 ('body', '*** '),
                 ('body', ' '.join([u for u in pre[-3:]])), ('reverse', cur), ('body', ' '.join([u for u in post[:3]])),
@@ -552,9 +586,10 @@ Prepares log file viewer widget and fills last lines of file content.
         """
         Opens log file viewer.
         """
-        self.log_file_caller = self.current_window
-        self._log_file_caller_body = self._body
-        self.current_window = _LOG_VIEWER
+        if self.current_window != _LOG_VIEWER:
+            self.log_file_caller = self.current_window
+            self._log_file_caller_body = self._body
+            self.current_window = _LOG_VIEWER
         self.print(f"Log file viewer has to open file {unit} ...")
         self.prepare_log_viewer(unit, lines)
         self._body = self.log_viewer
