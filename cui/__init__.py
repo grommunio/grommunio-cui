@@ -363,8 +363,8 @@ class Application(ApplicationHandler):
                         self.log_line_count = 10000
                     if self.current_log_unit < 0:
                         self.current_log_unit = 0
-                    elif self.current_log_unit > len(self.log_units):
-                        self.current_log_unit = len(self.log_units)
+                    elif self.current_log_unit >= len(self.log_units):
+                        self.current_log_unit = len(self.log_units) - 1
                     self.open_log_viewer(self.get_log_unit_by_id(self.current_log_unit), self.log_line_count)
                 elif self._hidden_pos < len(_UNSUPPORTED) and key == _UNSUPPORTED.lower()[self._hidden_pos]:
                     self._hidden_input += key
