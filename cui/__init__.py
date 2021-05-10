@@ -11,6 +11,7 @@ import os
 import time
 
 import yaml
+from yaml import SafeLoader
 from psutil._common import snicstats, snicaddr
 from getpass import getuser
 from scroll import ScrollBar, Scrollable
@@ -20,7 +21,8 @@ from interface import ApplicationHandler, WidgetDrawer
 from util import authenticate_user, get_clockstring, get_palette, get_system_info, get_next_palette_name, fast_tail
 from urwid import AttrWrap, ExitMainLoop, Padding, Columns, RIGHT, Text, ListBox, Frame, LineBox, SimpleListWalker, \
     MainLoop, LEFT, CENTER, SPACE, Filler, Pile, Edit, Button, connect_signal, AttrMap, GridFlow, Overlay, Widget, \
-    Terminal, SimpleFocusListWalker, set_encoding, MIDDLE, TOP, RadioButton, ListWalker, raw_display, curses_display
+    Terminal, SimpleFocusListWalker, set_encoding, MIDDLE, TOP, RadioButton, ListWalker, raw_display, curses_display, \
+    RELATIVE_100
 import urwid
 from systemd import journal
 import datetime as dt
@@ -50,6 +52,9 @@ _DNS_CONFIG: str = 'DNS-CONFIG'
 _MESSAGE_BOX: str = 'MESSAGE-BOX'
 _LOG_VIEWER: str = 'LOG-VIEWER'
 
+# if os.environ['PATH'].find('/usr/sbin') < 0:
+#     os.environ['PATH'] += os.path.pathsep + '/usr/sbin'
+#
 
 class Application(ApplicationHandler):
     """
@@ -86,10 +91,6 @@ class Application(ApplicationHandler):
         self.old_termios = self.screen.tty_signal_keys()
         self.blank_termios = ['undefined' for bla in range(0, 5)]
         self.screen.tty_signal_keys(*self.blank_termios)
-        p = subprocess.Popen(["grammm-admin", "config", "dump"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        out, err = p.communicate()
-        self.config = yaml.load(out)
-        self.log_units = self.config.get('logs', {})
         self.text_header = (
             u"Welcome to grammm console user interface! UP / DOWN / PAGE UP / PAGE DOWN are scrolling.\n"
             u"<F1> switch to colormode '{colormode}', <F2> for Login{authorized_options} and <F12> for "
@@ -252,6 +253,9 @@ class Application(ApplicationHandler):
         # self.prepare_log_viewer('gromox-http', 200)
         self.prepare_log_viewer('NetworkManager', 200)
 
+        # Read in logging units
+        self._load_journal_units()
+
         # some settings
         MultiMenuItem.application = self
         GButton.application = self
@@ -382,6 +386,16 @@ class Application(ApplicationHandler):
 
         self.print(self.current_bottom_info)
 
+    def _load_journal_units(self):
+        p = subprocess.Popen(["/usr/sbin/grammm-admin", "config", "dump"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = p.communicate()
+        if out == "":
+            # self.message_box(err, "An Error occured!!", width=60, height=11)
+            self.config = {'logs': {'Gromox http': 'grammm-http.service'}}
+        else:
+            self.config = yaml.load(out, Loader=SafeLoader)
+        self.log_units = self.config.get('logs', {})
+
     @staticmethod
     def get_pure_menu_name(label: str) -> str:
         """
@@ -511,7 +525,28 @@ Prepares log file viewer widget and fills last lines of file content.
 {entry['_SYSTEMD_UNIT'].split('.service')[0]:>10.10} {entry['_COMM']:>10.10}: {entry['MESSAGE']}\
             """)
         self.log_file_content = l[-lines:]
-        self.log_viewer = LineBox(Pile([ScrollBar(Scrollable(Pile([Text(line) for line in self.log_file_content])))]))
+        found: bool = False
+        pre: List[str] = []
+        post: List[str] = []
+        cur: str = f" {unitname[:-8]} "
+        for i, uname in enumerate(self.log_units.keys()):
+            src = self.log_units[uname].get('source')
+            if src == unitname:
+                found = True
+            else:
+                if not found:
+                    pre.append(src[:-8])
+                else:
+                    post.append(src[:-8])
+        self.log_viewer = LineBox(AttrMap(Pile([
+            (1, Filler(Padding(Text(('body', 'Use arrow keys to switch between the logfiles.'), CENTER), CENTER, RELATIVE_100))),
+            (1, Columns([Filler(Text([
+                ('body', '*** '),
+                ('body', ' '.join([u for u in pre[-3:]])), ('reverse', cur), ('body', ' '.join([u for u in post[:3]])),
+                ('body', ' ***'),
+            ], CENTER))])),
+            AttrMap(ScrollBar(Scrollable(Pile([Text(line) for line in self.log_file_content]))), 'default')
+        ]), 'body'))
 
     def open_log_viewer(self, unit: str, lines: int = 0):
         """
