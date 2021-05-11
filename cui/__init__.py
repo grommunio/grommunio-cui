@@ -83,8 +83,7 @@ class Application(ApplicationHandler):
         self.screen.tty_signal_keys(*self.blank_termios)
         self.text_header = (
             u"Welcome to grammm console user interface! UP / DOWN / PAGE UP / PAGE DOWN are scrolling.\n"
-            u"<F1> switch to colormode '{colormode}', <F2> for Login{authorized_options} and <F12> for "
-            u"exit/reboot.")
+            u"<F1> switch to colormode '{colormode}', <F2> for Login{authorized_options}.")
         self.authorized_options = ''
         text_intro = [u"Here is the ", ('HL.body', u"grammm"), u" terminal console user interface", u"\n",
                       u"   From here you can configure your system"]
@@ -225,6 +224,10 @@ class Application(ApplicationHandler):
                 # Text('Starts Terminal and closes everything else.'),
                 Text('Starts Terminal in a sub window.')
             ]),
+            'Reboot': Pile([
+                Text('Reboot system', CENTER), Text(""),
+                Text("")
+            ]),
         }
         self.main_menu_list = self.prepare_menu_list(items)
         self.main_menu = self.wrap_menu(self.main_menu_list)
@@ -268,17 +271,12 @@ class Application(ApplicationHandler):
                 #     # user has successfully logged in
                 #     if key == 'f4':
                 #         self.open_main_menu()
-                if key in ['f2', 'f12', 'S' if self.debug else 'f12']:
+                if key == 'f2':
                     self.login_body.focus_position = 0 if getuser() == '' else 1  # focus on passwd if user detected
-                    if key != 'f2':
-                        self.user_edit.edit_text = "root"  # need to be superuser for shutdown
                     self.dialog(body=LineBox(Padding(Filler(self.login_body))), header=self.login_header,
                                 footer=self.login_footer, focus_part='body', align='center', valign='middle',
                                 width=40, height=10)
-                    if key == 'f2':
-                        self.current_window = _LOGIN
-                    elif key in ['S', 'f12']:
-                        self.current_window = _LOGOUT
+                    self.current_window = _LOGIN
                 elif key == 'l' and not _PRODUCTIVE:
                     self.open_main_menu()
                 elif key == 'tab':
@@ -302,12 +300,19 @@ class Application(ApplicationHandler):
                 if key.lower().endswith('close enter') or key == 'esc':
                     self.open_main_menu()
 
-            elif self.current_window in [_LOGIN, _LOGOUT]:
+            elif self.current_window == _LOGIN:
                 self.handle_standard_tab_behaviour(key)
                 if key.endswith('enter'):
                     self.check_login()
                 elif key == 'esc':
                     self.open_mainframe()
+
+            elif self.current_window == _LOGOUT:
+                # Restore cursor etc. before going off.
+                self._loop.stop()
+                self.screen.tty_signal_keys(*self.old_termios)
+                os.system("/usr/sbin/reboot")
+                raise ExitMainLoop()
 
             elif self.current_window == _MAIN_MENU:
                 menu_selected: int = self.handle_standard_menu_behaviour(self.main_menu_list, key,
@@ -321,6 +326,8 @@ class Application(ApplicationHandler):
                         self.open_setup_wizard()
                     elif menu_selected == 4:
                         self.open_terminal()
+                    elif menu_selected == 5:
+                        self.reboot_confirm()
                 elif key == 'esc':
                     self.open_mainframe()
 
@@ -430,6 +437,11 @@ class Application(ApplicationHandler):
         os.system("/usr/bin/su -l")
         self.screen.tty_signal_keys(*self.blank_termios)
         self._loop.start()
+
+    def reboot_confirm(self):
+        msg = "After pressing OK, the system will shut down!\nBe sure to leave nothing undone."
+        self.current_window = _LOGOUT
+        self.message_box(msg)
 
     def open_change_password(self):
         """
@@ -568,16 +580,6 @@ class Application(ApplicationHandler):
             else:
                 self.message_box(f'You have taken a wrong password, {self.user_edit.get_edit_text()}!')
                 self.print(f"Login wrong! ({msg})")
-        elif self.current_window == _LOGOUT:
-            if self.user_edit.get_edit_text() != 'root':
-                self.message_box('You need to be superuser!')
-                self.user_edit.edit_text = 'root'
-            elif authenticate_user(self.user_edit.get_edit_text(), self.pass_edit.get_edit_text()):
-                self.message_box('After pressing OK, the system will be shut down!\nBe sure to leave nothing undone.')
-                os.system('/usr/sbin/reboot')
-            else:
-                self.print(f"Login wrong! ({msg})")
-                self.message_box(f'You have taken a wrong password, {self.user_edit.get_edit_text()}!')
 
     def press_button(self, button: Widget, *args, **kwargs):
         """
