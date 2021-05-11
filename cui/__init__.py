@@ -455,9 +455,9 @@ class Application(ApplicationHandler):
 
     def prepare_log_viewer_old(self, logfile: str = 'syslog', lines: int = 0):
         """
-Prepares log file viewer widget and fills last lines of file content.
+        Prepares log file viewer widget and fills last lines of file content.
 
-:param logfile: The logfile to be viewed.
+        :param logfile: The logfile to be viewed.
         """
         filename: str = '/var/log/messages'
         if logfile == 'syslog':
@@ -475,9 +475,9 @@ Prepares log file viewer widget and fills last lines of file content.
 
     def prepare_log_viewer(self, unit: str = 'syslog', lines: int = 0):
         """
-Prepares log file viewer widget and fills last lines of file content.
+        Prepares log file viewer widget and fills last lines of file content.
 
-:param unit: The journal unit to be viewed.
+        :param unit: The journal unit to be viewed.
         """
         unitname: str = unit if unit.strip().endswith('.service') else f"{unit}.service"
 
