@@ -575,7 +575,7 @@ class Application(ApplicationHandler):
         Opens amin menu,
         """
         self.reset_layout()
-        self.print("Login successfully!")
+        self.print("Login successful")
         self.current_window = _MAIN_MENU
         self.authorized_options = ', <F4> for Main-Menu'
         colormode: str = "light" if self._current_colormode == 'dark' else 'dark'
