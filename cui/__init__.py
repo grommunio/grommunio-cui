@@ -14,6 +14,7 @@ from scroll import ScrollBar, Scrollable
 from button import GButton, GBoxButton
 from menu import MenuItem, MultiMenuItem
 from interface import ApplicationHandler, WidgetDrawer
+import util
 from util import authenticate_user, get_clockstring, get_palette, get_system_info, get_next_palette_name, fast_tail
 from urwid import AttrWrap, ExitMainLoop, Padding, Columns, RIGHT, Text, ListBox, Frame, LineBox, SimpleListWalker, \
     MainLoop, LEFT, CENTER, SPACE, Filler, Pile, Edit, Button, connect_signal, AttrMap, GridFlow, Overlay, Widget, \
@@ -67,6 +68,8 @@ class Application(ApplicationHandler):
     active_device: str = 'lo'
     active_ips: Dict[str, List[Tuple[str, str, str, str]]] = {}
 
+    _current_kbdlayout = util.get_current_kbdlayout()
+
     # The default color palette
     _current_colormode: str = 'light'
 
@@ -81,9 +84,8 @@ class Application(ApplicationHandler):
         self.old_termios = self.screen.tty_signal_keys()
         self.blank_termios = ['undefined' for bla in range(0, 5)]
         self.screen.tty_signal_keys(*self.blank_termios)
-        self.text_header = (
-            u"Welcome to grammm console user interface! UP / DOWN / PAGE UP / PAGE DOWN are scrolling.\n"
-            u"<F1> switch to colormode '{colormode}', <F2> for Login{authorized_options}.")
+        colormode: str = "light" if self._current_colormode == 'dark' else 'dark'
+        self.text_header = u"grammm console user interface\nF1: color switch [{colormode}], F5: change keyboard layout [{kbd}], F2: login"
         self.authorized_options = ''
         text_intro = [u"Here is the grammm terminal console user interface\n",
                       u"   From here you can configure your system"]
@@ -101,8 +103,7 @@ class Application(ApplicationHandler):
         self.main_bottom = ScrollBar(Scrollable(
             Pile([AttrWrap(Padding(self.tb_sysinfo_bottom, align=LEFT, left=6, width=('relative', 80)), 'reverse')])
         ))
-        colormode: str = "light" if self._current_colormode == 'dark' else 'dark'
-        self.tb_header = Text(self.text_header.format(colormode=colormode, authorized_options=''), align=CENTER,
+        self.tb_header = Text(self.text_header.format(colormode=colormode, kbd=self._current_kbdlayout, authorized_options=''), align=CENTER,
                               wrap=SPACE)
         self.header = AttrMap(Padding(self.tb_header, align=CENTER), 'header')
         self.vsplitbox = Pile([("weight", 50, AttrMap(self.main_top, "body")), ("weight", 50, self.main_bottom)])
@@ -388,6 +389,8 @@ class Application(ApplicationHandler):
             elif key == 'f1' or key == 'c':
                 # self.change_colormode('dark' if self._current_colormode == 'light' else 'light')
                 self.switch_next_colormode()
+            elif key == 'f5':
+                self.switch_kbdlayout()
             elif key in ['ctrl f1', 'H'] \
                     and self.current_window != _LOG_VIEWER and self.current_window != _UNSUPPORTED \
                     and not log_finished:
@@ -576,7 +579,7 @@ class Application(ApplicationHandler):
         self.current_window = _MAIN_MENU
         self.authorized_options = ', <F4> for Main-Menu'
         colormode: str = "light" if self._current_colormode == 'dark' else 'dark'
-        self.tb_header.set_text(self.text_header.format(colormode=colormode,
+        self.tb_header.set_text(self.text_header.format(colormode=colormode, kbd=self._current_kbldayout,
                                                         authorized_options=self.authorized_options))
         self._body = self.main_menu
         self._loop.widget = self._body
@@ -678,7 +681,7 @@ class Application(ApplicationHandler):
         p = get_palette(mode)
         self._current_colormode = mode
         colormode: str = "light" if self._current_colormode == 'dark' else 'dark'
-        self.tb_header.set_text(self.text_header.format(colormode=colormode,
+        self.tb_header.set_text(self.text_header.format(colormode=colormode, kbd=self._current_kbdlayout,
                                                         authorized_options=self.authorized_options))
         self._loop.screen.register_palette(p)
         self._loop.screen.clear()
@@ -687,11 +690,24 @@ class Application(ApplicationHandler):
         o = self._current_colormode
         n = get_next_palette_name(o)
         p = get_palette(n)
-        self.tb_header.set_text(self.text_header.format(colormode=get_next_palette_name(n),
+        self.tb_header.set_text(self.text_header.format(colormode=get_next_palette_name(n), kbd=self._current_kbdlayout,
                                                         authorized_options=self.authorized_options))
         self._loop.screen.register_palette(p)
         self._loop.screen.clear()
         self._current_colormode = n
+
+    def switch_kbdlayout(self):
+        # Base proposal on CUI's last known state
+        proposal = "de-latin1-nodeadkeys" if self._current_kbdlayout == "us" else "us"
+        # But do read the file again so newly added keys do not get lost
+        file = "/etc/vconsole.conf"
+        vars = util.minishell_read(file)
+        vars["KEYMAP"] = proposal
+        util.minishell_write(file, vars)
+        os.system("systemctl restart systemd-vconsole-setup")
+        self._current_kbdlayout = proposal
+        self.tb_header.set_text(self.text_header.format(colormode=self._current_colormode, kbd=self._current_kbdlayout,
+                                                        authorized_options=self.authorized_options))
 
     def redraw(self):
         """
