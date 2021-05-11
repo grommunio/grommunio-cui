@@ -208,19 +208,19 @@ class Application(ApplicationHandler):
 
         # Main Menu
         items = {
-            '1) Change Password': Pile([
+            'Change Password': Pile([
                 Text('Changing Password', CENTER), Text(""),
                 Text(f'Use this for changing your password of user {getuser()}.')
             ]),
-            '2) Network Configuration': Pile([
+            'Network Configuration': Pile([
                 Text('Network Configuration', CENTER), Text(""),
                 Text('Here you can configure the Network. Set up the active device, configure IP addresses and DNS.')
             ]),
-            '3) grammm setup wizard': Pile([
+            'grammm setup wizard': Pile([
                 Text('Setup Wizard', CENTER), Text(""),
                 Text('Use this for the initial creation of the SQL database and TLS certificates.')
             ]),
-            '4) Terminal': Pile([
+            'Terminal': Pile([
                 Text('Terminal', CENTER), Text(""),
                 # Text('Starts Terminal and closes everything else.'),
                 Text('Starts Terminal in a sub window.')
