@@ -13,14 +13,14 @@ import socket
 
 _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
     "light" : [
-        ('body', 'white', 'dark cyan', 'standout', '#fff', '#3bd'),
-        ('reverse', 'dark cyan', 'white', '', '#2cf', '#fff'),
+        ('body', 'white', 'dark blue', 'standout', '#fff', '#00a'),
+        ('reverse', 'dark blue', 'white', '', '#00a', '#fff'),
         ('header', 'white', 'light blue', 'bold', '#fff', '#49a'),
         ('footer', 'white', 'light blue', 'bold', '#fff', '#3cf'),
         ('important', 'dark red', 'white', ('bold', 'standout', 'underline'), '#800', '#fff'),
-        ('buttonbar', 'white', 'dark cyan', '', '#fff', '#3bd'),
-        ('buttn', 'white', 'dark cyan', '', '#fff', '#3bd'),
-        ('buttnf', 'dark cyan', 'white', ('bold', 'standout', 'underline'), '#3bd', '#fff'),
+        ('buttonbar', 'white', 'dark blue', '', '#fff', '#00a'),
+        ('buttn', 'white', 'dark blue', '', '#fff', '#00a'),
+        ('buttnf', 'dark blue', 'white', ('bold', 'standout', 'underline'), '#00a', '#fff'),
         ('selectable', 'white', 'black', '', '#fff', '#111'),
         ('focus', 'black', 'light gray', '', '#111', '#ccc'),
         ('divider', 'black', 'light gray', ('bold', 'standout'), '#111', '#ccc'),
