@@ -264,9 +264,35 @@ class Application(ApplicationHandler):
         log_finished: bool = False
         self.current_event = event
         if type(event) == str:
+            self.handle_key_event(event)
+        elif type(event) == tuple:
+            self.handle_mouse_event(event)
+        self.print(self.current_bottom_info)
+
+    def handle_key_event(self, event: Any):
             # event was a key stroke
             key: str = str(event)
             if self.current_window == _MAIN:
+                self.key_ev_main(key)
+            elif self.current_window == _MESSAGE_BOX:
+                self.key_ev_mbox(key)
+            elif self.current_window == _TERMINAL:
+                self.key_ev_term(key)
+            elif self.current_window == _PASSWORD:
+                self.key_ev_pass(key)
+            elif self.current_window == _LOGIN:
+                self.key_ev_login(key)
+            elif self.current_window == _LOGOUT:
+                self.key_ev_logout(key)
+            elif self.current_window == _MAIN_MENU:
+                self.key_ev_mainmenu(key)
+            elif self.current_window == _LOG_VIEWER:
+                self.key_ev_logview(key)
+            elif self.current_window == _UNSUPPORTED:
+                self.key_ev_unsupp(key)
+            self.key_ev_anytime(key)
+
+    def key_ev_main(self, key):
                 # if len(self.authorized_options) > 0:
                 #     # user has successfully logged in
                 #     if key == 'f4':
@@ -282,39 +308,39 @@ class Application(ApplicationHandler):
                 elif key == 'tab':
                     self.vsplitbox.focus_position = 0 if self.vsplitbox.focus_position == 1 else 1
 
-            elif self.current_window == _MESSAGE_BOX:
+    def key_ev_mbox(self, key):
                 if key.endswith('enter') or key == 'esc':
                     self.current_window = self.message_box_caller
                     self._body = self._message_box_caller_body
                     self.reset_layout()
 
-            elif self.current_window == _TERMINAL:
+    def key_ev_term(self, key):
                 self.handle_standard_tab_behaviour(key)
                 if key == 'f10':
                     raise ExitMainLoop()
                 elif key.endswith('enter') or key == 'esc':
                     self.open_main_menu()
 
-            elif self.current_window == _PASSWORD:
+    def key_ev_pass(self, key):
                 self.handle_standard_tab_behaviour(key)
                 if key.lower().endswith('close enter') or key == 'esc':
                     self.open_main_menu()
 
-            elif self.current_window == _LOGIN:
+    def key_ev_login(self, key):
                 self.handle_standard_tab_behaviour(key)
                 if key.endswith('enter'):
                     self.check_login()
                 elif key == 'esc':
                     self.open_mainframe()
 
-            elif self.current_window == _LOGOUT:
+    def key_ev_logout(self, key):
                 # Restore cursor etc. before going off.
                 self._loop.stop()
                 self.screen.tty_signal_keys(*self.old_termios)
                 os.system("/usr/sbin/reboot")
                 raise ExitMainLoop()
 
-            elif self.current_window == _MAIN_MENU:
+    def key_ev_mainmenu(self, key):
                 menu_selected: int = self.handle_standard_menu_behaviour(self.main_menu_list, key,
                                                                          self.main_menu.base_widget.body[1])
                 if key.endswith('enter') or key in range(ord('1'), ord('9') + 1):
@@ -331,7 +357,7 @@ class Application(ApplicationHandler):
                 elif key == 'esc':
                     self.open_mainframe()
 
-            elif self.current_window == _LOG_VIEWER:
+    def key_ev_logview(self, key):
                 if key in ['ctrl f1', 'H']:
                     self.current_window = self.log_file_caller
                     self._body = self._log_file_caller_body
@@ -347,13 +373,14 @@ class Application(ApplicationHandler):
                     self._hidden_input = ""
                     self._hidden_pos = 0
 
-            elif self.current_window == _UNSUPPORTED:
+    def key_ev_unsupp(self, key):
                 if key in ['ctrl d', 'esc', 'ctrl f1', 'H']:
                     self.current_window = self.log_file_caller
                     self._body = self._log_file_caller_body
                     log_finished = True
                     self.reset_layout()
 
+    def key_ev_anytime(self, key):
             if key in ['f10', 'Q']:
                 raise ExitMainLoop()
             elif key == 'f4' and len(self.authorized_options) > 0:
@@ -368,14 +395,12 @@ class Application(ApplicationHandler):
                 # self.open_log_viewer('gromox-http', 200)
                 self.open_log_viewer('NetworkManager', 200)
 
-        elif type(event) == tuple:
+    def handle_mouse_event(self, event: Any):
             # event is a mouse event in the form ('mouse press or release', button, column, line)
             event: Tuple[str, float, int, int] = tuple(event)
             if event[0] == 'mouse press' and event[1] == 1:
                 # self.handle_event('mouseclick left enter')
                 self.handle_event('my mouseclick left button')
-
-        self.print(self.current_bottom_info)
 
     @staticmethod
     def get_pure_menu_name(label: str) -> str:
