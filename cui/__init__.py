@@ -779,7 +779,7 @@ class Application(ApplicationHandler):
             string (str): The string to print
             align (str): The alignment of the printed text
         """
-        text = [('clock', f"{get_clockstring()}: "), ('footer', string)]
+        text = [('footer', f"{get_clockstring()}: "), ('footer', string)]
         if self.debug:
             text += ['\n', ('', f"({self.current_event})"), ('', f" on {self.current_window}")]
         self.footer_text.set_text([text])
