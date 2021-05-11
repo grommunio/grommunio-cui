@@ -1,0 +1,3 @@
+#!/bin/sh
+# local run
+PYTHONPATH=. exec /usr/bin/python3 cui/__init__.py
