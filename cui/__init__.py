@@ -111,7 +111,7 @@ class Application(ApplicationHandler):
         self.footer = AttrMap(self.footer_text, 'footer')
         # frame = Frame(AttrMap(self.vsplitbox, 'body'), header=self.header, footer=self.footer)
         frame = Frame(AttrMap(self.vsplitbox, 'reverse'), header=self.header, footer=self.footer)
-        self.mainframe = LineBox(frame)
+        self.mainframe = frame
         self._body = self.mainframe
 
         # Loop
@@ -230,7 +230,7 @@ class Application(ApplicationHandler):
             ]),
         }
         self.main_menu_list = self.prepare_menu_list(items)
-        self.main_menu = self.wrap_menu(self.main_menu_list)
+        self.main_menu = self.menu_to_frame(self.main_menu_list)
 
         # Password Dialog
         self.prepare_password_dialog()
@@ -604,19 +604,13 @@ class Application(ApplicationHandler):
         menu_items: List[MenuItem] = self.create_menu_items(items)
         return ListBox(SimpleFocusListWalker(menu_items))
 
-    def wrap_menu(self, listbox: ListBox) -> LineBox:
-        """
-        Wraps menu ListBox with LineBox.
-
-        :param listbox:  The ListBox to be wrapped.
-        :return: The LineBox wrapping ListBox.
-        """
+    def menu_to_frame(self, listbox: ListBox):
         menu = Columns([
             AttrMap(listbox, 'body'),
             AttrMap(ListBox(SimpleListWalker([self.menu_description])), 'reverse'),
         ])
         menu[1]._selectable = False
-        return LineBox(Frame(menu, header=self.header, footer=self.footer))
+        return Frame(menu, header=self.header, footer=self.footer)
 
     def prepare_radio_list(self, items: Dict[str, Widget]) -> Tuple[ListBox, ListBox]:
         """
