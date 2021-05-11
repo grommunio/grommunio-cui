@@ -574,7 +574,7 @@ Prepares log file viewer widget and fills last lines of file content.
                 self.user_edit.edit_text = 'root'
             elif authenticate_user(self.user_edit.get_edit_text(), self.pass_edit.get_edit_text()):
                 self.message_box('After pressing OK, the system will be shut down!\nBe sure to leave nothing undone.')
-                os.system('/sbin/shutdown -h now')
+                os.system('/usr/sbin/reboot')
             else:
                 self.print(f"Login wrong! ({msg})")
                 self.message_box(f'You have taken a wrong password, {self.user_edit.get_edit_text()}!')
