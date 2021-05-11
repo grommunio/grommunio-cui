@@ -15,8 +15,6 @@ _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
     "light" : [
         ('body', 'white', 'dark cyan', 'standout', '#fff', '#3bd'),
         ('reverse', 'dark cyan', 'white', '', '#2cf', '#fff'),
-        ('HL.body', 'light red', 'dark cyan', 'standout', '#f00', '#3bd'),
-        ('HL.reverse', 'dark red', 'white', '', '#800', '#fff'),
         ('header', 'white', 'light blue', 'bold', '#fff', '#49a'),
         ('footer', 'white', 'light blue', 'bold', '#fff', '#3cf'),
         ('important', 'dark red', 'white', ('bold', 'standout', 'underline'), '#800', '#fff'),
@@ -33,8 +31,6 @@ _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
     "dark" : [
         ('body', 'black', 'light cyan', 'standout', '#111', '#3cf'),
         ('reverse', 'light cyan', 'black', '', '#3cf', '#111'),
-        ('HL.body', 'dark red', 'light cyan', 'standout', '#800', '#3cf'),
-        ('HL.reverse', 'light red', 'black', '', '#f00', '#111'),
         ('header', 'white', 'dark blue', 'bold', '#fff', '#49b'),
         ('footer', 'white', 'dark blue', 'bold', '#fff', '#49b'),
         ('important', 'white', 'dark red', ('bold', 'standout', 'underline'), '#fff', '#800'),
@@ -51,8 +47,6 @@ _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
     "orange light" : [
         ('body', 'white', 'brown', 'standout', '#fff', '#880'),
         ('reverse', 'brown', 'white', '', '#880', '#fff'),
-        ('HL.body', 'dark red', 'brown', 'standout', '#800', '#880'),
-        ('HL.reverse', 'dark red', 'white', '', '#800', '#fff'),
         ('header', 'white', 'dark blue', 'bold', '#fff', '#49b'),
         ('footer', 'white', 'dark blue', 'bold', '#fff', '#49b'),
         ('important', 'dark red', 'white', ('bold', 'standout', 'underline'), '#800', '#fff'),
@@ -69,8 +63,6 @@ _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
     "orange dark" : [
         ('body', 'black', 'yellow', 'standout', '#111', '#ff0'),
         ('reverse', 'yellow', 'black', '', '#ff0', '#111'),
-        ('HL.body', 'light red', 'yellow', 'standout', '#f00', '#ff0'),
-        ('HL.reverse', 'light red', 'black', '', '#f00', '#111'),
         ('header', 'white', 'light blue', 'bold', '#fff', '#49a'),
         ('footer', 'white', 'light blue', 'bold', '#fff', '#49a'),
         ('important', 'light red', 'black', ('bold', 'standout', 'underline'), '#f00', '#111'),

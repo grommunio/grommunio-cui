@@ -85,7 +85,7 @@ class Application(ApplicationHandler):
             u"Welcome to grammm console user interface! UP / DOWN / PAGE UP / PAGE DOWN are scrolling.\n"
             u"<F1> switch to colormode '{colormode}', <F2> for Login{authorized_options}.")
         self.authorized_options = ''
-        text_intro = [u"Here is the ", ('HL.body', u"grammm"), u" terminal console user interface", u"\n",
+        text_intro = [u"Here is the grammm terminal console user interface\n",
                       u"   From here you can configure your system"]
         self.tb_intro = Text(text_intro, align=CENTER, wrap=SPACE)
         text_sysinfo_top = get_system_info("grammm_top")
