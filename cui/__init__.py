@@ -579,7 +579,7 @@ class Application(ApplicationHandler):
         self.current_window = _MAIN_MENU
         self.authorized_options = ', <F4> for Main-Menu'
         colormode: str = "light" if self._current_colormode == 'dark' else 'dark'
-        self.tb_header.set_text(self.text_header.format(colormode=colormode, kbd=self._current_kbldayout,
+        self.tb_header.set_text(self.text_header.format(colormode=colormode, kbd=self._current_kbdlayout,
                                                         authorized_options=self.authorized_options))
         self._body = self.main_menu
         self._loop.widget = self._body
