@@ -338,7 +338,7 @@ class Application(ApplicationHandler):
                 # Restore cursor etc. before going off.
                 self._loop.stop()
                 self.screen.tty_signal_keys(*self.old_termios)
-                os.system("/usr/sbin/reboot")
+                os.system("reboot")
                 raise ExitMainLoop()
 
     def key_ev_mainmenu(self, key):
