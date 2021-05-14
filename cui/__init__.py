@@ -208,9 +208,9 @@ class Application(ApplicationHandler):
 
         # Main Menu
         items = {
-            'Change Password': Pile([
-                Text('Changing Password', CENTER), Text(""),
-                Text(f'Use this for changing your password of user {getuser()}.')
+            'Change system password': Pile([
+                Text('Password change', CENTER), Text(""),
+                Text(f'Use this to change the password of the Linux system user "{getuser()}".')
             ]),
             'Network Configuration': Pile([
                 Text('Network Configuration', CENTER), Text(""),
@@ -219,6 +219,10 @@ class Application(ApplicationHandler):
             'grammm setup wizard': Pile([
                 Text('Setup Wizard', CENTER), Text(""),
                 Text('Use this for the initial creation of the SQL database and TLS certificates.')
+            ]),
+            'Change Admin Web UI password': Pile([
+                Text('Password Change', CENTER), Text(""),
+                Text('If you forgot the Administration Web Interface password set through the grammm Setup Wizard, you can use this menu command to set it again.')
             ]),
             'Terminal': Pile([
                 Text('Terminal', CENTER), Text(""),
@@ -354,6 +358,8 @@ class Application(ApplicationHandler):
                     elif menu_selected == 4:
                         self.open_terminal()
                     elif menu_selected == 5:
+                        self.reset_aapi_passwd()
+                    elif menu_selected == 6:
                         self.reboot_confirm()
                 elif key == 'esc':
                     self.open_mainframe()
@@ -560,6 +566,13 @@ class Application(ApplicationHandler):
         print("\x1b[K \x1b[36m▼\x1b[0m Please wait while `yast2 lan` is being run.")
         print("\x1b[J")
         os.system("yast2 lan")
+        self.screen.tty_signal_keys(*self.blank_termios)
+        self._loop.start()
+
+    def reset_aapi_passwd(self):
+        self._loop.stop()
+        self.screen.tty_signal_keys(*self.old_termios)
+        os.system("grammm-admin passwd")
         self.screen.tty_signal_keys(*self.blank_termios)
         self._loop.start()
 
