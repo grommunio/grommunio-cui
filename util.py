@@ -13,17 +13,14 @@ import socket
 
 _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
     "light" : [
-        ('body', 'white', 'dark cyan', 'standout', '#fff', '#3bd'),
-        ('reverse', 'dark cyan', 'white', '', '#2cf', '#fff'),
-        ('HL.body', 'light red', 'dark cyan', 'standout', '#f00', '#3bd'),
-        ('HL.reverse', 'dark red', 'white', '', '#800', '#fff'),
+        ('body', 'white', 'dark blue', 'standout', '#fff', '#00a'),
+        ('reverse', 'dark blue', 'light gray', '', '#00a', '#aaa'),
         ('header', 'white', 'light blue', 'bold', '#fff', '#49a'),
         ('footer', 'white', 'light blue', 'bold', '#fff', '#3cf'),
-        ('important', 'dark red', 'white', ('bold', 'standout', 'underline'), '#800', '#fff'),
-        ('buttonbar', 'white', 'dark cyan', '', '#fff', '#3bd'),
-        ('buttn', 'white', 'dark cyan', '', '#fff', '#3bd'),
-        ('buttnf', 'dark cyan', 'white', ('bold', 'standout', 'underline'), '#3bd', '#fff'),
-        ('clock', 'black', 'light gray', '', '#111', '#ccc'),
+        ('important', 'dark red', 'light gray', ('bold', 'standout', 'underline'), '#800', '#aaa'),
+        ('buttonbar', 'white', 'dark blue', '', '#fff', '#00a'),
+        ('buttn', 'white', 'dark blue', '', '#fff', '#00a'),
+        ('buttnf', 'dark blue', 'light gray', ('bold', 'standout', 'underline'), '#00a', '#aaa'),
         ('selectable', 'white', 'black', '', '#fff', '#111'),
         ('focus', 'black', 'light gray', '', '#111', '#ccc'),
         ('divider', 'black', 'light gray', ('bold', 'standout'), '#111', '#ccc'),
@@ -31,17 +28,14 @@ _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
         ('MMI.focus', 'black', 'light gray', '', '#111', '#ccc'),
     ],
     "dark" : [
-        ('body', 'black', 'light cyan', 'standout', '#111', '#3cf'),
-        ('reverse', 'light cyan', 'black', '', '#3cf', '#111'),
-        ('HL.body', 'dark red', 'light cyan', 'standout', '#800', '#3cf'),
-        ('HL.reverse', 'light red', 'black', '', '#f00', '#111'),
+        ('body', 'black', 'dark cyan', 'standout', '#111', '#0aa'),
+        ('reverse', 'dark cyan', 'black', '', '#0aa', '#111'),
         ('header', 'white', 'dark blue', 'bold', '#fff', '#49b'),
         ('footer', 'white', 'dark blue', 'bold', '#fff', '#49b'),
         ('important', 'white', 'dark red', ('bold', 'standout', 'underline'), '#fff', '#800'),
-        ('buttonbar', 'black', 'light cyan', '', '#111', '#3cf'),
-        ('buttn', 'black', 'light cyan', '', '#111', '#3cf'),
-        ('buttnf', 'light cyan', 'black', ('bold', 'standout', 'underline'), '#3cf', '#111'),
-        ('clock', 'white', 'dark gray', '', '#fff', '#888'),
+        ('buttonbar', 'black', 'dark cyan', '', '#111', '#0aa'),
+        ('buttn', 'black', 'dark cyan', '', '#111', '#0aa'),
+        ('buttnf', 'dark cyan', 'black', ('bold', 'standout', 'underline'), '#0aa', '#111'),
         ('selectable', 'black', 'white', '', '#111', '#fff'),
         ('focus', 'white', 'dark gray', '', '#fff', '#888'),
         ('divider', 'white', 'dark gray', ('bold', 'standout'), '#fff', '#888'),
@@ -51,15 +45,12 @@ _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
     "orange light" : [
         ('body', 'white', 'brown', 'standout', '#fff', '#880'),
         ('reverse', 'brown', 'white', '', '#880', '#fff'),
-        ('HL.body', 'dark red', 'brown', 'standout', '#800', '#880'),
-        ('HL.reverse', 'dark red', 'white', '', '#800', '#fff'),
         ('header', 'white', 'dark blue', 'bold', '#fff', '#49b'),
         ('footer', 'white', 'dark blue', 'bold', '#fff', '#49b'),
         ('important', 'dark red', 'white', ('bold', 'standout', 'underline'), '#800', '#fff'),
         ('buttonbar', 'white', 'brown', '', '#fff', '#880'),
         ('buttn', 'white', 'brown', '', '#fff', '#880'),
         ('buttnf', 'brown', 'white', ('bold', 'standout', 'underline'), '#880', '#fff'),
-        ('clock', 'white', 'light gray', '', '#fff', '#ccc'),
         ('selectable', 'white', 'black', '', '#fff', '#111'),
         ('focus', 'black', 'light gray', '', '#111', '#ccc'),
         ('divider', 'white', 'light gray', ('bold', 'standout'), '#fff', '#ccc'),
@@ -69,15 +60,12 @@ _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
     "orange dark" : [
         ('body', 'black', 'yellow', 'standout', '#111', '#ff0'),
         ('reverse', 'yellow', 'black', '', '#ff0', '#111'),
-        ('HL.body', 'light red', 'yellow', 'standout', '#f00', '#ff0'),
-        ('HL.reverse', 'light red', 'black', '', '#f00', '#111'),
         ('header', 'white', 'light blue', 'bold', '#fff', '#49a'),
         ('footer', 'white', 'light blue', 'bold', '#fff', '#49a'),
         ('important', 'light red', 'black', ('bold', 'standout', 'underline'), '#f00', '#111'),
         ('buttonbar', 'black', 'yellow', '', '#111', '#ff0'),
         ('buttn', 'black', 'yellow', '', '#111', '#ff0'),
         ('buttnf', 'yellow', 'black', ('bold', 'standout', 'underline'), '#ff0', '#111'),
-        ('clock', 'white', 'dark gray', '', '#fff', '#888'),
         ('selectable', 'black', 'white', '', '#111', '#fff'),
         ('focus', 'white', 'dark gray', '', '#fff', '#888'),
         ('divider', 'white', 'dark gray', ('bold', 'standout'), '#fff', '#888'),
@@ -288,3 +276,31 @@ def fast_tail(file: str, n: int = 0) -> List[str]:
                 lines = list(f)
             pos *= 2
     return [line.strip() for line in lines[-n:]]
+
+def minishell_read(file):
+	# should use shlex, but it's not included
+	vars = {}
+	try:
+		with open(file) as fh:
+			for line in fh:
+				key, value = line.partition("=")[::2]
+				vars[key.strip()] = value.strip()
+	except:
+		pass
+	return vars
+
+def minishell_write(file, vars):
+	with open(file, "w") as fh:
+		for key in vars:
+			fh.write(key)
+			fh.write("=")
+			fh.write(vars[key])
+			fh.write("\n")
+
+def get_current_kbdlayout():
+	vars = minishell_read("/etc/vconsole.conf")
+	try:
+		return vars["KEYMAP"].strip('"')
+	except:
+		pass
+	return "us"

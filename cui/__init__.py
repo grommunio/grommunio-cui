@@ -18,6 +18,7 @@ from scroll import ScrollBar, Scrollable
 from button import GButton, GBoxButton
 from menu import MenuItem, MultiMenuItem
 from interface import ApplicationHandler, WidgetDrawer
+import util
 from util import authenticate_user, get_clockstring, get_palette, get_system_info, get_next_palette_name, fast_tail
 from urwid import AttrWrap, ExitMainLoop, Padding, Columns, RIGHT, Text, ListBox, Frame, LineBox, SimpleListWalker, \
     MainLoop, LEFT, CENTER, SPACE, Filler, Pile, Edit, Button, connect_signal, AttrMap, GridFlow, Overlay, Widget, \
@@ -52,9 +53,6 @@ _DNS_CONFIG: str = 'DNS-CONFIG'
 _MESSAGE_BOX: str = 'MESSAGE-BOX'
 _LOG_VIEWER: str = 'LOG-VIEWER'
 
-# if os.environ['PATH'].find('/usr/sbin') < 0:
-#     os.environ['PATH'] += os.path.pathsep + '/usr/sbin'
-#
 
 class Application(ApplicationHandler):
     """
@@ -79,6 +77,8 @@ class Application(ApplicationHandler):
     current_log_unit: int = 0
     log_line_count: int = 200
 
+    _current_kbdlayout = util.get_current_kbdlayout()
+
     # The default color palette
     _current_colormode: str = 'light'
 
@@ -93,13 +93,11 @@ class Application(ApplicationHandler):
         self.old_termios = self.screen.tty_signal_keys()
         self.blank_termios = ['undefined' for bla in range(0, 5)]
         self.screen.tty_signal_keys(*self.blank_termios)
-        self.text_header = (
-            u"Welcome to grammm console user interface! UP / DOWN / PAGE UP / PAGE DOWN are scrolling.\n"
-            u"<F1> switch to colormode '{colormode}', <F2> for Login{authorized_options} and <F12> for "
-            u"exit/reboot.")
+        colormode: str = "light" if self._current_colormode == 'dark' else 'dark'
+        self.text_header = u"grammm console user interface\nF1: color switch [{colormode}], F5: change keyboard layout [{kbd}], F2: login"
         self.authorized_options = ''
         text_intro = [
-            u"Here is the ", ('HL.body', u"grammm"), u" terminal console user interface.", u"\n",
+            u"Here is the grammm terminal console user interface.", u"\n",
             u"   From here you can configure your system.", u"\n",
             u"If you need help, please try pressing 'H' to view the logs!", u"\n"
         ]
@@ -117,8 +115,7 @@ class Application(ApplicationHandler):
         self.main_bottom = ScrollBar(Scrollable(
             Pile([AttrWrap(Padding(self.tb_sysinfo_bottom, align=LEFT, left=6, width=('relative', 80)), 'reverse')])
         ))
-        colormode: str = "light" if self._current_colormode == 'dark' else 'dark'
-        self.tb_header = Text(self.text_header.format(colormode=colormode, authorized_options=''), align=CENTER,
+        self.tb_header = Text(self.text_header.format(colormode=colormode, kbd=self._current_kbdlayout, authorized_options=''), align=CENTER,
                               wrap=SPACE)
         self.header = AttrMap(Padding(self.tb_header, align=CENTER), 'header')
         self.vsplitbox = Pile([("weight", 50, AttrMap(self.main_top, "body")), ("weight", 50, self.main_bottom)])
@@ -127,7 +124,7 @@ class Application(ApplicationHandler):
         self.footer = AttrMap(self.footer_text, 'footer')
         # frame = Frame(AttrMap(self.vsplitbox, 'body'), header=self.header, footer=self.footer)
         frame = Frame(AttrMap(self.vsplitbox, 'reverse'), header=self.header, footer=self.footer)
-        self.mainframe = LineBox(frame)
+        self.mainframe = frame
         self._body = self.mainframe
 
         # Loop
@@ -223,26 +220,34 @@ class Application(ApplicationHandler):
 
         # Main Menu
         items = {
-            '1) Change Password': Pile([
-                Text('Changing Password', CENTER), Text(""),
-                Text(f'Use this for changing your password of user {getuser()}.')
+            'Change system password': Pile([
+                Text('Password change', CENTER), Text(""),
+                Text(f'Use this to change the password of the Linux system user "{getuser()}".')
             ]),
-            '2) Network Configuration': Pile([
+            'Network Configuration': Pile([
                 Text('Network Configuration', CENTER), Text(""),
                 Text('Here you can configure the Network. Set up the active device, configure IP addresses and DNS.')
             ]),
-            '3) grammm setup wizard': Pile([
+            'grammm setup wizard': Pile([
                 Text('Setup Wizard', CENTER), Text(""),
                 Text('Use this for the initial creation of the SQL database and TLS certificates.')
             ]),
-            '4) Terminal': Pile([
+            'Change Admin Web UI password': Pile([
+                Text('Password Change', CENTER), Text(""),
+                Text('If you forgot the Administration Web Interface password set through the grammm Setup Wizard, you can use this menu command to set it again.')
+            ]),
+            'Terminal': Pile([
                 Text('Terminal', CENTER), Text(""),
                 # Text('Starts Terminal and closes everything else.'),
                 Text('Starts Terminal in a sub window.')
             ]),
+            'Reboot': Pile([
+                Text('Reboot system', CENTER), Text(""),
+                Text("")
+            ]),
         }
         self.main_menu_list = self.prepare_menu_list(items)
-        self.main_menu = self.wrap_menu(self.main_menu_list)
+        self.main_menu = self.menu_to_frame(self.main_menu_list)
 
         # Password Dialog
         self.prepare_password_dialog()
@@ -279,55 +284,83 @@ class Application(ApplicationHandler):
         log_finished: bool = False
         self.current_event = event
         if type(event) == str:
+            self.handle_key_event(event)
+        elif type(event) == tuple:
+            self.handle_mouse_event(event)
+        self.print(self.current_bottom_info)
+
+    def handle_key_event(self, event: Any):
             # event was a key stroke
             key: str = str(event)
             if self.current_window == _MAIN:
+                self.key_ev_main(key)
+            elif self.current_window == _MESSAGE_BOX:
+                self.key_ev_mbox(key)
+            elif self.current_window == _TERMINAL:
+                self.key_ev_term(key)
+            elif self.current_window == _PASSWORD:
+                self.key_ev_pass(key)
+            elif self.current_window == _LOGIN:
+                self.key_ev_login(key)
+            elif self.current_window == _LOGOUT:
+                self.key_ev_logout(key)
+            elif self.current_window == _MAIN_MENU:
+                self.key_ev_mainmenu(key)
+            elif self.current_window == _LOG_VIEWER:
+                self.key_ev_logview(key)
+            elif self.current_window == _UNSUPPORTED:
+                self.key_ev_unsupp(key)
+            self.key_ev_anytime(key)
+
+    def key_ev_main(self, key):
                 # if len(self.authorized_options) > 0:
                 #     # user has successfully logged in
                 #     if key == 'f4':
                 #         self.open_main_menu()
-                if key in ['f2', 'f12', 'S' if self.debug else 'f12']:
+                if key == 'f2':
                     self.login_body.focus_position = 0 if getuser() == '' else 1  # focus on passwd if user detected
-                    if key != 'f2':
-                        self.user_edit.edit_text = "root"  # need to be superuser for shutdown
                     self.dialog(body=LineBox(Padding(Filler(self.login_body))), header=self.login_header,
                                 footer=self.login_footer, focus_part='body', align='center', valign='middle',
                                 width=40, height=10)
-                    if key == 'f2':
-                        self.current_window = _LOGIN
-                    elif key in ['S', 'f12']:
-                        self.current_window = _LOGOUT
+                    self.current_window = _LOGIN
                 elif key == 'l' and not _PRODUCTIVE:
                     self.open_main_menu()
                 elif key == 'tab':
                     self.vsplitbox.focus_position = 0 if self.vsplitbox.focus_position == 1 else 1
 
-            elif self.current_window == _MESSAGE_BOX:
+    def key_ev_mbox(self, key):
                 if key.endswith('enter') or key == 'esc':
                     self.current_window = self.message_box_caller
                     self._body = self._message_box_caller_body
                     self.reset_layout()
 
-            elif self.current_window == _TERMINAL:
+    def key_ev_term(self, key):
                 self.handle_standard_tab_behaviour(key)
                 if key == 'f10':
                     raise ExitMainLoop()
                 elif key.endswith('enter') or key == 'esc':
                     self.open_main_menu()
 
-            elif self.current_window == _PASSWORD:
+    def key_ev_pass(self, key):
                 self.handle_standard_tab_behaviour(key)
                 if key.lower().endswith('close enter') or key == 'esc':
                     self.open_main_menu()
 
-            elif self.current_window in [_LOGIN, _LOGOUT]:
+    def key_ev_login(self, key):
                 self.handle_standard_tab_behaviour(key)
                 if key.endswith('enter'):
                     self.check_login()
                 elif key == 'esc':
                     self.open_mainframe()
 
-            elif self.current_window == _MAIN_MENU:
+    def key_ev_logout(self, key):
+                # Restore cursor etc. before going off.
+                self._loop.stop()
+                self.screen.tty_signal_keys(*self.old_termios)
+                os.system("reboot")
+                raise ExitMainLoop()
+
+    def key_ev_mainmenu(self, key):
                 menu_selected: int = self.handle_standard_menu_behaviour(self.main_menu_list, key,
                                                                          self.main_menu.base_widget.body[1])
                 if key.endswith('enter') or key in range(ord('1'), ord('9') + 1):
@@ -339,10 +372,14 @@ class Application(ApplicationHandler):
                         self.open_setup_wizard()
                     elif menu_selected == 4:
                         self.open_terminal()
+                    elif menu_selected == 5:
+                        self.reset_aapi_passwd()
+                    elif menu_selected == 6:
+                        self.reboot_confirm()
                 elif key == 'esc':
                     self.open_mainframe()
 
-            elif self.current_window == _LOG_VIEWER:
+    def key_ev_logview(self, key):
                 if key in ['ctrl f1', 'H']:
                     self.current_window = self.log_file_caller
                     self._body = self._log_file_caller_body
@@ -376,13 +413,14 @@ class Application(ApplicationHandler):
                     self._hidden_input = ""
                     self._hidden_pos = 0
 
-            elif self.current_window == _UNSUPPORTED:
+    def key_ev_unsupp(self, key):
                 if key in ['ctrl d', 'esc', 'ctrl f1', 'H']:
                     self.current_window = self.log_file_caller
                     self._body = self._log_file_caller_body
                     log_finished = True
                     self.reset_layout()
 
+    def key_ev_anytime(self, key):
             if key in ['f10', 'Q']:
                 raise ExitMainLoop()
             elif key == 'f4' and len(self.authorized_options) > 0:
@@ -390,6 +428,8 @@ class Application(ApplicationHandler):
             elif key == 'f1' or key == 'c':
                 # self.change_colormode('dark' if self._current_colormode == 'light' else 'light')
                 self.switch_next_colormode()
+            elif key == 'f5':
+                self.switch_kbdlayout()
             elif key in ['ctrl f1', 'H'] \
                     and self.current_window != _LOG_VIEWER and self.current_window != _UNSUPPORTED \
                     and not log_finished:
@@ -397,14 +437,12 @@ class Application(ApplicationHandler):
                 self.open_log_viewer('gromox-http', self.log_line_count)
                 # self.open_log_viewer('NetworkManager', self.log_line_count)
 
-        elif type(event) == tuple:
+    def handle_mouse_event(self, event: Any):
             # event is a mouse event in the form ('mouse press or release', button, column, line)
             event: Tuple[str, float, int, int] = tuple(event)
             if event[0] == 'mouse press' and event[1] == 1:
                 # self.handle_event('mouseclick left enter')
                 self.handle_event('my mouseclick left button')
-
-        self.print(self.current_bottom_info)
 
     def _load_journal_units(self):
         p = subprocess.Popen(["/usr/sbin/grammm-admin", "config", "dump"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -489,6 +527,11 @@ class Application(ApplicationHandler):
         self.screen.tty_signal_keys(*self.blank_termios)
         self._loop.start()
 
+    def reboot_confirm(self):
+        msg = "After pressing OK, the system will shut down!\nBe sure to leave nothing undone."
+        self.current_window = _LOGOUT
+        self.message_box(msg)
+
     def open_change_password(self):
         """
         Opens password changing dialog.
@@ -513,9 +556,9 @@ class Application(ApplicationHandler):
 
     def prepare_log_viewer_old(self, logfile: str = 'syslog', lines: int = 0):
         """
-Prepares log file viewer widget and fills last lines of file content.
+        Prepares log file viewer widget and fills last lines of file content.
 
-:param logfile: The logfile to be viewed.
+        :param logfile: The logfile to be viewed.
         """
         filename: str = '/var/log/messages'
         if logfile == 'syslog':
@@ -533,9 +576,9 @@ Prepares log file viewer widget and fills last lines of file content.
 
     def prepare_log_viewer(self, unit: str = 'syslog', lines: int = 0):
         """
-Prepares log file viewer widget and fills last lines of file content.
+        Prepares log file viewer widget and fills last lines of file content.
 
-:param unit: The journal unit to be viewed.
+        :param unit: The journal unit to be viewed.
         """
         unitname: str = unit if unit.strip().endswith('.service') else f"{unit}.service"
 
@@ -605,6 +648,13 @@ Prepares log file viewer widget and fills last lines of file content.
         self.screen.tty_signal_keys(*self.blank_termios)
         self._loop.start()
 
+    def reset_aapi_passwd(self):
+        self._loop.stop()
+        self.screen.tty_signal_keys(*self.old_termios)
+        os.system("grammm-admin passwd")
+        self.screen.tty_signal_keys(*self.blank_termios)
+        self._loop.start()
+
     def open_setup_wizard(self):
         self._loop.stop()
         self.screen.tty_signal_keys(*self.old_termios)
@@ -617,11 +667,11 @@ Prepares log file viewer widget and fills last lines of file content.
         Opens amin menu,
         """
         self.reset_layout()
-        self.print("Login successfully!")
+        self.print("Login successful")
         self.current_window = _MAIN_MENU
         self.authorized_options = ', <F4> for Main-Menu'
         colormode: str = "light" if self._current_colormode == 'dark' else 'dark'
-        self.tb_header.set_text(self.text_header.format(colormode=colormode,
+        self.tb_header.set_text(self.text_header.format(colormode=colormode, kbd=self._current_kbdlayout,
                                                         authorized_options=self.authorized_options))
         self._body = self.main_menu
         self._loop.widget = self._body
@@ -650,16 +700,6 @@ Prepares log file viewer widget and fills last lines of file content.
             else:
                 self.message_box(f'You have taken a wrong password, {self.user_edit.get_edit_text()}!')
                 self.print(f"Login wrong! ({msg})")
-        elif self.current_window == _LOGOUT:
-            if self.user_edit.get_edit_text() != 'root':
-                self.message_box('You need to be superuser!')
-                self.user_edit.edit_text = 'root'
-            elif authenticate_user(self.user_edit.get_edit_text(), self.pass_edit.get_edit_text()):
-                self.message_box('After pressing OK, the system will be shut down!\nBe sure to leave nothing undone.')
-                os.system('/sbin/shutdown -h now')
-            else:
-                self.print(f"Login wrong! ({msg})")
-                self.message_box(f'You have taken a wrong password, {self.user_edit.get_edit_text()}!')
 
     def press_button(self, button: Widget, *args, **kwargs):
         """
@@ -684,19 +724,13 @@ Prepares log file viewer widget and fills last lines of file content.
         menu_items: List[MenuItem] = self.create_menu_items(items)
         return ListBox(SimpleFocusListWalker(menu_items))
 
-    def wrap_menu(self, listbox: ListBox) -> LineBox:
-        """
-        Wraps menu ListBox with LineBox.
-
-        :param listbox:  The ListBox to be wrapped.
-        :return: The LineBox wrapping ListBox.
-        """
+    def menu_to_frame(self, listbox: ListBox):
         menu = Columns([
             AttrMap(listbox, 'body'),
             AttrMap(ListBox(SimpleListWalker([self.menu_description])), 'reverse'),
         ])
         menu[1]._selectable = False
-        return LineBox(Frame(menu, header=self.header, footer=self.footer))
+        return Frame(menu, header=self.header, footer=self.footer)
 
     def prepare_radio_list(self, items: Dict[str, Widget]) -> Tuple[ListBox, ListBox]:
         """
@@ -739,7 +773,7 @@ Prepares log file viewer widget and fills last lines of file content.
         p = get_palette(mode)
         self._current_colormode = mode
         colormode: str = "light" if self._current_colormode == 'dark' else 'dark'
-        self.tb_header.set_text(self.text_header.format(colormode=colormode,
+        self.tb_header.set_text(self.text_header.format(colormode=colormode, kbd=self._current_kbdlayout,
                                                         authorized_options=self.authorized_options))
         self._loop.screen.register_palette(p)
         self._loop.screen.clear()
@@ -748,11 +782,24 @@ Prepares log file viewer widget and fills last lines of file content.
         o = self._current_colormode
         n = get_next_palette_name(o)
         p = get_palette(n)
-        self.tb_header.set_text(self.text_header.format(colormode=get_next_palette_name(n),
+        self.tb_header.set_text(self.text_header.format(colormode=get_next_palette_name(n), kbd=self._current_kbdlayout,
                                                         authorized_options=self.authorized_options))
         self._loop.screen.register_palette(p)
         self._loop.screen.clear()
         self._current_colormode = n
+
+    def switch_kbdlayout(self):
+        # Base proposal on CUI's last known state
+        proposal = "de-latin1-nodeadkeys" if self._current_kbdlayout == "us" else "us"
+        # But do read the file again so newly added keys do not get lost
+        file = "/etc/vconsole.conf"
+        vars = util.minishell_read(file)
+        vars["KEYMAP"] = proposal
+        util.minishell_write(file, vars)
+        os.system("systemctl restart systemd-vconsole-setup")
+        self._current_kbdlayout = proposal
+        self.tb_header.set_text(self.text_header.format(colormode=self._current_colormode, kbd=self._current_kbdlayout,
+                                                        authorized_options=self.authorized_options))
 
     def redraw(self):
         """
@@ -865,7 +912,7 @@ Prepares log file viewer widget and fills last lines of file content.
             string (str): The string to print
             align (str): The alignment of the printed text
         """
-        text = [('clock', f"{get_clockstring()}: "), ('footer', string)]
+        text = [('footer', f"{get_clockstring()}: "), ('footer', string)]
         if self.debug:
             text += ['\n', ('', f"({self.current_event})"), ('', f" on {self.current_window}")]
         self.footer_text.set_text([text])
