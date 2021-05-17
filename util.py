@@ -277,30 +277,33 @@ def fast_tail(file: str, n: int = 0) -> List[str]:
             pos *= 2
     return [line.strip() for line in lines[-n:]]
 
+
 def minishell_read(file):
-	# should use shlex, but it's not included
-	vars = {}
-	try:
-		with open(file) as fh:
-			for line in fh:
-				key, value = line.partition("=")[::2]
-				vars[key.strip()] = value.strip()
-	except:
-		pass
-	return vars
+    # should use shlex, but it's not included
+    vars = {}
+    try:
+        with open(file) as fh:
+            for line in fh:
+                key, value = line.partition("=")[::2]
+                vars[key.strip()] = value.strip()
+    except:
+        pass
+    return vars
+
 
 def minishell_write(file, vars):
-	with open(file, "w") as fh:
-		for key in vars:
-			fh.write(key)
-			fh.write("=")
-			fh.write(vars[key])
-			fh.write("\n")
+    with open(file, "w") as fh:
+        for key in vars:
+            fh.write(key)
+            fh.write("=")
+            fh.write(vars[key])
+            fh.write("\n")
+
 
 def get_current_kbdlayout():
-	vars = minishell_read("/etc/vconsole.conf")
-	try:
-		return vars["KEYMAP"].strip('"')
-	except:
-		pass
-	return "us"
+    vars = minishell_read("/etc/vconsole.conf")
+    try:
+        return vars["KEYMAP"].strip('"')
+    except:
+        pass
+    return "us"
