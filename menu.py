@@ -25,7 +25,7 @@ class MenuItem(Text):
             emit_signal(self, 'activate', key)
         else:
             if self.application is not None:
-                if not key in ['c', 'esc']:
+                if key not in ['c', 'f1', 'esc']:
                     self.application.handle_event(key)
             return key
     
