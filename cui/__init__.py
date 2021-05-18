@@ -235,6 +235,10 @@ class Application(ApplicationHandler):
                 Text('Network Configuration', CENTER), Text(""),
                 Text('Here you can configure the Network. Set up the active device, configure IP addresses and DNS.')
             ]),
+            'Timezone Configuration': Pile([
+                Text('Timezone Configuration', CENTER), Text(""),
+                Text('Here you can set up your country and timezone settings.')
+            ]),
             'grammm setup wizard': Pile([
                 Text('Setup Wizard', CENTER), Text(""),
                 Text('Use this for the initial creation of the SQL database and TLS certificates.')
@@ -386,14 +390,16 @@ class Application(ApplicationHandler):
             if menu_selected == 1:
                 self.open_change_password()
             elif menu_selected == 2:
-                self.open_network_config()
+                self.run_yast_module('lan')
             elif menu_selected == 3:
-                self.open_setup_wizard()
+                self.run_yast_module('timezone')
             elif menu_selected == 4:
-                self.open_reset_aapi_pw()
+                self.open_setup_wizard()
             elif menu_selected == 5:
-                self.open_terminal()
+                self.open_reset_aapi_pw()
             elif menu_selected == 6:
+                self.open_terminal()
+            elif menu_selected == 7:
                 self.reboot_confirm()
         elif key == 'esc':
             self.open_mainframe()
@@ -663,13 +669,13 @@ class Application(ApplicationHandler):
         self._body = self.log_viewer
         self._loop.widget = self._body
 
-    def open_network_config(self):
+    def run_yast_module(self, modulename: str):
         self._loop.stop()
         self.screen.tty_signal_keys(*self.old_termios)
         print("\x1b[K")
-        print("\x1b[K \x1b[36m▼\x1b[0m Please wait while `yast2 lan` is being run.")
+        print("\x1b[K \x1b[36m▼\x1b[0m Please wait while `yast2 {}` is being run.".format(modulename))
         print("\x1b[J")
-        os.system("yast2 lan")
+        os.system("yast2 {}".format(modulename))
         self.screen.tty_signal_keys(*self.blank_termios)
         self._loop.start()
 
