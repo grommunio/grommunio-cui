@@ -460,6 +460,7 @@ class Application(ApplicationHandler):
         if key.lower().endswith('enter') or key == 'esc':
             if key.lower().endswith('enter'):
                 self.reset_aapi_passwd(self.last_input_box_value)
+            self.current_window = self.input_box_caller
 
     def handle_mouse_event(self, event: Any):
         # event is a mouse event in the form ('mouse press or release', button, column, line)
@@ -1003,11 +1004,13 @@ class Application(ApplicationHandler):
         To use the box as standard input box always returning to it's parent, then you have to implement something like
         this in your event handler: (f.e. **self**.handle_event) and you MUST set the self.current_window_input_box
 
-            elif self.current_window == _INPUT_BOX:
+            self.current_window_input_box = _ANY_OF_YOUR_CURRENT_WINDOWS
+            self.input_box('Y/n', 'Question', 'yes')
+
+            # and later on event handling
+            elif self.current_window == _ANY_OF_YOUR_CURRENT_WINDOWS:
                 if key.endswith('enter') or key == 'esc':
-                    self.current_window = self.input_box_caller
-                    self._body = self._input_box_caller_body
-                    self.reset_layout()
+                    self.current_window = self.input_box_caller  # here you have to set your current window
 
         :param msg: List or one element of urwid formatted tuple containing the message content.
         :type: Any
