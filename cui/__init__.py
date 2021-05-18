@@ -76,6 +76,7 @@ class Application(ApplicationHandler):
     log_units: Dict[str, str] = {}
     current_log_unit: int = 0
     log_line_count: int = 200
+    log_finished: bool = False
 
     _current_kbdlayout = util.get_current_kbdlayout()
 
@@ -281,7 +282,6 @@ class Application(ApplicationHandler):
                 represented value like 'enter', 'up', 'down', etc.
             :type: Any
         """
-        log_finished: bool = False
         self.current_event = event
         if type(event) == str:
             self.handle_key_event(event)
@@ -290,159 +290,155 @@ class Application(ApplicationHandler):
         self.print(self.current_bottom_info)
 
     def handle_key_event(self, event: Any):
-            # event was a key stroke
-            key: str = str(event)
-            if self.current_window == _MAIN:
-                self.key_ev_main(key)
-            elif self.current_window == _MESSAGE_BOX:
-                self.key_ev_mbox(key)
-            elif self.current_window == _TERMINAL:
-                self.key_ev_term(key)
-            elif self.current_window == _PASSWORD:
-                self.key_ev_pass(key)
-            elif self.current_window == _LOGIN:
-                self.key_ev_login(key)
-            elif self.current_window == _LOGOUT:
-                self.key_ev_logout(key)
-            elif self.current_window == _MAIN_MENU:
-                self.key_ev_mainmenu(key)
-            elif self.current_window == _LOG_VIEWER:
-                self.key_ev_logview(key)
-            elif self.current_window == _UNSUPPORTED:
-                self.key_ev_unsupp(key)
-            self.key_ev_anytime(key)
+        # event was a key stroke
+        key: str = str(event)
+        if self.current_window == _MAIN:
+            self.key_ev_main(key)
+        elif self.current_window == _MESSAGE_BOX:
+            self.key_ev_mbox(key)
+        elif self.current_window == _TERMINAL:
+            self.key_ev_term(key)
+        elif self.current_window == _PASSWORD:
+            self.key_ev_pass(key)
+        elif self.current_window == _LOGIN:
+            self.key_ev_login(key)
+        elif self.current_window == _LOGOUT:
+            self.key_ev_logout(key)
+        elif self.current_window == _MAIN_MENU:
+            self.key_ev_mainmenu(key)
+        elif self.current_window == _LOG_VIEWER:
+            self.key_ev_logview(key)
+        elif self.current_window == _UNSUPPORTED:
+            self.key_ev_unsupp(key)
+        self.key_ev_anytime(key)
 
     def key_ev_main(self, key):
-                # if len(self.authorized_options) > 0:
-                #     # user has successfully logged in
-                #     if key == 'f4':
-                #         self.open_main_menu()
-                if key == 'f2':
-                    self.login_body.focus_position = 0 if getuser() == '' else 1  # focus on passwd if user detected
-                    self.dialog(body=LineBox(Padding(Filler(self.login_body))), header=self.login_header,
-                                footer=self.login_footer, focus_part='body', align='center', valign='middle',
-                                width=40, height=10)
-                    self.current_window = _LOGIN
-                elif key == 'l' and not _PRODUCTIVE:
-                    self.open_main_menu()
-                elif key == 'tab':
-                    self.vsplitbox.focus_position = 0 if self.vsplitbox.focus_position == 1 else 1
+        if key == 'f2':
+            self.login_body.focus_position = 0 if getuser() == '' else 1  # focus on passwd if user detected
+            self.dialog(body=LineBox(Padding(Filler(self.login_body))), header=self.login_header,
+                        footer=self.login_footer, focus_part='body', align='center', valign='middle',
+                        width=40, height=10)
+            self.current_window = _LOGIN
+        elif key == 'l' and not _PRODUCTIVE:
+            self.open_main_menu()
+        elif key == 'tab':
+            self.vsplitbox.focus_position = 0 if self.vsplitbox.focus_position == 1 else 1
 
     def key_ev_mbox(self, key):
-                if key.endswith('enter') or key == 'esc':
-                    self.current_window = self.message_box_caller
-                    self._body = self._message_box_caller_body
-                    self.reset_layout()
+        if key.endswith('enter') or key == 'esc':
+            self.current_window = self.message_box_caller
+            self._body = self._message_box_caller_body
+            self.reset_layout()
 
     def key_ev_term(self, key):
-                self.handle_standard_tab_behaviour(key)
-                if key == 'f10':
-                    raise ExitMainLoop()
-                elif key.endswith('enter') or key == 'esc':
-                    self.open_main_menu()
+        self.handle_standard_tab_behaviour(key)
+        if key == 'f10':
+            raise ExitMainLoop()
+        elif key.endswith('enter') or key == 'esc':
+            self.open_main_menu()
 
     def key_ev_pass(self, key):
-                self.handle_standard_tab_behaviour(key)
-                if key.lower().endswith('close enter') or key == 'esc':
-                    self.open_main_menu()
+        self.handle_standard_tab_behaviour(key)
+        if key.lower().endswith('close enter') or key == 'esc':
+            self.open_main_menu()
 
     def key_ev_login(self, key):
-                self.handle_standard_tab_behaviour(key)
-                if key.endswith('enter'):
-                    self.check_login()
-                elif key == 'esc':
-                    self.open_mainframe()
+        self.handle_standard_tab_behaviour(key)
+        if key.endswith('enter'):
+            self.check_login()
+        elif key == 'esc':
+            self.open_mainframe()
 
     def key_ev_logout(self, key):
-                # Restore cursor etc. before going off.
-                self._loop.stop()
-                self.screen.tty_signal_keys(*self.old_termios)
-                os.system("reboot")
-                raise ExitMainLoop()
+        # Restore cursor etc. before going off.
+        self._loop.stop()
+        self.screen.tty_signal_keys(*self.old_termios)
+        os.system("reboot")
+        raise ExitMainLoop()
 
     def key_ev_mainmenu(self, key):
-                menu_selected: int = self.handle_standard_menu_behaviour(self.main_menu_list, key,
-                                                                         self.main_menu.base_widget.body[1])
-                if key.endswith('enter') or key in range(ord('1'), ord('9') + 1):
-                    if menu_selected == 1:
-                        self.open_change_password()
-                    elif menu_selected == 2:
-                        self.open_network_config()
-                    elif menu_selected == 3:
-                        self.open_setup_wizard()
-                    elif menu_selected == 4:
-                        self.open_terminal()
-                    elif menu_selected == 5:
-                        self.reset_aapi_passwd()
-                    elif menu_selected == 6:
-                        self.reboot_confirm()
-                elif key == 'esc':
-                    self.open_mainframe()
+        menu_selected: int = self.handle_standard_menu_behaviour(self.main_menu_list, key,
+                                                                 self.main_menu.base_widget.body[1])
+        if key.endswith('enter') or key in range(ord('1'), ord('9') + 1):
+            if menu_selected == 1:
+                self.open_change_password()
+            elif menu_selected == 2:
+                self.open_network_config()
+            elif menu_selected == 3:
+                self.open_setup_wizard()
+            elif menu_selected == 4:
+                self.reset_aapi_passwd()
+            elif menu_selected == 5:
+                self.open_terminal()
+            elif menu_selected == 6:
+                self.reboot_confirm()
+        elif key == 'esc':
+            self.open_mainframe()
 
     def key_ev_logview(self, key):
-                if key in ['ctrl f1', 'H']:
-                    self.current_window = self.log_file_caller
-                    self._body = self._log_file_caller_body
-                    self.reset_layout()
-                    log_finished = True
-                elif key in ['left', 'right', '+', '-']:
-                    if key == '-':
-                        self.log_line_count -= 100
-                    elif key == '+':
-                        self.log_line_count += 100
-                    elif key == 'left':
-                        self.current_log_unit -= 1
-                    elif key == 'right':
-                        self.current_log_unit += 1
-                    if self.log_line_count < 200:
-                        self.log_line_count = 200
-                    elif self.log_line_count > 10000:
-                        self.log_line_count = 10000
-                    if self.current_log_unit < 0:
-                        self.current_log_unit = 0
-                    elif self.current_log_unit >= len(self.log_units):
-                        self.current_log_unit = len(self.log_units) - 1
-                    self.open_log_viewer(self.get_log_unit_by_id(self.current_log_unit), self.log_line_count)
-                elif self._hidden_pos < len(_UNSUPPORTED) and key == _UNSUPPORTED.lower()[self._hidden_pos]:
-                    self._hidden_input += key
-                    self._hidden_pos += 1
-                    if self._hidden_input == _UNSUPPORTED.lower():
-                        self.open_unsupported()
-                        # raise ExitMainLoop()
-                else:
-                    self._hidden_input = ""
-                    self._hidden_pos = 0
+        if key in ['ctrl f1', 'H']:
+            self.current_window = self.log_file_caller
+            self._body = self._log_file_caller_body
+            self.reset_layout()
+            self.log_finished = True
+        elif key in ['left', 'right', '+', '-']:
+            if key == '-':
+                self.log_line_count -= 100
+            elif key == '+':
+                self.log_line_count += 100
+            elif key == 'left':
+                self.current_log_unit -= 1
+            elif key == 'right':
+                self.current_log_unit += 1
+            if self.log_line_count < 200:
+                self.log_line_count = 200
+            elif self.log_line_count > 10000:
+                self.log_line_count = 10000
+            if self.current_log_unit < 0:
+                self.current_log_unit = 0
+            elif self.current_log_unit >= len(self.log_units):
+                self.current_log_unit = len(self.log_units) - 1
+            self.open_log_viewer(self.get_log_unit_by_id(self.current_log_unit), self.log_line_count)
+        elif self._hidden_pos < len(_UNSUPPORTED) and key == _UNSUPPORTED.lower()[self._hidden_pos]:
+            self._hidden_input += key
+            self._hidden_pos += 1
+            if self._hidden_input == _UNSUPPORTED.lower():
+                self.open_unsupported()
+                # raise ExitMainLoop()
+        else:
+            self._hidden_input = ""
+            self._hidden_pos = 0
 
     def key_ev_unsupp(self, key):
-                if key in ['ctrl d', 'esc', 'ctrl f1', 'H']:
-                    self.current_window = self.log_file_caller
-                    self._body = self._log_file_caller_body
-                    log_finished = True
-                    self.reset_layout()
+        if key in ['ctrl d', 'esc', 'ctrl f1', 'H']:
+            self.current_window = self.log_file_caller
+            self._body = self._log_file_caller_body
+            self.log_finished = True
+            self.reset_layout()
 
     def key_ev_anytime(self, key):
-            if key in ['f10', 'Q']:
-                raise ExitMainLoop()
-            elif key == 'f4' and len(self.authorized_options) > 0:
-                self.open_main_menu()
-            elif key == 'f1' or key == 'c':
-                # self.change_colormode('dark' if self._current_colormode == 'light' else 'light')
-                self.switch_next_colormode()
-            elif key == 'f5':
-                self.switch_kbdlayout()
-            elif key in ['ctrl f1', 'H'] \
-                    and self.current_window != _LOG_VIEWER and self.current_window != _UNSUPPORTED \
-                    and not log_finished:
-                # self.open_log_viewer('test', 10)
-                self.open_log_viewer('gromox-http', self.log_line_count)
-                # self.open_log_viewer('NetworkManager', self.log_line_count)
+        if key in ['f10', 'Q']:
+            raise ExitMainLoop()
+        elif key == 'f4' and len(self.authorized_options) > 0:
+            self.open_main_menu()
+        elif key == 'f1' or key == 'c':
+            # self.change_colormode('dark' if self._current_colormode == 'light' else 'light')
+            self.switch_next_colormode()
+        elif key == 'f5':
+            self.switch_kbdlayout()
+        elif key in ['ctrl f1', 'H'] and self.current_window != _LOG_VIEWER \
+                and self.current_window != _UNSUPPORTED \
+                and not self.log_finished:
+            # self.open_log_viewer('test', 10)
+            self.open_log_viewer('gromox-http', self.log_line_count)
+            # self.open_log_viewer('NetworkManager', self.log_line_count)
 
     def handle_mouse_event(self, event: Any):
-            # event is a mouse event in the form ('mouse press or release', button, column, line)
-            event: Tuple[str, float, int, int] = tuple(event)
-            if event[0] == 'mouse press' and event[1] == 1:
-                # self.handle_event('mouseclick left enter')
-                self.handle_event('my mouseclick left button')
+        # event is a mouse event in the form ('mouse press or release', button, column, line)
+        event: Tuple[str, float, int, int] = tuple(event)
+        if event[0] == 'mouse press' and event[1] == 1:
+            # self.handle_event('mouseclick left enter')
+            self.handle_event('my mouseclick left button')
 
     def _load_journal_units(self):
         p = subprocess.Popen(["/usr/sbin/grammm-admin", "config", "dump"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
