@@ -5,7 +5,7 @@ import subprocess
 import sys
 from asyncio.events import AbstractEventLoop
 from pathlib import Path
-from typing import Any, List, Tuple, Dict
+from typing import Any, List, Tuple, Dict, Union
 import psutil
 import os
 import time
@@ -51,7 +51,9 @@ _IP_CONFIG: str = 'IP-CONFIG'
 _IP_ADDRESS_CONFIG: str = 'IP-ADDRESS-CONFIG'
 _DNS_CONFIG: str = 'DNS-CONFIG'
 _MESSAGE_BOX: str = 'MESSAGE-BOX'
+_INPUT_BOX: str = 'INPUT-BOX'
 _LOG_VIEWER: str = 'LOG-VIEWER'
+_ADMIN_WEB_PW: str = 'ADMIN-WEB-PW'
 
 
 class Application(ApplicationHandler):
@@ -59,8 +61,12 @@ class Application(ApplicationHandler):
     The console UI. Main application class.
     """
     current_window: str = _MAIN
+    current_window_input_box: str = ""
     message_box_caller: str = ''
     _message_box_caller_body: Widget = None
+    input_box_caller: str = ''
+    _input_box_caller_body: Widget = None
+    last_input_box_value: str = ""
     log_file_caller: str = ''
     _log_file_caller_body: Widget = None
     current_event = None
@@ -235,7 +241,8 @@ class Application(ApplicationHandler):
             ]),
             'Change Admin Web UI password': Pile([
                 Text('Password Change', CENTER), Text(""),
-                Text('If you forgot the Administration Web Interface password set through the grammm Setup Wizard, you can use this menu command to set it again.')
+                Text('If you forgot the Administration Web Interface password set through the grammm '
+                     'Setup Wizard, you can use this menu command to set it again.')
             ]),
             'Terminal': Pile([
                 Text('Terminal', CENTER), Text(""),
@@ -296,6 +303,8 @@ class Application(ApplicationHandler):
             self.key_ev_main(key)
         elif self.current_window == _MESSAGE_BOX:
             self.key_ev_mbox(key)
+        elif self.current_window == _INPUT_BOX:
+            self.key_ev_ibox(key)
         elif self.current_window == _TERMINAL:
             self.key_ev_term(key)
         elif self.current_window == _PASSWORD:
@@ -310,6 +319,8 @@ class Application(ApplicationHandler):
             self.key_ev_logview(key)
         elif self.current_window == _UNSUPPORTED:
             self.key_ev_unsupp(key)
+        elif self.current_window == _ADMIN_WEB_PW:
+            self.key_ev_aapi(key)
         self.key_ev_anytime(key)
 
     def key_ev_main(self, key):
@@ -329,6 +340,18 @@ class Application(ApplicationHandler):
             self.current_window = self.message_box_caller
             self._body = self._message_box_caller_body
             self.reset_layout()
+
+    def key_ev_ibox(self, key):
+        self.handle_standard_tab_behaviour(key)
+        if key.endswith('enter') or key == 'esc':
+            if key.endswith('enter'):
+                self.last_input_box_value = self._loop.widget.top_w.base_widget.body.base_widget[1].edit_text
+            else:
+                self.last_input_box_value = ""
+            self.current_window = self.current_window_input_box
+            self._body = self._input_box_caller_body
+            self.reset_layout()
+            self.handle_event(key)
 
     def key_ev_term(self, key):
         self.handle_standard_tab_behaviour(key)
@@ -367,7 +390,7 @@ class Application(ApplicationHandler):
             elif menu_selected == 3:
                 self.open_setup_wizard()
             elif menu_selected == 4:
-                self.reset_aapi_passwd()
+                self.open_reset_aapi_pw()
             elif menu_selected == 5:
                 self.open_terminal()
             elif menu_selected == 6:
@@ -432,6 +455,11 @@ class Application(ApplicationHandler):
             # self.open_log_viewer('test', 10)
             self.open_log_viewer('gromox-http', self.log_line_count)
             # self.open_log_viewer('NetworkManager', self.log_line_count)
+
+    def key_ev_aapi(self, key):
+        if key.lower().endswith('enter') or key == 'esc':
+            if key.lower().endswith('enter'):
+                self.reset_aapi_passwd(self.last_input_box_value)
 
     def handle_mouse_event(self, event: Any):
         # event is a mouse event in the form ('mouse press or release', button, column, line)
@@ -644,7 +672,24 @@ class Application(ApplicationHandler):
         self.screen.tty_signal_keys(*self.blank_termios)
         self._loop.start()
 
-    def reset_aapi_passwd(self):
+    def open_reset_aapi_pw(self):
+        self.reset_layout()
+        self.print("Resetting admin-web password")
+        self.current_window_input_box = _ADMIN_WEB_PW
+        self.input_box(
+            title='Admin-Web-Password Reset',
+            msg='Please enter your new admin-web password:',
+            width=60,
+            input_text="",
+            height=10,
+            mask='*')
+
+    def reset_aapi_passwd(self, new_pw: str):
+        if new_pw:
+            if new_pw != "":
+                os.system(f"grammm-admin passwd --password '{new_pw}'")
+    
+    def reset_aapi_passwd_old(self):
         self._loop.stop()
         self.screen.tty_signal_keys(*self.old_termios)
         os.system("grammm-admin passwd")
@@ -919,7 +964,7 @@ class Application(ApplicationHandler):
         """
         Creates a message box dialog with an optional title. The message also can be a list of urwid formatted tuples.
 
-        To use the box as standard message box always returning to it's parent, then ou have to implement something like
+        To use the box as standard message box always returning to it's parent, then you have to implement something like
         this in your event handler: (f.e. **self**.handle_event)
 
             elif self.current_window == _MESSAGE_BOX:
@@ -945,6 +990,48 @@ class Application(ApplicationHandler):
         self.dialog(
             body=body, header=Text(title, CENTER),
             footer=self.ok_button_footer, focus_part='footer',
+            align=align, width=width, valign=valign, height=height
+        )
+
+    def input_box(self, msg: Any, title: str = None, input_text: str = "", multiline: bool = False,
+                  align: str = CENTER, width: int = 45,
+                  valign: str = MIDDLE, height: int = 9,
+                  mask: Union[bytes, str] = None):
+        """Creates an input box dialog with an optional title and a default value. 
+        The message also can be a list of urwid formatted tuples.
+
+        To use the box as standard input box always returning to it's parent, then you have to implement something like
+        this in your event handler: (f.e. **self**.handle_event) and you MUST set the self.current_window_input_box
+
+            elif self.current_window == _INPUT_BOX:
+                if key.endswith('enter') or key == 'esc':
+                    self.current_window = self.input_box_caller
+                    self._body = self._input_box_caller_body
+                    self.reset_layout()
+
+        :param msg: List or one element of urwid formatted tuple containing the message content.
+        :type: Any
+        :param title: Optional title as simple string.
+        :param input_text: Default text as input text.
+        :param multiline: If True then inputs can have more than one line.
+        :param align: Horizontal align.
+        :param width: The width of the box.
+        :param valign: Vertical align.
+        :param height: The height of the box.
+        :param mask: hide text entered by this character. If None, mask will be disabled.
+        """
+        self.input_box_caller = self.current_window
+        self._input_box_caller_body = self._loop.widget
+        self.current_window = _INPUT_BOX
+        body = LineBox(Padding(Filler(Pile([
+            Text(msg, CENTER),
+            Edit("", input_text, multiline, CENTER, mask=mask)
+        ]), TOP)))
+        if title is None:
+            title = 'Input expected'
+        self.dialog(
+            body=body, header=Text(title, CENTER),
+            footer=self.ok_button_footer, focus_part='body',
             align=align, width=width, valign=valign, height=height
         )
 
