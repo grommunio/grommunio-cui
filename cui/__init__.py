@@ -723,6 +723,9 @@ class Application(ApplicationHandler):
                                                         authorized_options=self.authorized_options))
         self._body = self.main_menu
         self._loop.widget = self._body
+        menu_selected: int = self.handle_standard_menu_behaviour(self.main_menu_list, 'up',
+                                                                 self.main_menu.base_widget.body[1])
+
 
     def open_mainframe(self):
         """
