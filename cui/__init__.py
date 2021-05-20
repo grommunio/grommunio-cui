@@ -709,14 +709,10 @@ class Application(ApplicationHandler):
     def reset_aapi_passwd(self, new_pw: str) -> bool:
         if new_pw:
             if new_pw != "":
-                if new_pw.find('"') >= 0:
-                    safe_pw = new_pw.replace('"', r'\"')
-                else:
-                    safe_pw = new_pw
-                rc: int = os.system(f'grammm-admin passwd --password="{safe_pw}"')
-                return True if rc == 0 else False
+                proc = subprocess.Popen(['grammm-admin', 'passwd', '--password', new_pw])
+                return True
         return False
-    
+
     def reset_aapi_passwd_old(self):
         self._loop.stop()
         self.screen.tty_signal_keys(*self.old_termios)
