@@ -691,10 +691,16 @@ class Application(ApplicationHandler):
             height=10,
             mask='*')
 
-    def reset_aapi_passwd(self, new_pw: str):
+    def reset_aapi_passwd(self, new_pw: str) -> bool:
         if new_pw:
             if new_pw != "":
-                os.system(f"grammm-admin passwd --password '{new_pw}'")
+                if new_pw.find('"') >= 0:
+                    safe_pw = new_pw.replace('"', r'\"')
+                else:
+                    safe_pw = new_pw
+                rc: int = os.system(f'grammm-admin passwd --password="{safe_pw}"')
+                return True if rc == 0 else False
+        return False
     
     def reset_aapi_passwd_old(self):
         self._loop.stop()
@@ -725,7 +731,6 @@ class Application(ApplicationHandler):
         self._loop.widget = self._body
         menu_selected: int = self.handle_standard_menu_behaviour(self.main_menu_list, 'up',
                                                                  self.main_menu.base_widget.body[1])
-
 
     def open_mainframe(self):
         """
