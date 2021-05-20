@@ -6,9 +6,7 @@ import sys
 from asyncio.events import AbstractEventLoop
 from pathlib import Path
 from typing import Any, List, Tuple, Dict, Union
-import psutil
 import os
-import time
 
 import yaml
 from yaml import SafeLoader
@@ -26,7 +24,7 @@ from urwid import AttrWrap, ExitMainLoop, Padding, Columns, RIGHT, Text, ListBox
     RELATIVE_100
 import urwid
 from systemd import journal
-import datetime as dt
+import datetime
 import time
 
 
@@ -491,6 +489,16 @@ class Application(ApplicationHandler):
                 self.current_log_unit = i
                 break
 
+    def get_logging_formatter(self) -> str:
+        # conf = {
+        #     'logging': {
+        #         'formatters': {
+        #             'mi-default': {
+        #                 'format': '[%(asctime)s] [%(levelname)s] (%(module)s): "%(message)s"'
+        #             }}}}
+        default = self.config.get('logging', {}).get('formatters', {}).get('mi-default', {})
+        return default.get('format', '[%(asctime)s] [%(levelname)s] (%(module)s): "%(message)s"')
+
     def get_log_unit_by_id(self, id) -> str:
         for i, k in enumerate(self.log_units.keys()):
             if id == i:
@@ -625,11 +633,18 @@ class Application(ApplicationHandler):
         for entry in r:
             if entry.get('__REALTIME_TIMESTAMP', '') == "":
                 continue
+            d = {
+                'asctime': entry.get('__REALTIME_TIMESTAMP', datetime.datetime(1970, 1, 1, 0, 0, 0)).isoformat(),
+                'levelname': entry.get('PRIORITY', ''),
+                'module': entry.get('_SYSTEMD_UNIT', 'gromox-http.service').split('.service')[0],
+                'message': entry.get('MESSAGE', '')
+            }
+            l.append(self.get_logging_formatter() % d)
             # ll = entry.get('NM_LOG_LEVEL', 'None')
-            l.append(f"""\
-{entry['__REALTIME_TIMESTAMP'].isoformat():19.19} {entry['_HOSTNAME']:8.8} \
-{entry['_SYSTEMD_UNIT'].split('.service')[0]:>10.10} {entry['_COMM']:>10.10}: {entry['MESSAGE']}\
-            """)
+#             l.append(f"""\
+# {entry['__REALTIME_TIMESTAMP'].isoformat():19.19} {entry['_HOSTNAME']:8.8} \
+# {entry['_SYSTEMD_UNIT'].split('.service')[0]:>10.10} {entry['_COMM']:>10.10}: {entry['MESSAGE']}\
+#             """)
         self.log_file_content = l[-lines:]
         found: bool = False
         pre: List[str] = []
