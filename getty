@@ -1,5 +1,5 @@
 #!/bin/sh
 tty="$1"
 shift
-exec <"/dev/$tty" >"/dev/$tty"
+exec <"/dev/$tty" >"/dev/$tty" 2>"/dev/$tty"
 PYTHONPATH="/usr/libexec/grammm-cui" exec "/usr/bin/python3" "/usr/libexec/grammm-cui/__init__.py"
