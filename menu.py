@@ -5,16 +5,17 @@ from typing import Any, List, Dict
 from urwid import AttrMap, Columns, ListBox, RadioButton, Text, Widget, WidgetWrap, connect_signal, emit_signal, \
     register_signal, ListWalker, CompositeCanvas
 from interface import ApplicationHandler, WidgetDrawer
+from gwidgets import GText
 
 
-class MenuItem(Text):
+class MenuItem(GText):
     """
     Standard MenuItem enhances Text Widget by signal 'activate'
     """
     application: ApplicationHandler = None
     
     def __init__(self, id, caption, description: Any = None, app: ApplicationHandler = None):
-        Text.__init__(self, caption)
+        GText.__init__(self, caption)
         self.id = id
         self.description = description
         register_signal(self.__class__, ['activate'])

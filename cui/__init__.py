@@ -15,13 +15,14 @@ from getpass import getuser
 from scroll import ScrollBar, Scrollable
 from button import GButton, GBoxButton
 from menu import MenuItem, MultiMenuItem
+from gwidgets import GText
 from interface import ApplicationHandler, WidgetDrawer
 import util
 from util import authenticate_user, get_clockstring, get_palette, get_system_info, get_next_palette_name, fast_tail
-from urwid import AttrWrap, ExitMainLoop, Padding, Columns, RIGHT, Text, ListBox, Frame, LineBox, SimpleListWalker, \
+from urwid import AttrWrap, ExitMainLoop, Padding, Columns, RIGHT, ListBox, Frame, LineBox, SimpleListWalker, \
     MainLoop, LEFT, CENTER, SPACE, Filler, Pile, Edit, Button, connect_signal, AttrMap, GridFlow, Overlay, Widget, \
     Terminal, SimpleFocusListWalker, set_encoding, MIDDLE, TOP, RadioButton, ListWalker, raw_display, curses_display, \
-    RELATIVE_100
+    RELATIVE_100, WidgetWrap, Text
 import urwid
 from systemd import journal
 import datetime
@@ -106,11 +107,11 @@ class Application(ApplicationHandler):
             u"   From here you can configure your system.", u"\n",
             u"If you need help, please try pressing 'H' to view the logs!", u"\n"
         ]
-        self.tb_intro = Text(text_intro, align=CENTER, wrap=SPACE)
+        self.tb_intro = GText(text_intro, align=CENTER, wrap=SPACE)
         text_sysinfo_top = get_system_info("grammm_top")
-        self.tb_sysinfo_top = Text(text_sysinfo_top, align=LEFT, wrap=SPACE)
+        self.tb_sysinfo_top = GText(text_sysinfo_top, align=LEFT, wrap=SPACE)
         text_sysinfo_bottom = get_system_info("grammm_bottom")
-        self.tb_sysinfo_bottom = Text(text_sysinfo_bottom, align=LEFT, wrap=SPACE)
+        self.tb_sysinfo_bottom = GText(text_sysinfo_bottom, align=LEFT, wrap=SPACE)
         self.main_top = ScrollBar(Scrollable(
             Pile([
                 Padding(self.tb_intro, left=2, right=2, min_width=20),
@@ -120,11 +121,11 @@ class Application(ApplicationHandler):
         self.main_bottom = ScrollBar(Scrollable(
             Pile([AttrWrap(Padding(self.tb_sysinfo_bottom, align=LEFT, left=6, width=('relative', 80)), 'reverse')])
         ))
-        self.tb_header = Text(self.text_header.format(colormode=colormode, kbd=self._current_kbdlayout, authorized_options=''), align=CENTER,
-                              wrap=SPACE)
+        self.tb_header = GText(self.text_header.format(colormode=colormode, kbd=self._current_kbdlayout,
+                                                       authorized_options=''), align=CENTER, wrap=SPACE)
         self.header = AttrMap(Padding(self.tb_header, align=CENTER), 'header')
         self.vsplitbox = Pile([("weight", 50, AttrMap(self.main_top, "body")), ("weight", 50, self.main_bottom)])
-        self.footer_text = Text('heute')
+        self.footer_text = GText('heute')
         self.print("Idle")
         self.footer = AttrMap(self.footer_text, 'footer')
         # frame = Frame(AttrMap(self.vsplitbox, 'body'), header=self.header, footer=self.footer)
@@ -144,7 +145,7 @@ class Application(ApplicationHandler):
         # self._loop.screen.set_terminal_properties(colors=256)
 
         # Login Dialog
-        self.login_header = AttrMap(Text(('header', 'Please Login'), align='center'), 'header')
+        self.login_header = AttrMap(GText(('header', 'Please Login'), align='center'), 'header')
         self.user_edit = Edit("Username: ", edit_text=getuser(), edit_pos=0)
         self.pass_edit = Edit("Password: ", edit_text="", edit_pos=0, mask='*')
         self.login_body = Pile([
@@ -154,7 +155,7 @@ class Application(ApplicationHandler):
         login_button = GBoxButton("Login", self.check_login)
         connect_signal(login_button, 'click', lambda button: self.handle_event('login enter'))
         # self.login_footer = GridFlow([login_button], 10, 1, 1, 'center')
-        self.login_footer = AttrMap(Columns([Text(""), login_button, Text("")]), 'buttonbar')
+        self.login_footer = AttrMap(Columns([GText(""), login_button, GText("")]), 'buttonbar')
 
         # Common OK Button
         # self.ok_button = GButton("OK", self.press_button, left_end='[', right_end=']')
@@ -162,9 +163,9 @@ class Application(ApplicationHandler):
         connect_signal(self.ok_button, 'click', lambda button: self.handle_event('ok enter'))
         self.ok_button = (8, self.ok_button)
         self.ok_button_footer = AttrMap(Columns([
-            ('weight', 1, Text('')),
-            ('weight', 1, Columns([('weight', 1, Text('')), self.ok_button, ('weight', 1, Text(''))])),
-            ('weight', 1, Text(''))
+            ('weight', 1, GText('')),
+            ('weight', 1, Columns([('weight', 1, GText('')), self.ok_button, ('weight', 1, GText(''))])),
+            ('weight', 1, GText(''))
         ]), 'buttonbar')
 
         # Common Cancel Button
@@ -179,9 +180,9 @@ class Application(ApplicationHandler):
         self.close_button = (11, self.close_button)
         # self.close_button_footer = GridFlow([self.close_button], 10, 1, 1, 'center')
         self.close_button_footer = AttrMap(Columns([
-            ('weight', 1, Text('')),
-            ('weight', 1, Columns([('weight', 1, Text('')), self.close_button, ('weight', 1, Text(''))])),
-            ('weight', 1, Text(''))
+            ('weight', 1, GText('')),
+            ('weight', 1, Columns([('weight', 1, GText('')), self.close_button, ('weight', 1, GText(''))])),
+            ('weight', 1, GText(''))
         ]), 'buttonbar')
 
         # Common Add Button
@@ -221,39 +222,39 @@ class Application(ApplicationHandler):
         self.save_button_footer = GridFlow([self.save_button[1]], 10, 1, 1, 'center')
 
         # The common menu description column
-        self.menu_description = Pile([Text('Main Menu', CENTER), Text('Here you can do the main actions', LEFT)])
+        self.menu_description = Pile([GText('Main Menu', CENTER), GText('Here you can do the main actions', LEFT)])
 
         # Main Menu
         items = {
             'Change system password': Pile([
-                Text('Password change', CENTER), Text(""),
-                Text(f'Use this to change the password of the Linux system user "{getuser()}".')
+                GText('Password change', CENTER), GText(""),
+                GText(f'Use this to change the password of the Linux system user "{getuser()}".')
             ]),
             'Network Configuration': Pile([
-                Text('Network Configuration', CENTER), Text(""),
-                Text('Here you can configure the Network. Set up the active device, configure IP addresses and DNS.')
+                GText('Network Configuration', CENTER), GText(""),
+                GText('Here you can configure the Network. Set up the active device, configure IP addresses and DNS.')
             ]),
             'Timezone Configuration': Pile([
-                Text('Timezone Configuration', CENTER), Text(""),
-                Text('Here you can set up your country and timezone settings.')
+                GText('Timezone Configuration', CENTER), GText(""),
+                GText('Here you can set up your country and timezone settings.')
             ]),
             'grammm setup wizard': Pile([
-                Text('Setup Wizard', CENTER), Text(""),
-                Text('Use this for the initial creation of the SQL database and TLS certificates.')
+                GText('Setup Wizard', CENTER), GText(""),
+                GText('Use this for the initial creation of the SQL database and TLS certificates.')
             ]),
             'Change Admin Web UI password': Pile([
-                Text('Password Change', CENTER), Text(""),
-                Text('If you forgot the Administration Web Interface password set through the grammm '
+                GText('Password Change', CENTER), GText(""),
+                GText('If you forgot the Administration Web Interface password set through the grammm '
                      'Setup Wizard, you can use this menu command to set it again.')
             ]),
             'Terminal': Pile([
-                Text('Terminal', CENTER), Text(""),
-                # Text('Starts Terminal and closes everything else.'),
-                Text('Starts Terminal in a sub window.')
+                GText('Terminal', CENTER), GText(""),
+                # GText('Starts Terminal and closes everything else.'),
+                GText('Starts Terminal in a sub window.')
             ]),
             'Reboot': Pile([
-                Text('Reboot system', CENTER), Text(""),
-                Text("")
+                GText('Reboot system', CENTER), GText(""),
+                GText("")
             ]),
         }
         self.main_menu_list = self.prepare_menu_list(items)
@@ -584,7 +585,7 @@ class Application(ApplicationHandler):
         self.print('Opening change password dialog.')
         self.prepare_password_dialog()
         self.dialog(
-            header=Text(f"Change password for user {getuser()}", align='center'),
+            header=GText(f"Change password for user {getuser()}", align='center'),
             body=self.password_frame, footer=self.close_button_footer, focus_part='body',
             align=CENTER, valign='middle', width=80, height=25
         )
@@ -615,7 +616,7 @@ class Application(ApplicationHandler):
             # self.log_file_content = log.read_text('utf-8')[:lines * -1]
             if os.access(str(log), os.R_OK):
                 self.log_file_content = fast_tail(str(log.absolute()), lines)
-        self.log_viewer = LineBox(Pile([ScrollBar(Scrollable(Pile([Text(line) for line in self.log_file_content])))]))
+        self.log_viewer = LineBox(Pile([ScrollBar(Scrollable(Pile([GText(line) for line in self.log_file_content])))]))
 
     def prepare_log_viewer(self, unit: str = 'syslog', lines: int = 0):
         """
@@ -666,13 +667,13 @@ class Application(ApplicationHandler):
         header = 'Use arrow keys to switch between the logfiles. <LEFT> and <RIGHT> changes the logfile, ' \
                  'while <+> and <-> changes the line count to view. ({})'.format(self.log_line_count)
         self.log_viewer = LineBox(AttrMap(Pile([
-            (2, Filler(Padding(Text(('body', header), CENTER), CENTER, RELATIVE_100))),
-            (1, Columns([Filler(Text([
+            (2, Filler(Padding(GText(('body', header), CENTER), CENTER, RELATIVE_100))),
+            (1, Columns([Filler(GText([
                 ('body', '*** '),
                 ('body', ' '.join([u for u in pre[-3:]])), ('reverse', cur), ('body', ' '.join([u for u in post[:3]])),
                 ('body', ' ***'),
             ], CENTER))])),
-            AttrMap(ScrollBar(Scrollable(Pile([Text(line) for line in self.log_file_content]))), 'default')
+            AttrMap(ScrollBar(Scrollable(Pile([GText(line) for line in self.log_file_content]))), 'default')
         ]), 'body'))
 
     def open_log_viewer(self, unit: str, lines: int = 0):
@@ -832,7 +833,7 @@ class Application(ApplicationHandler):
         """
         title = 'Menu' if title is None else title
         return LineBox(Pile([
-            (3, AttrMap(Filler(Text(title, CENTER), TOP), 'body')),
+            (3, AttrMap(Filler(GText(title, CENTER), TOP), 'body')),
             (1, header),
             AttrMap(Columns([
                 ('weight', 1, AttrMap(master, 'MMI.selectable', 'MMI.focus')),
@@ -970,7 +971,7 @@ class Application(ApplicationHandler):
         """
         title = 'Menu' if title is None else title
         return LineBox(Pile([
-            (3, AttrMap(Filler(Text(title, CENTER), TOP), 'body')),
+            (3, AttrMap(Filler(GText(title, CENTER), TOP), 'body')),
             (1, header) if header is not None else (),
             AttrMap(Columns([listbox]), 'MMI.selectable'),
         ]))
@@ -1014,11 +1015,11 @@ class Application(ApplicationHandler):
         self.message_box_caller = self.current_window
         self._message_box_caller_body = self._loop.widget
         self.current_window = _MESSAGE_BOX
-        body = LineBox(Padding(Filler(Pile([Text(msg, CENTER)]), TOP)))
+        body = LineBox(Padding(Filler(Pile([GText(msg, CENTER)]), TOP)))
         if title is None:
             title = 'Message'
         self.dialog(
-            body=body, header=Text(title, CENTER),
+            body=body, header=GText(title, CENTER),
             footer=self.ok_button_footer, focus_part='footer',
             align=align, width=width, valign=valign, height=height
         )
@@ -1056,13 +1057,13 @@ class Application(ApplicationHandler):
         self._input_box_caller_body = self._loop.widget
         self.current_window = _INPUT_BOX
         body = LineBox(Padding(Filler(Pile([
-            Text(msg, CENTER),
+            GText(msg, CENTER),
             Edit("", input_text, multiline, CENTER, mask=mask)
         ]), TOP)))
         if title is None:
             title = 'Input expected'
         self.dialog(
-            body=body, header=Text(title, CENTER),
+            body=body, header=GText(title, CENTER),
             footer=self.ok_button_footer, focus_part='body',
             align=align, width=width, valign=valign, height=height
         )
@@ -1079,7 +1080,7 @@ class Application(ApplicationHandler):
         self._body_walker.append(
             Columns(
                 [
-                    Text(string, align=align)
+                    GText(string, align=align)
                     for string, align in strings
                 ]
             )
@@ -1183,7 +1184,7 @@ class Application(ApplicationHandler):
         """
         # Body
         if body is None:
-            body_text = Text('No body', align='center')
+            body_text = GText('No body', align='center')
             body_filler = Filler(body_text, valign='top')
             body_padding = Padding(
                 body_filler,
