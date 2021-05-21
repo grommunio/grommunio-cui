@@ -474,15 +474,19 @@ class Application(ApplicationHandler):
             self.handle_event('my mouseclick left button')
 
     def _load_journal_units(self):
-        p = subprocess.Popen(["/usr/sbin/grammm-admin", "config", "dump"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        out, err = p.communicate()
-        if type(out) is bytes:
-            out = out.decode()
-        if out == "":
-            # self.message_box(err, "An Error occured!!", width=60, height=11)
-            self.config = {'logs': {'Gromox http': {'source': 'grammm-http.service'}}}
-        else:
-            self.config = yaml.load(out, Loader=SafeLoader)
+        try:
+            p = subprocess.Popen(["/usr/sbin/grammm-admin", "config", "dump"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            out, err = p.communicate()
+            if type(out) is bytes:
+                out = out.decode()
+            if out == "":
+                # self.message_box(err, "An Error occured!!", width=60, height=11)
+                self.config = {'logs': {'Gromox http': {'source': 'gromox-http.service'}}}
+            else:
+                self.config = yaml.load(out, Loader=SafeLoader)
+        except BaseException as e:
+            # use dummy config if no grammm-admin is there
+            self.config = {'logs': {'Gromox http': {'source': 'gromox-http.service'}}}
         self.log_units = self.config.get('logs', {})
         for i, k in enumerate(self.log_units.keys()):
             if k == 'Gromox http':
