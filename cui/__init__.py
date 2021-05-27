@@ -15,12 +15,13 @@ from getpass import getuser
 from scroll import ScrollBar, Scrollable
 from button import GButton, GBoxButton
 from menu import MenuItem, MultiMenuItem
-from gwidgets import GText
+from gwidgets import GText, GEdit
 from interface import ApplicationHandler, WidgetDrawer
 import util
 from util import authenticate_user, get_clockstring, get_palette, get_system_info, get_next_palette_name, fast_tail
+from urwid.widget import ELLIPSIS, SPACE, CLIP, ANY
 from urwid import AttrWrap, ExitMainLoop, Padding, Columns, RIGHT, ListBox, Frame, LineBox, SimpleListWalker, \
-    MainLoop, LEFT, CENTER, SPACE, Filler, Pile, Edit, Button, connect_signal, AttrMap, GridFlow, Overlay, Widget, \
+    MainLoop, LEFT, CENTER, Filler, Pile, Edit, Button, connect_signal, AttrMap, GridFlow, Overlay, Widget, \
     Terminal, SimpleFocusListWalker, set_encoding, MIDDLE, TOP, RadioButton, ListWalker, raw_display, curses_display, \
     RELATIVE_100, WidgetWrap, Text
 import urwid
@@ -53,6 +54,7 @@ _MESSAGE_BOX: str = 'MESSAGE-BOX'
 _INPUT_BOX: str = 'INPUT-BOX'
 _LOG_VIEWER: str = 'LOG-VIEWER'
 _ADMIN_WEB_PW: str = 'ADMIN-WEB-PW'
+_TIMESYNCD: str = 'TIMESYNCD'
 
 
 class Application(ApplicationHandler):
@@ -78,6 +80,7 @@ class Application(ApplicationHandler):
     active_device: str = 'lo'
     active_ips: Dict[str, List[Tuple[str, str, str, str]]] = {}
     config: Dict[str, Any] = {}
+    timesyncd_vars: Dict[str, str] = {}
     log_units: Dict[str, str] = {}
     current_log_unit: int = 0
     log_line_count: int = 200
@@ -146,8 +149,8 @@ class Application(ApplicationHandler):
 
         # Login Dialog
         self.login_header = AttrMap(GText(('header', 'Please Login'), align='center'), 'header')
-        self.user_edit = Edit("Username: ", edit_text=getuser(), edit_pos=0)
-        self.pass_edit = Edit("Password: ", edit_text="", edit_pos=0, mask='*')
+        self.user_edit = GEdit("Username: ", edit_text=getuser(), edit_pos=0)
+        self.pass_edit = GEdit("Password: ", edit_text="", edit_pos=0, mask='*')
         self.login_body = Pile([
             AttrMap(self.user_edit, 'selectable', 'focus'),
             self.pass_edit,
@@ -245,7 +248,11 @@ class Application(ApplicationHandler):
             'Change Admin Web UI password': Pile([
                 GText('Password Change', CENTER), GText(""),
                 GText('If you forgot the Administration Web Interface password set through the grammm '
-                     'Setup Wizard, you can use this menu command to set it again.')
+                      'Setup Wizard, you can use this menu command to set it again.')
+            ]),
+            'Timesyncd Configuration': Pile([
+                GText('Timesyncd Configuration', CENTER), GText(""),
+                GText('The systemd-timesyncd is a lightweight NTP client only for fetching the correct time.')
             ]),
             'Terminal': Pile([
                 GText('Terminal', CENTER), GText(""),
@@ -273,6 +280,8 @@ class Application(ApplicationHandler):
         ]
         # self.prepare_log_viewer('gromox-http', self.log_line_count)
         self.prepare_log_viewer('NetworkManager', self.log_line_count)
+
+        self.prepare_timesyncd_config()
 
         # some settings
         MultiMenuItem.application = self
@@ -324,6 +333,8 @@ class Application(ApplicationHandler):
             self.key_ev_unsupp(key)
         elif self.current_window == _ADMIN_WEB_PW:
             self.key_ev_aapi(key)
+        elif self.current_window == _TIMESYNCD:
+            self.key_ev_timesyncd(key)
         self.key_ev_anytime(key)
 
     def key_ev_main(self, key):
@@ -397,8 +408,10 @@ class Application(ApplicationHandler):
             elif menu_selected == 5:
                 self.open_reset_aapi_pw()
             elif menu_selected == 6:
-                self.open_terminal()
+                self.open_timesyncd_conf()
             elif menu_selected == 7:
+                self.open_terminal()
+            elif menu_selected == 8:
                 self.reboot_confirm()
         elif key == 'esc':
             self.open_mainframe()
@@ -466,6 +479,23 @@ class Application(ApplicationHandler):
             if key.lower().endswith('enter'):
                 self.reset_aapi_passwd(self.last_input_box_value)
             self.current_window = self.input_box_caller
+
+    def key_ev_timesyncd(self, key):
+        self.handle_standard_tab_behaviour(key)
+        if key.lower().endswith('enter'):
+            if key.lower().startswith('hidden'):
+                button_type = key.lower().split(' ')[1]
+                if button_type == 'ok':
+                    # Save config and return to mainmenu
+                    self.timesyncd_vars['NTP'] = self.timesyncd_body.base_widget[1].edit_text
+                    self.timesyncd_vars['FallbackNTP'] = self.timesyncd_body.base_widget[2].edit_text
+                    util.minishell_write('/etc/systemd/timesyncd.conf', self.timesyncd_vars)
+                    rc = subprocess.Popen(["timedatectl", "set-ntp", "true"])
+                    self.open_main_menu()
+                else:
+                    self.open_main_menu()
+        elif key == 'esc':
+            self.open_main_menu()
 
     def handle_mouse_event(self, event: Any):
         # event is a mouse event in the form ('mouse press or release', button, column, line)
@@ -718,12 +748,44 @@ class Application(ApplicationHandler):
                 return True
         return False
 
-    def reset_aapi_passwd_old(self):
-        self._loop.stop()
-        self.screen.tty_signal_keys(*self.old_termios)
-        os.system("grammm-admin passwd")
-        self.screen.tty_signal_keys(*self.blank_termios)
-        self._loop.start()
+    def open_timesyncd_conf(self):
+        self.reset_layout()
+        self.print("Opening timesyncd configuration")
+        self.current_window = _TIMESYNCD
+        header = AttrMap(GText('Timesyncd Configuration', CENTER), 'header')
+        self.prepare_timesyncd_config()
+        footer = AttrMap(Columns([self.ok_button, self.cancel_button]), 'buttonbar')
+        self.dialog(
+            body=AttrMap(self.timesyncd_body, 'body'), header=header,
+            footer=footer, focus_part='body',
+            align=CENTER, width=60, valign=MIDDLE, height=15
+        )
+
+    def prepare_timesyncd_config(self):
+        ntp_server: List[str] = [
+            '0.arch.pool.ntp.org', '1.arch.pool.ntp.org',
+            '2.arch.pool.ntp.org', '3.arch.pool.ntp.org'
+        ]
+        fallback_server: List[str] = [
+            '0.opensuse.pool.ntp.org', '1.opensuse.pool.ntp.org',
+            '2.opensuse.pool.ntp.org', '3.opensuse.pool.ntp.org'
+        ]
+        self.timesyncd_vars = util.minishell_read('/etc/systemd/timesyncd.conf')
+        ntp_from_file = self.timesyncd_vars.get('NTP', ' '.join(ntp_server))
+        fallback_from_file = self.timesyncd_vars.get('FallbackNTP', ' '.join(fallback_server))
+        ntp_server = ntp_from_file.split(' ')
+        fallback_server = fallback_from_file.split(' ')
+        self.timesyncd_body = LineBox(Padding(Filler(Pile([
+            GText('Please insert your NTP servers separated by <SPACE> char.', LEFT, wrap=SPACE),
+            GEdit((15, 'NTP: '), ' '.join(ntp_server), wrap=SPACE),
+            GEdit((15, 'FallbackNTP: '), ' '.join(fallback_server), wrap=SPACE),
+            # GEdit(('pack', 'packTest: '), ' '.join(fallback_server), wrap=SPACE),
+            # GEdit(('weight', 5, '5weightTest: '), ' '.join(fallback_server), wrap=SPACE),
+            # GEdit(('weight', 15, '15weightTest: '), ' '.join(fallback_server), wrap=SPACE),
+            # GEdit(('weight', 35, '35weightTest: '), ' '.join(fallback_server), wrap=SPACE),
+            # GEdit('', ' '.join(fallback_server), wrap=SPACE),
+            # GEdit('Test: ', ' '.join(fallback_server), wrap=SPACE),
+        ]), TOP)))
 
     def open_setup_wizard(self):
         self._loop.stop()
@@ -1058,7 +1120,7 @@ class Application(ApplicationHandler):
         self.current_window = _INPUT_BOX
         body = LineBox(Padding(Filler(Pile([
             GText(msg, CENTER),
-            Edit("", input_text, multiline, CENTER, mask=mask)
+            GEdit("", input_text, multiline, CENTER, mask=mask)
         ]), TOP)))
         if title is None:
             title = 'Input expected'
