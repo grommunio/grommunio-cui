@@ -149,10 +149,11 @@ class Application(ApplicationHandler):
 
         # Login Dialog
         self.login_header = AttrMap(GText(('header', 'Please Login'), align='center'), 'header')
-        self.user_edit = GEdit("Username: ", edit_text=getuser(), edit_pos=0)
+        self.user_edit = GEdit(("Username: ",), edit_text=getuser(), edit_pos=0)
         self.pass_edit = GEdit("Password: ", edit_text="", edit_pos=0, mask='*')
         self.login_body = Pile([
-            AttrMap(self.user_edit, 'selectable', 'focus'),
+            self.user_edit,
+            # AttrMap(self.user_edit, 'MMI.selectable', 'MMI.focus'),
             self.pass_edit,
         ])
         login_button = GBoxButton("Login", self.check_login)
