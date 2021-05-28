@@ -26,7 +26,7 @@ class MenuItem(GText):
             emit_signal(self, 'activate', key)
         else:
             if self.application is not None:
-                if key not in ['c', 'f1', 'esc']:
+                if key not in ['c', 'f1', 'f5', 'esc']:
                     self.application.handle_event(key)
             return key
     
