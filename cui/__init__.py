@@ -19,7 +19,7 @@ from gwidgets import GText, GEdit
 from interface import ApplicationHandler, WidgetDrawer
 import util
 from util import authenticate_user, get_clockstring, get_palette, get_system_info, get_next_palette_name, fast_tail
-from urwid.widget import ELLIPSIS, SPACE, CLIP, ANY
+from urwid.widget import SPACE, CLIP, ANY
 from urwid import AttrWrap, ExitMainLoop, Padding, Columns, RIGHT, ListBox, Frame, LineBox, SimpleListWalker, \
     MainLoop, LEFT, CENTER, Filler, Pile, Edit, Button, connect_signal, AttrMap, GridFlow, Overlay, Widget, \
     Terminal, SimpleFocusListWalker, set_encoding, MIDDLE, TOP, RadioButton, ListWalker, raw_display, curses_display, \
