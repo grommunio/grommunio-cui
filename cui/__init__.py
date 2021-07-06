@@ -18,7 +18,6 @@ from menu import MenuItem, MultiMenuItem
 from gwidgets import GText, GEdit
 from interface import ApplicationHandler, WidgetDrawer
 import util
-from util import authenticate_user, get_clockstring, get_palette, get_system_info, get_next_palette_name, fast_tail
 from urwid.widget import SPACE, CLIP, ANY
 from urwid import AttrWrap, ExitMainLoop, Padding, Columns, RIGHT, ListBox, Frame, LineBox, SimpleListWalker, \
     MainLoop, LEFT, CENTER, Filler, Pile, Edit, Button, connect_signal, AttrMap, GridFlow, Overlay, Widget, \
@@ -111,9 +110,9 @@ class Application(ApplicationHandler):
             u"If you need help, please try pressing 'H' to view the logs!", u"\n"
         ]
         self.tb_intro = GText(text_intro, align=CENTER, wrap=SPACE)
-        text_sysinfo_top = get_system_info("grammm_top")
+        text_sysinfo_top = util.get_system_info("grammm_top")
         self.tb_sysinfo_top = GText(text_sysinfo_top, align=LEFT, wrap=SPACE)
-        text_sysinfo_bottom = get_system_info("grammm_bottom")
+        text_sysinfo_bottom = util.get_system_info("grammm_bottom")
         self.tb_sysinfo_bottom = GText(text_sysinfo_bottom, align=LEFT, wrap=SPACE)
         self.main_top = ScrollBar(Scrollable(
             Pile([
@@ -139,7 +138,7 @@ class Application(ApplicationHandler):
         # Loop
         self._loop = MainLoop(
             self._body,
-            get_palette(self._current_colormode),
+            util.get_palette(self._current_colormode),
             unhandled_input=self.handle_event,
             screen=self.screen,
             handle_mouse=False
@@ -646,7 +645,7 @@ class Application(ApplicationHandler):
         if log.exists():
             # self.log_file_content = log.read_text('utf-8')[:lines * -1]
             if os.access(str(log), os.R_OK):
-                self.log_file_content = fast_tail(str(log.absolute()), lines)
+                self.log_file_content = util.fast_tail(str(log.absolute()), lines)
         self.log_viewer = LineBox(Pile([ScrollBar(Scrollable(Pile([GText(line) for line in self.log_file_content])))]))
 
     def prepare_log_viewer(self, unit: str = 'syslog', lines: int = 0):
@@ -830,7 +829,7 @@ class Application(ApplicationHandler):
             return
         msg = f"checking user {self.user_edit.get_edit_text()} with pass ***** ..."
         if self.current_window == _LOGIN:
-            if authenticate_user(self.user_edit.get_edit_text(), self.pass_edit.get_edit_text()):
+            if util.authenticate_user(self.user_edit.get_edit_text(), self.pass_edit.get_edit_text()):
                 self.open_main_menu()
             else:
                 self.message_box(f'You have taken a wrong password, {self.user_edit.get_edit_text()}!')
@@ -905,7 +904,7 @@ class Application(ApplicationHandler):
         ]))
 
     def change_colormode(self, mode: str):
-        p = get_palette(mode)
+        p = util.get_palette(mode)
         self._current_colormode = mode
         colormode: str = "light" if self._current_colormode == 'dark' else 'dark'
         self.tb_header.set_text(self.text_header.format(colormode=colormode, kbd=self._current_kbdlayout,
@@ -915,9 +914,9 @@ class Application(ApplicationHandler):
 
     def switch_next_colormode(self):
         o = self._current_colormode
-        n = get_next_palette_name(o)
-        p = get_palette(n)
-        self.tb_header.set_text(self.text_header.format(colormode=get_next_palette_name(n), kbd=self._current_kbdlayout,
+        n = util.get_next_palette_name(o)
+        p = util.get_palette(n)
+        self.tb_header.set_text(self.text_header.format(colormode=util.get_next_palette_name(n), kbd=self._current_kbdlayout,
                                                         authorized_options=self.authorized_options))
         self._loop.screen.register_palette(p)
         self._loop.screen.clear()
@@ -1047,7 +1046,9 @@ class Application(ApplicationHandler):
             string (str): The string to print
             align (str): The alignment of the printed text
         """
-        text = [('footer', f"{get_clockstring()}: "), ('footer', string)]
+        text = [('footer', f"{util.get_clockstring()}: ")]
+        text += util.get_footerbar(2, 10)
+        text += ('footer', string)
         if self.debug:
             text += ['\n', ('', f"({self.current_event})"), ('', f" on {self.current_window}")]
         self.footer_text.set_text([text])
