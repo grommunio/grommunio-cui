@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# SPDX-FileCopyrightText: 2021 grammm GmbH
+# SPDX-FileCopyrightText: 2021 grommunio GmbH
 from pathlib import Path
 
 from pamela import authenticate, PAMError
@@ -130,15 +130,15 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
     :return: List of tuples or strings descibing urwid attributes and content.
     """
     rv: List[Union[str, Tuple[str, str]]] = []
-    if which == "grammm_top":
+    if which == "grommunio_top":
         uname = platform.uname()
         cpufreq = psutil.cpu_freq()
         svmem = psutil.virtual_memory()
         distro, version = get_os_release()
         rv += [
-            u"\n", "Console User Interface", "\n", u"© 2021 ", "grammm GmbH", u"\n",
+            u"\n", "Console User Interface", "\n", u"© 2020-2021 ", "grommunio GmbH", u"\n",
         ]
-        rv.append(f"Distribution: {distro} Version: {version}" if distro.lower().startswith('grammm') else '')
+        rv.append(f"Distribution: {distro} Version: {version}" if distro.lower().startswith('grommunio') else '')
         rv.append("\n")
         rv.append("\n")
         if cpufreq:
@@ -149,7 +149,7 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
         rv.append(f"Memory {get_hr(svmem.used)} used of {get_hr(svmem.total)}. {get_hr(svmem.available)} free.")
         rv.append("\n")
         rv.append("\n")
-    elif which == "grammm_bottom":
+    elif which == "grommunio_bottom":
         uname = platform.uname()
         if_addrs = psutil.net_if_addrs()
         boot_time_timestamp = psutil.boot_time()

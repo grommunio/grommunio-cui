@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# SPDX-FileCopyrightText: 2021 grammm GmbH
+# SPDX-FileCopyrightText: 2021 grommunio GmbH
 import subprocess
 import sys
 from asyncio.events import AbstractEventLoop
@@ -103,17 +103,17 @@ class Application(ApplicationHandler):
         self.blank_termios = ['undefined' for bla in range(0, 5)]
         self.screen.tty_signal_keys(*self.blank_termios)
         colormode: str = "light" if self._current_colormode == 'dark' else 'dark'
-        self.text_header = u"grammm console user interface\nF1: color switch [{colormode}], F5: change keyboard layout [{kbd}], F2: login"
+        self.text_header = u"grommunio console user interface\nF1: color switch [{colormode}], F5: change keyboard layout [{kbd}], F2: login"
         self.authorized_options = ''
         text_intro = [
-            u"Here is the grammm terminal console user interface.", u"\n",
+            u"Here is the grommunio terminal console user interface.", u"\n",
             u"   From here you can configure your system.", u"\n",
             u"If you need help, please try pressing 'H' to view the logs!", u"\n"
         ]
         self.tb_intro = GText(text_intro, align=CENTER, wrap=SPACE)
-        text_sysinfo_top = get_system_info("grammm_top")
+        text_sysinfo_top = get_system_info("grommunio_top")
         self.tb_sysinfo_top = GText(text_sysinfo_top, align=LEFT, wrap=SPACE)
-        text_sysinfo_bottom = get_system_info("grammm_bottom")
+        text_sysinfo_bottom = get_system_info("grommunio_bottom")
         self.tb_sysinfo_bottom = GText(text_sysinfo_bottom, align=LEFT, wrap=SPACE)
         self.main_top = ScrollBar(Scrollable(
             Pile([
@@ -242,13 +242,13 @@ class Application(ApplicationHandler):
                 GText('Timezone Configuration', CENTER), GText(""),
                 GText('Here you can set up your country and timezone settings.')
             ]),
-            'grammm setup wizard': Pile([
+            'grommunio setup wizard': Pile([
                 GText('Setup Wizard', CENTER), GText(""),
                 GText('Use this for the initial creation of the SQL database and TLS certificates.')
             ]),
             'Change Admin Web UI password': Pile([
                 GText('Password Change', CENTER), GText(""),
-                GText('If you forgot the Administration Web Interface password set through the grammm '
+                GText('If you forgot the Administration Web Interface password set through the grommunio '
                       'Setup Wizard, you can use this menu command to set it again.')
             ]),
             'Timesyncd Configuration': Pile([
@@ -507,7 +507,7 @@ class Application(ApplicationHandler):
 
     def _load_journal_units(self):
         try:
-            p = subprocess.Popen(["/usr/sbin/grammm-admin", "config", "dump"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p = subprocess.Popen(["/usr/sbin/grommunio-admin", "config", "dump"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             out, err = p.communicate()
             if type(out) is bytes:
                 out = out.decode()
@@ -517,7 +517,7 @@ class Application(ApplicationHandler):
             else:
                 self.config = yaml.load(out, Loader=SafeLoader)
         except BaseException as e:
-            # use dummy config if no grammm-admin is there
+            # use dummy config if no grommunio-admin is there
             self.config = {'logs': {'Gromox http': {'source': 'gromox-http.service'}}}
         self.log_units = self.config.get('logs', {})
         for i, k in enumerate(self.log_units.keys()):
@@ -745,7 +745,7 @@ class Application(ApplicationHandler):
     def reset_aapi_passwd(self, new_pw: str) -> bool:
         if new_pw:
             if new_pw != "":
-                proc = subprocess.Popen(['grammm-admin', 'passwd', '--password', new_pw])
+                proc = subprocess.Popen(['grommunio-admin', 'passwd', '--password', new_pw])
                 return True
         return False
 
@@ -791,7 +791,7 @@ class Application(ApplicationHandler):
     def open_setup_wizard(self):
         self._loop.stop()
         self.screen.tty_signal_keys(*self.old_termios)
-        os.system("/usr/sbin/grammm-setup")
+        os.system("/usr/sbin/grommunio-setup")
         self.screen.tty_signal_keys(*self.blank_termios)
         self._loop.start()
 

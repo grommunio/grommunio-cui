@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# SPDX-FileCopyrightText: 2021 grammm GmbH
+# SPDX-FileCopyrightText: 2021 grommunio GmbH
 
 from typing import Any, List, Dict
 from urwid import AttrMap, Columns, ListBox, RadioButton, Text, Widget, WidgetWrap, connect_signal, emit_signal, \

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# SPDX-FileCopyrightText: 2021 grammm GmbH
+# SPDX-FileCopyrightText: 2021 grommunio GmbH
 
 from typing import Any
 from urwid import AttrMap, Button, Padding, Pile, Text, WidgetWrap, connect_signal, register_signal

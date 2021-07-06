@@ -2,7 +2,7 @@ The Console User Interface (CUI)
 ================================
 
 The Console User Interface is a text-based interface for managing the
-basic grammm Appliance configuration.
+basic grommunio Appliance configuration.
 
 1) Installation
 ---------------

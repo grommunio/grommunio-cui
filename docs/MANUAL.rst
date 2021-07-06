@@ -1,7 +1,7 @@
 The Console User Interface (CUI)
 ================================
 
-This manual describes how to work with the grammm console user interface.
+This manual describes how to work with the grommunio console user interface.
 
 1 Mainscreen
 ------------
