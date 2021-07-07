@@ -101,39 +101,7 @@ class Application(ApplicationHandler):
         self.old_termios = self.screen.tty_signal_keys()
         self.blank_termios = ['undefined' for bla in range(0, 5)]
         self.screen.tty_signal_keys(*self.blank_termios)
-        colormode: str = "light" if self._current_colormode == 'dark' else 'dark'
-        self.text_header = u"grammm console user interface\nF1: color switch [{colormode}], F5: change keyboard layout [{kbd}], F2: login"
-        self.authorized_options = ''
-        text_intro = [
-            u"Here is the grammm terminal console user interface.", u"\n",
-            u"   From here you can configure your system.", u"\n",
-            u"If you need help, please try pressing 'H' to view the logs!", u"\n"
-        ]
-        self.tb_intro = GText(text_intro, align=CENTER, wrap=SPACE)
-        text_sysinfo_top = util.get_system_info("grammm_top")
-        self.tb_sysinfo_top = GText(text_sysinfo_top, align=LEFT, wrap=SPACE)
-        text_sysinfo_bottom = util.get_system_info("grammm_bottom")
-        self.tb_sysinfo_bottom = GText(text_sysinfo_bottom, align=LEFT, wrap=SPACE)
-        self.main_top = ScrollBar(Scrollable(
-            Pile([
-                Padding(self.tb_intro, left=2, right=2, min_width=20),
-                Padding(self.tb_sysinfo_top, align=LEFT, left=6, width=('relative', 80))
-            ])
-        ))
-        self.main_bottom = ScrollBar(Scrollable(
-            Pile([AttrWrap(Padding(self.tb_sysinfo_bottom, align=LEFT, left=6, width=('relative', 80)), 'reverse')])
-        ))
-        self.tb_header = GText(self.text_header.format(colormode=colormode, kbd=self._current_kbdlayout,
-                                                       authorized_options=''), align=CENTER, wrap=SPACE)
-        self.header = AttrMap(Padding(self.tb_header, align=CENTER), 'header')
-        self.vsplitbox = Pile([("weight", 50, AttrMap(self.main_top, "body")), ("weight", 50, self.main_bottom)])
-        self.footer_text = GText('heute')
-        self.print("Idle")
-        self.footer = AttrMap(self.footer_text, 'footer')
-        # frame = Frame(AttrMap(self.vsplitbox, 'body'), header=self.header, footer=self.footer)
-        frame = Frame(AttrMap(self.vsplitbox, 'reverse'), header=self.header, footer=self.footer)
-        self.mainframe = frame
-        self._body = self.mainframe
+        self.prepare_mainscreen()
 
         # Loop
         self._loop = MainLoop(
@@ -286,6 +254,41 @@ class Application(ApplicationHandler):
         # some settings
         MultiMenuItem.application = self
         GButton.application = self
+
+    def prepare_mainscreen(self):
+        colormode: str = "light" if self._current_colormode == 'dark' else 'dark'
+        self.text_header = u"grommunio console user interface\nF1: color switch [{colormode}], F5: change keyboard layout [{kbd}], F2: login"
+        self.authorized_options = ''
+        text_intro = [
+            u"Here is the grommunio terminal console user interface.", u"\n",
+            u"   From here you can configure your system.", u"\n",
+            u"If you need help, please try pressing 'H' to view the logs!", u"\n"
+        ]
+        self.tb_intro = GText(text_intro, align=CENTER, wrap=SPACE)
+        text_sysinfo_top = util.get_system_info("top")
+        self.tb_sysinfo_top = GText(text_sysinfo_top, align=LEFT, wrap=SPACE)
+        text_sysinfo_bottom = util.get_system_info("bottom")
+        self.tb_sysinfo_bottom = GText(text_sysinfo_bottom, align=LEFT, wrap=SPACE)
+        self.main_top = ScrollBar(Scrollable(
+            Pile([
+                Padding(self.tb_intro, left=2, right=2, min_width=20),
+                Padding(self.tb_sysinfo_top, align=LEFT, left=6, width=('relative', 80))
+            ])
+        ))
+        self.main_bottom = ScrollBar(Scrollable(
+            Pile([AttrWrap(Padding(self.tb_sysinfo_bottom, align=LEFT, left=6, width=('relative', 80)), 'reverse')])
+        ))
+        self.tb_header = GText(self.text_header.format(colormode=colormode, kbd=self._current_kbdlayout,
+                                                       authorized_options=''), align=CENTER, wrap=SPACE)
+        self.header = AttrMap(Padding(self.tb_header, align=CENTER), 'header')
+        self.vsplitbox = Pile([("weight", 50, AttrMap(self.main_top, "body")), ("weight", 50, self.main_bottom)])
+        self.footer_text = GText('heute')
+        self.print("Idle")
+        self.footer = AttrMap(self.footer_text, 'footer')
+        # frame = Frame(AttrMap(self.vsplitbox, 'body'), header=self.header, footer=self.footer)
+        frame = Frame(AttrMap(self.vsplitbox, 'reverse'), header=self.header, footer=self.footer)
+        self.mainframe = frame
+        self._body = self.mainframe
 
     def listen_unsupported(self, what: str, key: Any):
         self.print(f"What is {what}.")
@@ -803,6 +806,7 @@ class Application(ApplicationHandler):
         self.current_window = _MAIN_MENU
         self.authorized_options = ', <F4> for Main-Menu'
         colormode: str = "light" if self._current_colormode == 'dark' else 'dark'
+        self.prepare_mainscreen()
         self.tb_header.set_text(self.text_header.format(colormode=colormode, kbd=self._current_kbdlayout,
                                                         authorized_options=self.authorized_options))
         self._body = self.main_menu
@@ -817,7 +821,7 @@ class Application(ApplicationHandler):
         self.reset_layout()
         self.print("Returning to main screen!")
         self.current_window = _MAIN
-        self._body = self.mainframe
+        self.prepare_mainscreen()
         self._loop.widget = self._body
 
     def check_login(self, w: Widget = None):

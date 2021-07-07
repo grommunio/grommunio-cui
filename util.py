@@ -1,5 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # SPDX-FileCopyrightText: 2021 grammm GmbH
+import os
+import subprocess
 from pathlib import Path
 
 from pamela import authenticate, PAMError
@@ -10,6 +12,14 @@ import platform
 import psutil
 import socket
 
+
+STATES = {
+    1: 'Password change is missing!',
+    2: 'Network configuration is missing!',
+    4: 'Execution of grommunio-setup is missing!',
+    8: 'Timesyncd configuration is missing!',
+    16: 'nginx is not running!',
+}
 
 _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
     "light" : [
@@ -83,6 +93,85 @@ _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
 }
 
 
+def extract_bits(binary):
+    c=''
+    i=0
+    rv = []
+    while c != 'b':
+        s=str(bin(binary))[::-1]
+        c=s[i]
+        if c == '1':
+            rv.append(2**i)
+        i+=1
+    return rv
+
+
+def check_socket(host='127.0.0.1', port=22, timeout=3):
+    try:
+        socket.setdefaulttimeout(3)
+        socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
+        return True
+    except socket.error as err:
+        return False
+
+
+def check_setup_state():
+    """Check states of setup and returns a combined binary number"""
+    def check_if_password_is_set(user):
+        file = '/etc/shadow'
+        vars = {}
+        if os.access(file, os.R_OK):
+            with open(file) as fh:
+                for line in fh:
+                    parts = line.split(":")
+                    username = parts[0]
+                    password = parts[1]
+                    vars[username.strip()] = password.strip()
+        if len(vars.get(user)) > 0:
+            return True
+        return False
+
+    def check_network_config():
+        return check_socket('127.0.0.1', 22)
+
+    def check_grommunio_setup():
+        gromox_files = os.listdir('/etc/gromox/')
+        if len(gromox_files) > 0:
+            return True
+        return False
+
+    def check_timesyncd_config():
+        out = subprocess.check_output(['timedatectl', 'status']).decode()
+        vars = {}
+        for line in out.splitlines():
+            key, value = line.partition(':')[::2]
+            vars[key.strip()] = value.strip()
+        if vars.get('Network time on') == 'yes' and vars.get('NTP synchronized') == 'yes':
+            return True
+        return False
+
+    def check_nginx_config():
+        return check_socket('127.0.0.1', 80)
+
+    rv = 0
+    # check if pw is set
+    if not check_if_password_is_set('root'):
+        rv += 1
+    # check network config (2)
+    if not check_network_config():
+        rv += 2
+    # check grommunio-setup config (4)
+    if not check_grommunio_setup():
+        rv += 4
+    # check timesyncd config (8)
+    if not check_timesyncd_config():
+        rv += 8
+    # check nginx config (16)
+    if not check_nginx_config():
+        rv += 16
+    return rv
+
+
 def authenticate_user(username: str, password: str, service: str = 'login') -> bool:
     """
     Authenticates username against password on service.
@@ -138,7 +227,7 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
     :return: List of tuples or strings descibing urwid attributes and content.
     """
     rv: List[Union[str, Tuple[str, str]]] = []
-    if which == "grammm_top":
+    if which == "top":
         uname = platform.uname()
         cpufreq = psutil.cpu_freq()
         svmem = psutil.virtual_memory()
@@ -146,8 +235,9 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
         rv += [
             u"\n", "Console User Interface", "\n", u"© 2021 ", "grammm GmbH", u"\n",
         ]
-        rv.append(f"Distribution: {distro} Version: {version}" if distro.lower().startswith('grammm') else '')
-        rv.append("\n")
+        if distro.lower().startswith('grammm') or distro.lower().startswith('grommunio'):
+            rv.append(f"Distribution: {distro} Version: {version}")
+            rv.append("\n")
         rv.append("\n")
         if cpufreq:
              rv.append(f"{psutil.cpu_count(logical=False)} x {uname.processor} CPUs a {get_hr(cpufreq.current * 1000 * 1000, 'Hz', 1000)}")
@@ -157,30 +247,39 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
         rv.append(f"Memory {get_hr(svmem.used)} used of {get_hr(svmem.total)}. {get_hr(svmem.available)} free.")
         rv.append("\n")
         rv.append("\n")
-    elif which == "grammm_bottom":
+    elif which == "bottom":
         uname = platform.uname()
         if_addrs = psutil.net_if_addrs()
         boot_time_timestamp = psutil.boot_time()
         bt = datetime.fromtimestamp(boot_time_timestamp)
-        rv += [
-            u"\n", "For further configuration, these URLs can be used:", u"\n"
-        ]
-        rv.append("\n")
-        rv.append(f"http://{uname.node}:8080/\n");
-        for interface_name, interface_addresses in if_addrs.items():
-            if interface_name in ['lo']:
-                continue
-            for address in interface_addresses:
-                if address.family != socket.AF_INET6:
+        if check_setup_state() == 0:
+            rv += [
+                u"\n", "For further configuration, these URLs can be used:", u"\n"
+            ]
+            rv.append("\n")
+            rv.append(f"http://{uname.node}:8080/\n")
+            for interface_name, interface_addresses in if_addrs.items():
+                if interface_name in ['lo']:
                     continue
-                adr = ipaddress.IPv6Address(address.address.split('%')[0])
-                if adr.is_link_local is True:
-                    continue
-                rv.append(f"http://[{address.address}]:8080/ (interface {interface_name})\n")
-            for address in interface_addresses:
-                if address.family != socket.AF_INET:
-                    continue
-                rv.append(f"http://{address.address}:8080/ (interface {interface_name})\n")
+                for address in interface_addresses:
+                    if address.family != socket.AF_INET6:
+                        continue
+                    adr = ipaddress.IPv6Address(address.address.split('%')[0])
+                    if adr.is_link_local is True:
+                        continue
+                    rv.append(f"http://[{address.address}]:8080/ (interface {interface_name})\n")
+                for address in interface_addresses:
+                    if address.family != socket.AF_INET:
+                        continue
+                    rv.append(f"http://{address.address}:8080/ (interface {interface_name})\n")
+        else:
+            rv.append('\n')
+            rv.append('There are still some things missing to run grommunio in a clean environment.\n')
+            statelist = extract_bits(check_setup_state())
+            for state in statelist:
+                rv.append('\n')
+                rv.append(('important', STATES.get(state)))
+            rv.append("\n")
         rv.append(f"Boot Time: ")
         rv.append(('reverse', f'{bt.isoformat()}'))
         rv.append("\n")
