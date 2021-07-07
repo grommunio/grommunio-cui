@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# SPDX-FileCopyrightText: 2021 grammm GmbH
+# SPDX-FileCopyrightText: 2021 grommunio GmbH
 import os
 import subprocess
 from pathlib import Path
@@ -233,7 +233,7 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
         svmem = psutil.virtual_memory()
         distro, version = get_os_release()
         rv += [
-            u"\n", "Console User Interface", "\n", u"© 2021 ", "grammm GmbH", u"\n",
+            u"\n", "Console User Interface", "\n", u"© 2021 ", "grommunio GmbH", u"\n",
         ]
         if distro.lower().startswith('grammm') or distro.lower().startswith('grommunio'):
             rv.append(f"Distribution: {distro} Version: {version}")
@@ -274,7 +274,7 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
                     rv.append(f"http://{address.address}:8080/ (interface {interface_name})\n")
         else:
             rv.append('\n')
-            rv.append('There are still some things missing to run grommunio in a clean environment.\n')
+            rv.append('There are still some things missing to run grommunio in a clean environment.')
             statelist = extract_bits(check_setup_state())
             for state in statelist:
                 rv.append('\n')

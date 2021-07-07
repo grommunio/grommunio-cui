@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# SPDX-FileCopyrightText: 2021 grammm GmbH
+# SPDX-FileCopyrightText: 2021 grommunio GmbH
 import subprocess
 import sys
 from asyncio.events import AbstractEventLoop
@@ -209,13 +209,13 @@ class Application(ApplicationHandler):
                 GText('Timezone Configuration', CENTER), GText(""),
                 GText('Here you can set up your country and timezone settings.')
             ]),
-            'grammm setup wizard': Pile([
+            'grommunio setup wizard': Pile([
                 GText('Setup Wizard', CENTER), GText(""),
                 GText('Use this for the initial creation of the SQL database and TLS certificates.')
             ]),
             'Change Admin Web UI password': Pile([
                 GText('Password Change', CENTER), GText(""),
-                GText('If you forgot the Administration Web Interface password set through the grammm '
+                GText('If you forgot the Administration Web Interface password set through the grommunio '
                       'Setup Wizard, you can use this menu command to set it again.')
             ]),
             'Timesyncd Configuration': Pile([
@@ -509,7 +509,10 @@ class Application(ApplicationHandler):
 
     def _load_journal_units(self):
         try:
-            p = subprocess.Popen(["/usr/sbin/grammm-admin", "config", "dump"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p = subprocess.Popen(["/usr/sbin/grammm-admin", "config", "dump"],
+                                 stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            # p = subprocess.Popen(["/usr/sbin/grommunio-admin", "config", "dump"],
+            #                      stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             out, err = p.communicate()
             if type(out) is bytes:
                 out = out.decode()
@@ -519,7 +522,7 @@ class Application(ApplicationHandler):
             else:
                 self.config = yaml.load(out, Loader=SafeLoader)
         except BaseException as e:
-            # use dummy config if no grammm-admin is there
+            # use dummy config if no gromox-http is there
             self.config = {'logs': {'Gromox http': {'source': 'gromox-http.service'}}}
         self.log_units = self.config.get('logs', {})
         for i, k in enumerate(self.log_units.keys()):
@@ -748,6 +751,7 @@ class Application(ApplicationHandler):
         if new_pw:
             if new_pw != "":
                 proc = subprocess.Popen(['grammm-admin', 'passwd', '--password', new_pw])
+                # proc = subprocess.Popen(['grommunio-admin', 'passwd', '--password', new_pw])
                 return True
         return False
 
@@ -794,6 +798,7 @@ class Application(ApplicationHandler):
         self._loop.stop()
         self.screen.tty_signal_keys(*self.old_termios)
         os.system("/usr/sbin/grammm-setup")
+        # os.system("/usr/sbin/grommunio-setup")
         self.screen.tty_signal_keys(*self.blank_termios)
         self._loop.start()
 
