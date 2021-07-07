@@ -255,9 +255,20 @@ class Application(ApplicationHandler):
         MultiMenuItem.application = self
         GButton.application = self
 
+    def refresh_text_header(self):
+        self.tb_header = GText(
+            ''.join(self.text_header).format(colormode=self._current_colormode,
+                                             kbd=self._current_kbdlayout,
+                                             authorized_options=self.authorized_options),
+            align=CENTER, wrap=SPACE
+        )
+
     def prepare_mainscreen(self):
-        colormode: str = "light" if self._current_colormode == 'dark' else 'dark'
-        self.text_header = u"grommunio console user interface\nF1: color switch [{colormode}], F5: change keyboard layout [{kbd}], F2: login"
+        # colormode: str = "light" if self._current_colormode == 'dark' else 'dark'
+        colormode: str = self._current_colormode
+        self.text_header = [u"grommunio console user interface"]
+        self.text_header += ['\n']
+        self.text_header += [u"You are in {colormode} colormode and use the {kbd} keyboard layout"]
         self.authorized_options = ''
         text_intro = [
             u"Here is the grommunio terminal console user interface.", u"\n",
@@ -278,9 +289,15 @@ class Application(ApplicationHandler):
         self.main_bottom = ScrollBar(Scrollable(
             Pile([AttrWrap(Padding(self.tb_sysinfo_bottom, align=LEFT, left=6, width=('relative', 80)), 'reverse')])
         ))
-        self.tb_header = GText(self.text_header.format(colormode=colormode, kbd=self._current_kbdlayout,
-                                                       authorized_options=''), align=CENTER, wrap=SPACE)
+        self.tb_header = GText(
+            ''.join(self.text_header).format(colormode=colormode, kbd=self._current_kbdlayout,
+                                             authorized_options=''),
+            align=CENTER, wrap=SPACE
+        )
+        self.refresh_head_text(colormode, self._current_kbdlayout, '')
         self.header = AttrMap(Padding(self.tb_header, align=CENTER), 'header')
+        # self.tb_header = GText(self.text_header.format(colormode=colormode, kbd=self._current_kbdlayout,
+        #                                                authorized_options=''), align=CENTER, wrap=SPACE)
         self.vsplitbox = Pile([("weight", 50, AttrMap(self.main_top, "body")), ("weight", 50, self.main_bottom)])
         self.footer_text = GText('heute')
         self.print("Idle")
@@ -289,6 +306,10 @@ class Application(ApplicationHandler):
         frame = Frame(AttrMap(self.vsplitbox, 'reverse'), header=self.header, footer=self.footer)
         self.mainframe = frame
         self._body = self.mainframe
+
+    def refresh_head_text(self, colormode, kbd, authorized_options):
+        self.tb_header.set_text(''.join(self.text_header).format(colormode=colormode, kbd=kbd,
+                                                                 authorized_options=authorized_options))
 
     def listen_unsupported(self, what: str, key: Any):
         self.print(f"What is {what}.")
@@ -812,8 +833,7 @@ class Application(ApplicationHandler):
         self.authorized_options = ', <F4> for Main-Menu'
         colormode: str = "light" if self._current_colormode == 'dark' else 'dark'
         self.prepare_mainscreen()
-        self.tb_header.set_text(self.text_header.format(colormode=colormode, kbd=self._current_kbdlayout,
-                                                        authorized_options=self.authorized_options))
+        self.refresh_head_text(colormode, self._current_kbdlayout, self.authorized_options)
         self._body = self.main_menu
         self._loop.widget = self._body
         menu_selected: int = self.handle_standard_menu_behaviour(self.main_menu_list, 'up',
@@ -916,8 +936,7 @@ class Application(ApplicationHandler):
         p = util.get_palette(mode)
         self._current_colormode = mode
         colormode: str = "light" if self._current_colormode == 'dark' else 'dark'
-        self.tb_header.set_text(self.text_header.format(colormode=colormode, kbd=self._current_kbdlayout,
-                                                        authorized_options=self.authorized_options))
+        self.refresh_head_text(colormode, self._current_kbdlayout, self.authorized_options)
         self._loop.screen.register_palette(p)
         self._loop.screen.clear()
 
@@ -925,11 +944,11 @@ class Application(ApplicationHandler):
         o = self._current_colormode
         n = util.get_next_palette_name(o)
         p = util.get_palette(n)
-        self.tb_header.set_text(self.text_header.format(colormode=util.get_next_palette_name(n), kbd=self._current_kbdlayout,
-                                                        authorized_options=self.authorized_options))
+        # show_next = util.get_next_palette_name(n)
+        show_next = n
+        self.refresh_head_text(show_next, self._current_kbdlayout, self.authorized_options)
         self._loop.screen.register_palette(p)
         self._loop.screen.clear()
-        self._current_colormode = n
 
     def switch_kbdlayout(self):
         # Base proposal on CUI's last known state
@@ -941,8 +960,7 @@ class Application(ApplicationHandler):
         util.minishell_write(file, vars)
         os.system("systemctl restart systemd-vconsole-setup")
         self._current_kbdlayout = proposal
-        self.tb_header.set_text(self.text_header.format(colormode=self._current_colormode, kbd=self._current_kbdlayout,
-                                                        authorized_options=self.authorized_options))
+        self.refresh_head_text(self._current_colormode, self._current_kbdlayout, self.authorized_options)
 
     def redraw(self):
         """
@@ -955,8 +973,9 @@ class Application(ApplicationHandler):
         Resets the console UI to the default layout
         """
 
-        self._loop.widget = self._body
-        self._loop.draw_screen()
+        if getattr(self, '_loop', None):
+            self._loop.widget = self._body
+            self._loop.draw_screen()
 
     def create_menu_items(self, items: Dict[str, Widget]) -> List[MenuItem]:
         """
