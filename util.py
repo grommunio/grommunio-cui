@@ -135,10 +135,8 @@ def check_setup_state():
         return check_socket('127.0.0.1', 22)
 
     def check_grommunio_setup():
-        gromox_files = os.listdir('/etc/gromox/')
-        if len(gromox_files) > 0:
-            return True
-        return False
+        # return os.path.isfile('/etc/grommunio/setup_done')
+        return os.path.isfile('/etc/grammm/setup_done')
 
     def check_timesyncd_config():
         out = subprocess.check_output(['timedatectl', 'status']).decode()
@@ -151,7 +149,7 @@ def check_setup_state():
         return False
 
     def check_nginx_config():
-        return check_socket('127.0.0.1', 80)
+        return check_socket('127.0.0.1', 8080)
 
     rv = 0
     # check if pw is set
@@ -233,7 +231,7 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
         svmem = psutil.virtual_memory()
         distro, version = get_os_release()
         rv += [
-            u"\n", "Console User Interface", "\n", u"© 2021 ", "grommunio GmbH", u"\n",
+            "Console User Interface", "\n", u"© 2021 ", "grommunio GmbH", u"\n",
         ]
         if distro.lower().startswith('grammm') or distro.lower().startswith('grommunio'):
             rv.append(f"Distribution: {distro} Version: {version}")
@@ -257,6 +255,9 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
                 u"\n", "For further configuration, these URLs can be used:", u"\n"
             ]
             rv.append("\n")
+            if uname.node.lower().startswith('localhost.'):
+                rv.append(('important', 'It is generally NOT the best idea to use localhost as hostname!'))
+                rv.append('\n')
             rv.append(f"http://{uname.node}:8080/\n")
             for interface_name, interface_addresses in if_addrs.items():
                 if interface_name in ['lo']:
