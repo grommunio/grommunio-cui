@@ -514,7 +514,8 @@ class Application(ApplicationHandler):
                     self.timesyncd_vars['NTP'] = self.timesyncd_body.base_widget[1].edit_text
                     self.timesyncd_vars['FallbackNTP'] = self.timesyncd_body.base_widget[2].edit_text
                     util.minishell_write('/etc/systemd/timesyncd.conf', self.timesyncd_vars)
-                    rc = subprocess.Popen(["timedatectl", "set-ntp", "true"])
+                    rc = subprocess.Popen(["timedatectl", "set-ntp", "true"],
+                                          stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
                     self.open_main_menu()
                 else:
                     self.open_main_menu()
@@ -771,8 +772,10 @@ class Application(ApplicationHandler):
     def reset_aapi_passwd(self, new_pw: str) -> bool:
         if new_pw:
             if new_pw != "":
-                proc = subprocess.Popen(['grammm-admin', 'passwd', '--password', new_pw])
-                # proc = subprocess.Popen(['grommunio-admin', 'passwd', '--password', new_pw])
+                proc = subprocess.Popen(['grammm-admin', 'passwd', '--password', new_pw],
+                                        stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+                # proc = subprocess.Popen(['grommunio-admin', 'passwd', '--password', new_pw],
+                #                         stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
                 return True
         return False
 
