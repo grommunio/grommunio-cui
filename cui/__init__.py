@@ -192,9 +192,31 @@ class Application(ApplicationHandler):
         self.save_button = (10, self.save_button)
         self.save_button_footer = GridFlow([self.save_button[1]], 10, 1, 1, 'center')
 
+        self.refresh_main_menu()
+
+        # Password Dialog
+        self.prepare_password_dialog()
+
+        # Read in logging units
+        self._load_journal_units()
+
+        # Log file viewer
+        self.log_file_content: List[str] = [
+            "If this is not that what you expected to see,",
+            "You probably have insufficient permissions!?"
+        ]
+        # self.prepare_log_viewer('gromox-http', self.log_line_count)
+        self.prepare_log_viewer('NetworkManager', self.log_line_count)
+
+        self.prepare_timesyncd_config()
+
+        # some settings
+        MultiMenuItem.application = self
+        GButton.application = self
+
+    def refresh_main_menu(self):
         # The common menu description column
         self.menu_description = Pile([GText('Main Menu', CENTER), GText('Here you can do the main actions', LEFT)])
-
         # Main Menu
         items = {
             'Change system password': Pile([
@@ -235,27 +257,7 @@ class Application(ApplicationHandler):
         self.main_menu_list = self.prepare_menu_list(items)
         self.main_menu = self.menu_to_frame(self.main_menu_list)
 
-        # Password Dialog
-        self.prepare_password_dialog()
-
-        # Read in logging units
-        self._load_journal_units()
-
-        # Log file viewer
-        self.log_file_content: List[str] = [
-            "If this is not that what you expected to see,",
-            "You probably have insufficient permissions!?"
-        ]
-        # self.prepare_log_viewer('gromox-http', self.log_line_count)
-        self.prepare_log_viewer('NetworkManager', self.log_line_count)
-
-        self.prepare_timesyncd_config()
-
-        # some settings
-        MultiMenuItem.application = self
-        GButton.application = self
-
-    def refresh_text_header(self):
+    def recreate_text_header(self):
         self.tb_header = GText(
             ''.join(self.text_header).format(colormode=self._current_colormode,
                                              kbd=self._current_kbdlayout,
@@ -294,8 +296,7 @@ class Application(ApplicationHandler):
                                              authorized_options=''),
             align=CENTER, wrap=SPACE
         )
-        self.refresh_head_text(colormode, self._current_kbdlayout, '')
-        self.header = AttrMap(Padding(self.tb_header, align=CENTER), 'header')
+        self.refresh_header(colormode, self._current_kbdlayout, '')
         # self.tb_header = GText(self.text_header.format(colormode=colormode, kbd=self._current_kbdlayout,
         #                                                authorized_options=''), align=CENTER, wrap=SPACE)
         self.vsplitbox = Pile([("weight", 50, AttrMap(self.main_top, "body")), ("weight", 50, self.main_bottom)])
@@ -306,6 +307,12 @@ class Application(ApplicationHandler):
         frame = Frame(AttrMap(self.vsplitbox, 'reverse'), header=self.header, footer=self.footer)
         self.mainframe = frame
         self._body = self.mainframe
+
+    def refresh_header(self, colormode, kbd, auth_options):
+        self.refresh_head_text(colormode, kbd, auth_options)
+        self.header = AttrMap(Padding(self.tb_header, align=CENTER), 'header')
+        if getattr(self, 'footer', None):
+            self.refresh_main_menu()
 
     def refresh_head_text(self, colormode, kbd, authorized_options):
         self.tb_header.set_text(''.join(self.text_header).format(colormode=colormode, kbd=kbd,
@@ -836,7 +843,7 @@ class Application(ApplicationHandler):
         self.authorized_options = ', <F4> for Main-Menu'
         colormode: str = "light" if self._current_colormode == 'dark' else 'dark'
         self.prepare_mainscreen()
-        self.refresh_head_text(colormode, self._current_kbdlayout, self.authorized_options)
+        # self.refresh_head_text(colormode, self._current_kbdlayout, self.authorized_options)
         self._body = self.main_menu
         self._loop.widget = self._body
         menu_selected: int = self.handle_standard_menu_behaviour(self.main_menu_list, 'up',
@@ -939,7 +946,7 @@ class Application(ApplicationHandler):
         p = util.get_palette(mode)
         self._current_colormode = mode
         colormode: str = "light" if self._current_colormode == 'dark' else 'dark'
-        self.refresh_head_text(colormode, self._current_kbdlayout, self.authorized_options)
+        self.refresh_header(colormode, self._current_kbdlayout, self.authorized_options)
         self._loop.screen.register_palette(p)
         self._loop.screen.clear()
 
@@ -949,9 +956,10 @@ class Application(ApplicationHandler):
         p = util.get_palette(n)
         # show_next = util.get_next_palette_name(n)
         show_next = n
-        self.refresh_head_text(show_next, self._current_kbdlayout, self.authorized_options)
+        self.refresh_header(show_next, self._current_kbdlayout, self.authorized_options)
         self._loop.screen.register_palette(p)
         self._loop.screen.clear()
+        self._current_colormode = show_next
 
     def switch_kbdlayout(self):
         # Base proposal on CUI's last known state
