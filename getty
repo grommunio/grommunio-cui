@@ -5,5 +5,8 @@ exec <"/dev/$tty" >"/dev/$tty" 2>"/dev/$tty"
 echo
 echo -e " \x1b[36m▼\x1b[0m Loading grommunio console user interface"
 echo
-PYTHONPATH="/usr/libexec/grammm-cui" exec "/usr/bin/python3" "/usr/libexec/grammm-cui/__init__.py"
-#PYTHONPATH="/usr/libexec/grommunio-cui" exec "/usr/bin/python3" "/usr/libexec/grommunio-cui/__init__.py"
+if [ -d /usr/libexec/grommunio-cui ]; then
+  PYTHONPATH="/usr/libexec/grommunio-cui" exec "/usr/bin/python3" "/usr/libexec/grommunio-cui/__init__.py"
+else
+  PYTHONPATH="/usr/libexec/grammm-cui" exec "/usr/bin/python3" "/usr/libexec/grammm-cui/__init__.py"
+fi
