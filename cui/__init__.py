@@ -513,12 +513,13 @@ class Application(ApplicationHandler):
             self.current_window = self.input_box_caller
             if res is not None:
                 success_msg = 'successful'
-                if res == False:
+                if not res:
                     success_msg = 'not successful'
                 self.message_box(f'Admin password reset has been {success_msg}!', 'Admin Password Reset', height=10)
 
     def key_ev_timesyncd(self, key):
         self.handle_standard_tab_behaviour(key)
+        success_msg = 'NOTHING'
         if key.lower().endswith('enter'):
             if key.lower().startswith('hidden'):
                 button_type = key.lower().split(' ')[1]
@@ -529,11 +530,20 @@ class Application(ApplicationHandler):
                     util.minishell_write('/etc/systemd/timesyncd.conf', self.timesyncd_vars)
                     rc = subprocess.Popen(["timedatectl", "set-ntp", "true"],
                                           stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+                    res = rc.wait() == 0
+                    success_msg = 'successful'
+                    if not res:
+                        success_msg = 'not successful'
                     self.open_main_menu()
                 else:
+                    success_msg = 'aborted'
                     self.open_main_menu()
         elif key == 'esc':
+            success_msg = 'aborted'
             self.open_main_menu()
+        if key.lower().endswith('enter') or key in ['esc', 'enter']:
+            self.message_box(f'Timesyncd configuration change has been {success_msg}!',
+                             'Timesyncd Configuration', height=10)
 
     def handle_mouse_event(self, event: Any):
         # event is a mouse event in the form ('mouse press or release', button, column, line)
