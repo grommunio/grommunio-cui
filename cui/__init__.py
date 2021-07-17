@@ -538,10 +538,11 @@ class Application(ApplicationHandler):
 
     def _load_journal_units(self):
         try:
-            p = subprocess.Popen(["/usr/sbin/grammm-admin", "config", "dump"],
+            exe = '/usr/sbin/grammm-admin'
+            if Path('/usr/sbin/grommunio-admin').exists():
+                exe = '/usr/sbin/grommunio-admin'
+            p = subprocess.Popen([exe, "config", "dump"],
                                  stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            # p = subprocess.Popen(["/usr/sbin/grommunio-admin", "config", "dump"],
-            #                      stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             out, err = p.communicate()
             if type(out) is bytes:
                 out = out.decode()
@@ -779,10 +780,11 @@ class Application(ApplicationHandler):
     def reset_aapi_passwd(self, new_pw: str) -> bool:
         if new_pw:
             if new_pw != "":
-                proc = subprocess.Popen(['grammm-admin', 'passwd', '--password', new_pw],
+                exe = 'grammm-admin'
+                if Path('/usr/sbin/grommunio-admin').exists():
+                    exe = 'grommunio-admin'
+                proc = subprocess.Popen([exe, 'passwd', '--password', new_pw],
                                         stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
-                # proc = subprocess.Popen(['grommunio-admin', 'passwd', '--password', new_pw],
-                #                         stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
                 return True
         return False
 
@@ -828,8 +830,10 @@ class Application(ApplicationHandler):
     def open_setup_wizard(self):
         self._loop.stop()
         self.screen.tty_signal_keys(*self.old_termios)
-        os.system("/usr/sbin/grammm-setup")
-        # os.system("/usr/sbin/grommunio-setup")
+        if Path("/usr/sbin/grommunio-setup").exists():
+            os.system("/usr/sbin/grommunio-setup")
+        else:
+            os.system("/usr/sbin/grammm-setup")
         self.screen.tty_signal_keys(*self.blank_termios)
         self._loop.start()
 
