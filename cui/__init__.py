@@ -507,9 +507,15 @@ class Application(ApplicationHandler):
 
     def key_ev_aapi(self, key):
         if key.lower().endswith('enter') or key == 'esc':
+            res = None
             if key.lower().endswith('enter'):
-                self.reset_aapi_passwd(self.last_input_box_value)
+                res = self.reset_aapi_passwd(self.last_input_box_value)
             self.current_window = self.input_box_caller
+            if res is not None:
+                success_msg = 'successful'
+                if res == False:
+                    success_msg = 'not successful'
+                self.message_box(f'Admin password reset has been {success_msg}!', 'Admin Password Reset', height=10)
 
     def key_ev_timesyncd(self, key):
         self.handle_standard_tab_behaviour(key)
@@ -785,7 +791,8 @@ class Application(ApplicationHandler):
                     exe = 'grommunio-admin'
                 proc = subprocess.Popen([exe, 'passwd', '--password', new_pw],
                                         stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
-                return True
+
+                return proc.wait() == 0
         return False
 
     def open_timesyncd_conf(self):
