@@ -136,7 +136,7 @@ def check_setup_state():
 
     def check_grommunio_setup():
         # return os.path.isfile('/etc/grommunio/setup_done')
-        return os.path.isfile('/etc/grammm/setup_done')
+        return os.path.isfile('/etc/grammm/setup_done') or os.path.isfile('/etc/grommunio/setup_done')
 
     def check_timesyncd_config():
         out = subprocess.check_output(['timedatectl', 'status']).decode()
