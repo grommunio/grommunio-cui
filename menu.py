@@ -2,8 +2,8 @@
 # SPDX-FileCopyrightText: 2021 grommunio GmbH
 
 from typing import Any, List, Dict
-from urwid import AttrMap, Columns, ListBox, RadioButton, Text, Widget, WidgetWrap, connect_signal, emit_signal, \
-    register_signal, ListWalker, CompositeCanvas
+from urwid import AttrMap, Columns, ListBox, RadioButton, Widget, connect_signal, emit_signal, \
+    register_signal, CompositeCanvas
 from interface import ApplicationHandler, WidgetDrawer
 from gwidgets import GText
 
@@ -14,14 +14,14 @@ class MenuItem(GText):
     """
     application: ApplicationHandler = None
     
-    def __init__(self, id, caption, description: Any = None, app: ApplicationHandler = None):
+    def __init__(self, menu_id, caption, description: Any = None, app: ApplicationHandler = None):
         GText.__init__(self, caption)
-        self.id = id
+        self.id = menu_id
         self.description = description
         register_signal(self.__class__, ['activate'])
         self.application = app
     
-    def keypress(self, size, key: str = '') -> str:
+    def keypress(self, _, key: str = '') -> str:
         if key == 'enter':
             emit_signal(self, 'activate', key)
         else:
@@ -46,9 +46,9 @@ class MultiRadioButton(RadioButton):
     """
     _parent: WidgetDrawer = None
     
-    def __init__(self, group: List[Widget], id: int, label: Any, column_content: List[Widget],
+    def __init__(self, group: List[Widget], radio_id: int, label: Any, column_content: List[Widget],
                  state: bool = "first True", on_state_change: Any = None, user_data: Any = None):
-        self.id = id
+        self.id = radio_id
         self.column_content = column_content
         # register_signal(self.__class__, ['activate'])
         super(MultiRadioButton, self).__init__(group, label, state, on_state_change, user_data)
@@ -89,11 +89,11 @@ class MultiMenuItem(WidgetDrawer):
     current_focus: int = 0
     _state: bool = False
     
-    def __init__(self, group: List[MultiRadioButton], id: int, label: Any, column_content: List[Widget],
+    def __init__(self, group: List[MultiRadioButton], menu_id: int, label: Any, column_content: List[Widget],
                  state: Any = "first True", on_state_change: Any = None, user_data: Any = None,
                  app: ApplicationHandler = None):
         self._group = group
-        self._id = id
+        self._id = menu_id
         self._label = label
         self._column_content = column_content
         if type(state) is str:
@@ -147,7 +147,6 @@ class MultiMenuItem(WidgetDrawer):
         :param event: The current event.
         :return: The id of the focused item (1+)
         """
-        focus_on: int = 1
         if self.parent_listbox is None:
             focus_on = 1
         else:
@@ -210,11 +209,11 @@ class MultiMenuItem(WidgetDrawer):
         
         :return: The selected MultioRadioButton.
         """
-        mrb: MultiRadioButton
+        mrb = None
         for mrb in self._group:
             if mrb.state:
                 return mrb
-        return None
+        return mrb
     
     def get_selected_id(self) -> int:
         """
@@ -279,11 +278,10 @@ class MultiMenuItem(WidgetDrawer):
         """
         return super(MultiMenuItem, self).render(size, focus)
     
-    def handle_modified(self, walker: ListWalker = None, *args, **kwargs):
+    def handle_modified(self, *args, **kwargs):
         """
         Is called if item is modified (changes state).
         
-        :param walker: The first element of user_args (user_args=[walker, *args,, **kwargs]
         :param args: Optional user_args.
         :param kwargs: Optional keyword args
         """
@@ -331,9 +329,6 @@ class MultiMenuItem(WidgetDrawer):
         :param kwargs: Optional keyword args
         """
         mrb: MultiRadioButton = item
-        mmi: MultiMenuItem = mrb.parent
-        # mmi.set_state(state)
-        # schau mer mal
         if cls.application is not None:
             cls.application.print(
                 f"Called item._id of MultiMenuItem({mrb.get_id()}).handle_menu_changed(item={item}, state={state}) with"
@@ -346,5 +341,6 @@ class MenuItemError(Exception):
     pass
 
 
-def multi_menu_item(group, id, label, column_content, state, on_state_change, user_data, application) -> MultiMenuItem:
-    return MultiMenuItem(group, id, label, column_content, state, on_state_change, user_data, application)
+def multi_menu_item(group, menu_id, label, column_content, state, on_state_change, user_data, application)\
+        -> MultiMenuItem:
+    return MultiMenuItem(group, menu_id, label, column_content, state, on_state_change, user_data, application)

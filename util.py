@@ -22,7 +22,7 @@ STATES = {
 }
 
 _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
-    "light" : [
+    "light": [
         ('body', 'white', 'dark blue', 'standout', '#fff', '#00a'),
         ('reverse', 'dark blue', 'light gray', '', '#00a', '#aaa'),
         ('header', 'white', 'light blue', 'bold', '#fff', '#49a'),
@@ -39,7 +39,7 @@ _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
         ('footerbar.fg', 'white', 'black', '', '#fff', '#111'),
         ('footerbar.bg', 'black', 'dark blue', '', '#111', '#00a'),
     ],
-    "dark" : [
+    "dark": [
         ('body', 'black', 'dark cyan', 'standout', '#111', '#0aa'),
         ('reverse', 'dark cyan', 'black', '', '#0aa', '#111'),
         ('header', 'white', 'dark blue', 'bold', '#fff', '#49b'),
@@ -56,7 +56,7 @@ _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
         ('footerbar.fg', 'black', 'white', '', '#111', '#fff'),
         ('footerbar.bg', 'white', 'dark cyan', '', '#fff', '#111'),
     ],
-    "orange light" : [
+    "orange light": [
         ('body', 'white', 'brown', 'standout', '#fff', '#880'),
         ('reverse', 'brown', 'white', '', '#880', '#fff'),
         ('header', 'white', 'dark blue', 'bold', '#fff', '#49b'),
@@ -73,7 +73,7 @@ _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
         ('footerbar.fg', 'white', 'black', '', '#fff', '#111'),
         ('footerbar.bg', 'black', 'brown', '', '#111', '#ccc'),
     ],
-    "orange dark" : [
+    "orange dark": [
         ('body', 'black', 'yellow', 'standout', '#111', '#ff0'),
         ('reverse', 'yellow', 'black', '', '#ff0', '#111'),
         ('header', 'white', 'light blue', 'bold', '#fff', '#49a'),
@@ -94,24 +94,24 @@ _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
 
 
 def extract_bits(binary):
-    c=''
-    i=0
+    c = ''
+    i = 0
     rv = []
     while c != 'b':
-        s=str(bin(binary))[::-1]
-        c=s[i]
+        s = str(bin(binary))[::-1]
+        c = s[i]
         if c == '1':
             rv.append(2**i)
-        i+=1
+        i += 1
     return rv
 
 
-def check_socket(host='127.0.0.1', port=22, timeout=3):
+def check_socket(host='127.0.0.1', port=22):
     try:
         socket.setdefaulttimeout(3)
         socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
         return True
-    except socket.error as err:
+    except socket.error:
         return False
 
 
@@ -119,15 +119,15 @@ def check_setup_state():
     """Check states of setup and returns a combined binary number"""
     def check_if_password_is_set(user):
         file = '/etc/shadow'
-        vars = {}
+        items = {}
         if os.access(file, os.R_OK):
             with open(file) as fh:
                 for line in fh:
                     parts = line.split(":")
                     username = parts[0]
                     password = parts[1]
-                    vars[username.strip()] = password.strip()
-        if len(vars.get(user)) > 0:
+                    items[username.strip()] = password.strip()
+        if len(items.get(user)) > 0:
             return True
         return False
 
@@ -140,11 +140,11 @@ def check_setup_state():
 
     def check_timesyncd_config():
         out = subprocess.check_output(['timedatectl', 'status']).decode()
-        vars = {}
+        items = {}
         for line in out.splitlines():
             key, value = line.partition(':')[::2]
-            vars[key.strip()] = value.strip()
-        if vars.get('Network time on') == 'yes' and vars.get('NTP synchronized') == 'yes':
+            items[key.strip()] = value.strip()
+        if items.get('Network time on') == 'yes' and items.get('NTP synchronized') == 'yes':
             return True
         return False
 
@@ -182,7 +182,7 @@ def authenticate_user(username: str, password: str, service: str = 'login') -> b
     try:
         authenticate(username, password, service)
         return True
-    except PAMError as e:
+    except PAMError:
         return False
 
 
@@ -208,8 +208,7 @@ def get_first_ip_not_localhost() -> str:
 
 def get_ip_list() -> List[str]:
     rv: List[str] = []
-    addr: psutil._common.snicaddr
-    addrs: Dict[str, psutil._common.snicaddr] = psutil.net_if_addrs()
+    addrs = psutil.net_if_addrs()
     for dev, addrlist in addrs.items():
         for addr in addrlist:
             if addr.family == socket.AF_INET:
@@ -238,9 +237,10 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
             rv.append("\n")
         rv.append("\n")
         if cpufreq:
-             rv.append(f"{psutil.cpu_count(logical=False)} x {uname.processor} CPUs a {get_hr(cpufreq.current * 1000 * 1000, 'Hz', 1000)}")
+            rv.append(f"{psutil.cpu_count(logical=False)} x {uname.processor} CPUs"
+                      f" a {get_hr(cpufreq.current * 1000 * 1000, 'Hz', 1000)}")
         else:
-             rv.append(f"{psutil.cpu_count(logical=False)} x {uname.processor} CPUs")
+            rv.append(f"{psutil.cpu_count(logical=False)} x {uname.processor} CPUs")
         rv.append("\n")
         rv.append(f"Memory {get_hr(svmem.used)} used of {get_hr(svmem.total)}. {get_hr(svmem.available)} free.")
         rv.append("\n")
@@ -250,6 +250,7 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
         if_addrs = psutil.net_if_addrs()
         boot_time_timestamp = psutil.boot_time()
         bt = datetime.fromtimestamp(boot_time_timestamp)
+        proto = 'http'
         if check_setup_state() == 0:
             rv += [
                 u"\n", "For further configuration, these URLs can be used:", u"\n"
@@ -258,7 +259,7 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
             if uname.node.lower().startswith('localhost.'):
                 rv.append(('important', 'It is generally NOT the best idea to use localhost as hostname!'))
                 rv.append('\n')
-            rv.append(f"http://{uname.node}:8080/\n")
+            rv.append(f"{proto}://{uname.node}:8080/\n")
             for interface_name, interface_addresses in if_addrs.items():
                 if interface_name in ['lo']:
                     continue
@@ -268,11 +269,11 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
                     adr = ipaddress.IPv6Address(address.address.split('%')[0])
                     if adr.is_link_local is True:
                         continue
-                    rv.append(f"http://[{address.address}]:8080/ (interface {interface_name})\n")
+                    rv.append(f"{proto}://[{address.address}]:8080/ (interface {interface_name})\n")
                 for address in interface_addresses:
                     if address.family != socket.AF_INET:
                         continue
-                    rv.append(f"http://{address.address}:8080/ (interface {interface_name})\n")
+                    rv.append(f"{proto}://{address.address}:8080/ (interface {interface_name})\n")
         else:
             rv.append('\n')
             rv.append('There are still some things missing to run grommunio in a clean environment.')
@@ -315,18 +316,18 @@ def pad(text: Any, sign: str = ' ', length: int = 2, left_pad: bool = True) -> s
     return rv[:slice_pos]
 
 
-def get_hr(bytes, suffix="B", factor=1024):
+def get_hr(formatbytes, suffix="B", factor=1024):
     """
-    Scale bytes to its human readable format
+    Scale formatbytes to its human readable format
 
     e.g:
         1253656 => '1.20MB'
         1253656678 => '1.17GB'
     """
     for unit in ["", "K", "M", "G", "T", "P"]:
-        if bytes < factor:
-            return f"{bytes:.2f} {unit}{suffix}"
-        bytes /= factor
+        if formatbytes < factor:
+            return f"{formatbytes:.2f} {unit}{suffix}"
+        formatbytes /= factor
 
 
 def get_clockstring() -> str:
@@ -360,19 +361,18 @@ def get_footerbar(key_size=2, name_size=10):
 
 def get_palette_list() -> List[str]:
     global _PALETTES
-    l = list(_PALETTES.keys())
-    return l
+    return list(_PALETTES.keys())
 
 
 def get_next_palette_name(cur_palette: str = "") -> str:
-    l = get_palette_list()
-    i = iter(l)
+    palette_list = get_palette_list()
+    i = iter(palette_list)
     for p in i:
-        if p == l[len(l) - 1]:
-            return l[0]
+        if p == palette_list[len(palette_list) - 1]:
+            return palette_list[0]
         elif p == cur_palette:
             return next(i)
-    return l[0]
+    return palette_list[0]
 
 
 def get_palette(mode: str = 'light') -> List[Tuple[str, ...]]:
@@ -390,7 +390,7 @@ def fast_tail(file: str, n: int = 0) -> List[str]:
         while len(lines) <= n:
             try:
                 f.seek(-pos, 2)
-            except IOError as e:
+            except IOError:
                 f.seek(0)
                 break
             finally:
@@ -401,30 +401,26 @@ def fast_tail(file: str, n: int = 0) -> List[str]:
 
 def minishell_read(file):
     # should use shlex, but it's not included
-    vars = {}
+    items = {}
     try:
         with open(file) as fh:
             for line in fh:
                 key, value = line.partition("=")[::2]
-                vars[key.strip()] = value.strip()
-    except:
+                items[key.strip()] = value.strip()
+    except IOError:
         pass
-    return vars
+    return items
 
 
-def minishell_write(file, vars):
+def minishell_write(file, items):
     with open(file, "w") as fh:
-        for key in vars:
+        for key in items:
             fh.write(key)
             fh.write("=")
-            fh.write(vars[key])
+            fh.write(items[key])
             fh.write("\n")
 
 
 def get_current_kbdlayout():
-    vars = minishell_read("/etc/vconsole.conf")
-    try:
-        return vars["KEYMAP"].strip('"')
-    except:
-        pass
-    return "us"
+    items = minishell_read("/etc/vconsole.conf")
+    return items.get("KEYMAP", 'us').strip('"')

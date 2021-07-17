@@ -10,7 +10,6 @@ import os
 
 import yaml
 from yaml import SafeLoader
-from psutil._common import snicstats, snicaddr
 from getpass import getuser
 from scroll import ScrollBar, Scrollable
 from button import GButton, GBoxButton
@@ -18,12 +17,11 @@ from menu import MenuItem, MultiMenuItem
 from gwidgets import GText, GEdit
 from interface import ApplicationHandler, WidgetDrawer
 import util
-from urwid.widget import SPACE, CLIP, ANY
-from urwid import AttrWrap, ExitMainLoop, Padding, Columns, RIGHT, ListBox, Frame, LineBox, SimpleListWalker, \
-    MainLoop, LEFT, CENTER, Filler, Pile, Edit, Button, connect_signal, AttrMap, GridFlow, Overlay, Widget, \
-    Terminal, SimpleFocusListWalker, set_encoding, MIDDLE, TOP, RadioButton, ListWalker, raw_display, curses_display, \
-    RELATIVE_100, WidgetWrap, Text
-import urwid
+from urwid.widget import SPACE
+from urwid import AttrWrap, ExitMainLoop, Padding, Columns, ListBox, Frame, LineBox, SimpleListWalker, \
+    MainLoop, LEFT, CENTER, Filler, Pile, Button, connect_signal, AttrMap, GridFlow, Overlay, Widget, \
+    Terminal, SimpleFocusListWalker, set_encoding, MIDDLE, TOP, RadioButton, ListWalker, raw_display, \
+    RELATIVE_100
 from systemd import journal
 import datetime
 import time
@@ -80,7 +78,7 @@ class Application(ApplicationHandler):
     active_ips: Dict[str, List[Tuple[str, str, str, str]]] = {}
     config: Dict[str, Any] = {}
     timesyncd_vars: Dict[str, str] = {}
-    log_units: Dict[str, str] = {}
+    log_units: Dict[str, Dict[str, str]] = {}
     current_log_unit: int = 0
     log_line_count: int = 200
     log_finished: bool = False
@@ -570,7 +568,7 @@ class Application(ApplicationHandler):
         except BaseException as e:
             # use dummy config if no gromox-http is there
             self.config = {'logs': {'Gromox http': {'source': 'gromox-http.service'}}}
-        self.log_units = self.config.get('logs', {})
+        self.log_units = self.config.get('logs', {'Gromox http': {'source': 'gromox-http.service'}})
         for i, k in enumerate(self.log_units.keys()):
             if k == 'Gromox http':
                 self.current_log_unit = i
@@ -1362,9 +1360,11 @@ class Application(ApplicationHandler):
         return rv
 
 
-if __name__ == '__main__':
+def create_application():
+    global _PRODUCTIVE
     set_encoding('utf-8')
     _PRODUCTIVE = True
+    app = None
     if "--help" in sys.argv:
         print(f"Usage: {sys.argv[0]} [OPTIONS]")
         print(f"\tOPTIONS:")
@@ -1380,4 +1380,9 @@ if __name__ == '__main__':
         if "--hidden-login" in sys.argv:
             _PRODUCTIVE = False
 
-        app.start()
+        return app
+
+
+if __name__ == '__main__':
+    app = create_application()
+    app.start()
