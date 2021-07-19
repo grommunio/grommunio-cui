@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: 2021 grommunio GmbH
 
 from typing import Any
-from urwid import AttrMap, Button, Padding, Pile, Text, WidgetWrap, connect_signal, register_signal
+from urwid import AttrMap, Button, Padding, Pile, Text, connect_signal, register_signal
 from interface import ApplicationHandler, WidgetDrawer
 
 
@@ -78,3 +78,9 @@ class GBoxButton(WidgetDrawer):
     
     def set_application(self, app: ApplicationHandler):
         self._hidden_button.set_application(app)
+
+    def refresh_content(self, event: Any = None):
+        pass
+
+    def mark_as_dirty(self):
+        pass

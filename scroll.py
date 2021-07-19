@@ -41,7 +41,7 @@ class Scrollable(urwid.WidgetDecoration):
         self._forward_keypress = None
         self._old_cursor_coords = None
         self._rows_max_cached = 0
-        self.__super.__init__(widget)
+        super(Scrollable, self).__init__(widget)
     
     def render(self, size, focus=False):
         maxcol, maxrow = size
@@ -226,6 +226,8 @@ class Scrollable(urwid.WidgetDecoration):
         NOTE: The returned value may be too low or too high if the position has
         changed but the widget wasn't rendered yet.
         """
+        _ = size
+        _ = focus
         return self._trim_top
     
     def set_scrollpos(self, position):
@@ -279,7 +281,7 @@ class ScrollBar(urwid.WidgetDecoration):
         """
         if BOX not in widget.sizing():
             raise ValueError('Not a box widget: %r' % widget)
-        self.__super.__init__(widget)
+        super(ScrollBar, self).__init__(widget)
         self._thumb_char = thumb_char
         self._trough_char = trough_char
         self.scrollbar_side = side
@@ -378,16 +380,17 @@ class ScrollBar(urwid.WidgetDecoration):
         
         def is_scrolling_widget(w):
             return hasattr(w, 'get_scrollpos') and hasattr(w, 'rows_max')
-        
-        for w in orig_iter(self):
-            if is_scrolling_widget(w):
-                return w
-        raise ValueError('Not compatible to be wrapped by ScrollBar: %r' % w)
+
+        widget = None
+        for widget in orig_iter(self):
+            if is_scrolling_widget(widget):
+                return widget
+        raise ValueError('Not compatible to be wrapped by ScrollBar: %r' % widget)
     
-    def keypress(self, size, key):
+    def keypress(self, _, key):
         return self._original_widget.keypress(self._original_widget_size, key)
     
-    def mouse_event(self, size, event, button, col, row, focus):
+    def mouse_event(self, _, event, button, col, row, focus):
         ow = self._original_widget
         ow_size = self._original_widget_size
         handled = False

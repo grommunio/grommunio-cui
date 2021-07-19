@@ -10,7 +10,6 @@ import os
 
 import yaml
 from yaml import SafeLoader
-from psutil._common import snicstats, snicaddr
 from getpass import getuser
 from scroll import ScrollBar, Scrollable
 from button import GButton, GBoxButton
@@ -18,13 +17,11 @@ from menu import MenuItem, MultiMenuItem
 from gwidgets import GText, GEdit
 from interface import ApplicationHandler, WidgetDrawer
 import util
-from util import authenticate_user, get_clockstring, get_palette, get_system_info, get_next_palette_name, fast_tail
-from urwid.widget import SPACE, CLIP, ANY
-from urwid import AttrWrap, ExitMainLoop, Padding, Columns, RIGHT, ListBox, Frame, LineBox, SimpleListWalker, \
-    MainLoop, LEFT, CENTER, Filler, Pile, Edit, Button, connect_signal, AttrMap, GridFlow, Overlay, Widget, \
-    Terminal, SimpleFocusListWalker, set_encoding, MIDDLE, TOP, RadioButton, ListWalker, raw_display, curses_display, \
-    RELATIVE_100, WidgetWrap, Text
-import urwid
+from urwid.widget import SPACE
+from urwid import AttrWrap, ExitMainLoop, Padding, Columns, ListBox, Frame, LineBox, SimpleListWalker, \
+    MainLoop, LEFT, CENTER, Filler, Pile, Button, connect_signal, AttrMap, GridFlow, Overlay, Widget, \
+    Terminal, SimpleFocusListWalker, set_encoding, MIDDLE, TOP, RadioButton, ListWalker, raw_display, \
+    RELATIVE_100
 from systemd import journal
 import datetime
 import time
@@ -81,7 +78,7 @@ class Application(ApplicationHandler):
     active_ips: Dict[str, List[Tuple[str, str, str, str]]] = {}
     config: Dict[str, Any] = {}
     timesyncd_vars: Dict[str, str] = {}
-    log_units: Dict[str, str] = {}
+    log_units: Dict[str, Dict[str, str]] = {}
     current_log_unit: int = 0
     log_line_count: int = 200
     log_finished: bool = False
@@ -102,44 +99,12 @@ class Application(ApplicationHandler):
         self.old_termios = self.screen.tty_signal_keys()
         self.blank_termios = ['undefined' for bla in range(0, 5)]
         self.screen.tty_signal_keys(*self.blank_termios)
-        colormode: str = "light" if self._current_colormode == 'dark' else 'dark'
-        self.text_header = u"grommunio console user interface\nF1: color switch [{colormode}], F5: change keyboard layout [{kbd}], F2: login"
-        self.authorized_options = ''
-        text_intro = [
-            u"Here is the grommunio terminal console user interface.", u"\n",
-            u"   From here you can configure your system.", u"\n",
-            u"If you need help, please try pressing 'H' to view the logs!", u"\n"
-        ]
-        self.tb_intro = GText(text_intro, align=CENTER, wrap=SPACE)
-        text_sysinfo_top = get_system_info("grommunio_top")
-        self.tb_sysinfo_top = GText(text_sysinfo_top, align=LEFT, wrap=SPACE)
-        text_sysinfo_bottom = get_system_info("grommunio_bottom")
-        self.tb_sysinfo_bottom = GText(text_sysinfo_bottom, align=LEFT, wrap=SPACE)
-        self.main_top = ScrollBar(Scrollable(
-            Pile([
-                Padding(self.tb_intro, left=2, right=2, min_width=20),
-                Padding(self.tb_sysinfo_top, align=LEFT, left=6, width=('relative', 80))
-            ])
-        ))
-        self.main_bottom = ScrollBar(Scrollable(
-            Pile([AttrWrap(Padding(self.tb_sysinfo_bottom, align=LEFT, left=6, width=('relative', 80)), 'reverse')])
-        ))
-        self.tb_header = GText(self.text_header.format(colormode=colormode, kbd=self._current_kbdlayout,
-                                                       authorized_options=''), align=CENTER, wrap=SPACE)
-        self.header = AttrMap(Padding(self.tb_header, align=CENTER), 'header')
-        self.vsplitbox = Pile([("weight", 50, AttrMap(self.main_top, "body")), ("weight", 50, self.main_bottom)])
-        self.footer_text = GText('heute')
-        self.print("Idle")
-        self.footer = AttrMap(self.footer_text, 'footer')
-        # frame = Frame(AttrMap(self.vsplitbox, 'body'), header=self.header, footer=self.footer)
-        frame = Frame(AttrMap(self.vsplitbox, 'reverse'), header=self.header, footer=self.footer)
-        self.mainframe = frame
-        self._body = self.mainframe
+        self.prepare_mainscreen()
 
         # Loop
         self._loop = MainLoop(
             self._body,
-            get_palette(self._current_colormode),
+            util.get_palette(self._current_colormode),
             unhandled_input=self.handle_event,
             screen=self.screen,
             handle_mouse=False
@@ -225,9 +190,31 @@ class Application(ApplicationHandler):
         self.save_button = (10, self.save_button)
         self.save_button_footer = GridFlow([self.save_button[1]], 10, 1, 1, 'center')
 
+        self.refresh_main_menu()
+
+        # Password Dialog
+        self.prepare_password_dialog()
+
+        # Read in logging units
+        self._load_journal_units()
+
+        # Log file viewer
+        self.log_file_content: List[str] = [
+            "If this is not that what you expected to see,",
+            "You probably have insufficient permissions!?"
+        ]
+        # self.prepare_log_viewer('gromox-http', self.log_line_count)
+        self.prepare_log_viewer('NetworkManager', self.log_line_count)
+
+        self.prepare_timesyncd_config()
+
+        # some settings
+        MultiMenuItem.application = self
+        GButton.application = self
+
+    def refresh_main_menu(self):
         # The common menu description column
         self.menu_description = Pile([GText('Main Menu', CENTER), GText('Here you can do the main actions', LEFT)])
-
         # Main Menu
         items = {
             'Change system password': Pile([
@@ -268,25 +255,66 @@ class Application(ApplicationHandler):
         self.main_menu_list = self.prepare_menu_list(items)
         self.main_menu = self.menu_to_frame(self.main_menu_list)
 
-        # Password Dialog
-        self.prepare_password_dialog()
+    def recreate_text_header(self):
+        self.tb_header = GText(
+            ''.join(self.text_header).format(colormode=self._current_colormode,
+                                             kbd=self._current_kbdlayout,
+                                             authorized_options=self.authorized_options),
+            align=CENTER, wrap=SPACE
+        )
 
-        # Read in logging units
-        self._load_journal_units()
-
-        # Log file viewer
-        self.log_file_content: List[str] = [
-            "If this is not that what you expected to see,",
-            "You probably have insufficient permissions!?"
+    def prepare_mainscreen(self):
+        # colormode: str = "light" if self._current_colormode == 'dark' else 'dark'
+        colormode: str = self._current_colormode
+        self.text_header = [u"grommunio console user interface"]
+        self.text_header += ['\n']
+        self.text_header += [u"You are in {colormode} colormode and use the {kbd} keyboard layout"]
+        self.authorized_options = ''
+        text_intro = [
+            u"Here is the grommunio terminal console user interface.", u"\n",
+            u"   From here you can configure your system.", u"\n",
+            u"If you need help, please try pressing 'H' to view the logs!", u"\n"
         ]
-        # self.prepare_log_viewer('gromox-http', self.log_line_count)
-        self.prepare_log_viewer('NetworkManager', self.log_line_count)
+        self.tb_intro = GText(text_intro, align=CENTER, wrap=SPACE)
+        text_sysinfo_top = util.get_system_info("top")
+        self.tb_sysinfo_top = GText(text_sysinfo_top, align=LEFT, wrap=SPACE)
+        text_sysinfo_bottom = util.get_system_info("bottom")
+        self.tb_sysinfo_bottom = GText(text_sysinfo_bottom, align=LEFT, wrap=SPACE)
+        self.main_top = ScrollBar(Scrollable(
+            Pile([
+                Padding(self.tb_intro, left=2, right=2, min_width=20),
+                Padding(self.tb_sysinfo_top, align=LEFT, left=6, width=('relative', 80))
+            ])
+        ))
+        self.main_bottom = ScrollBar(Scrollable(
+            Pile([AttrWrap(Padding(self.tb_sysinfo_bottom, align=LEFT, left=6, width=('relative', 80)), 'reverse')])
+        ))
+        self.tb_header = GText(
+            ''.join(self.text_header).format(colormode=colormode, kbd=self._current_kbdlayout,
+                                             authorized_options=''),
+            align=CENTER, wrap=SPACE
+        )
+        self.refresh_header(colormode, self._current_kbdlayout, '')
+        # self.tb_header = GText(self.text_header.format(colormode=colormode, kbd=self._current_kbdlayout,
+        #                                                authorized_options=''), align=CENTER, wrap=SPACE)
+        self.vsplitbox = Pile([("weight", 50, AttrMap(self.main_top, "body")), ("weight", 50, self.main_bottom)])
+        self.footer_text = GText('heute')
+        self.print("Idle")
+        self.footer = AttrMap(self.footer_text, 'footer')
+        # frame = Frame(AttrMap(self.vsplitbox, 'body'), header=self.header, footer=self.footer)
+        frame = Frame(AttrMap(self.vsplitbox, 'reverse'), header=self.header, footer=self.footer)
+        self.mainframe = frame
+        self._body = self.mainframe
 
-        self.prepare_timesyncd_config()
+    def refresh_header(self, colormode, kbd, auth_options):
+        self.refresh_head_text(colormode, kbd, auth_options)
+        self.header = AttrMap(Padding(self.tb_header, align=CENTER), 'header')
+        if getattr(self, 'footer', None):
+            self.refresh_main_menu()
 
-        # some settings
-        MultiMenuItem.application = self
-        GButton.application = self
+    def refresh_head_text(self, colormode, kbd, authorized_options):
+        self.tb_header.set_text(''.join(self.text_header).format(colormode=colormode, kbd=kbd,
+                                                                 authorized_options=authorized_options))
 
     def listen_unsupported(self, what: str, key: Any):
         self.print(f"What is {what}.")
@@ -477,12 +505,19 @@ class Application(ApplicationHandler):
 
     def key_ev_aapi(self, key):
         if key.lower().endswith('enter') or key == 'esc':
+            res = None
             if key.lower().endswith('enter'):
-                self.reset_aapi_passwd(self.last_input_box_value)
+                res = self.reset_aapi_passwd(self.last_input_box_value)
             self.current_window = self.input_box_caller
+            if res is not None:
+                success_msg = 'successful'
+                if not res:
+                    success_msg = 'not successful'
+                self.message_box(f'Admin password reset has been {success_msg}!', 'Admin Password Reset', height=10)
 
     def key_ev_timesyncd(self, key):
         self.handle_standard_tab_behaviour(key)
+        success_msg = 'NOTHING'
         if key.lower().endswith('enter'):
             if key.lower().startswith('hidden'):
                 button_type = key.lower().split(' ')[1]
@@ -491,12 +526,22 @@ class Application(ApplicationHandler):
                     self.timesyncd_vars['NTP'] = self.timesyncd_body.base_widget[1].edit_text
                     self.timesyncd_vars['FallbackNTP'] = self.timesyncd_body.base_widget[2].edit_text
                     util.minishell_write('/etc/systemd/timesyncd.conf', self.timesyncd_vars)
-                    rc = subprocess.Popen(["timedatectl", "set-ntp", "true"])
+                    rc = subprocess.Popen(["timedatectl", "set-ntp", "true"],
+                                          stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+                    res = rc.wait() == 0
+                    success_msg = 'successful'
+                    if not res:
+                        success_msg = 'not successful'
                     self.open_main_menu()
                 else:
+                    success_msg = 'aborted'
                     self.open_main_menu()
         elif key == 'esc':
+            success_msg = 'aborted'
             self.open_main_menu()
+        if key.lower().endswith('enter') or key in ['esc', 'enter']:
+            self.message_box(f'Timesyncd configuration change has been {success_msg}!',
+                             'Timesyncd Configuration', height=10)
 
     def handle_mouse_event(self, event: Any):
         # event is a mouse event in the form ('mouse press or release', button, column, line)
@@ -507,7 +552,11 @@ class Application(ApplicationHandler):
 
     def _load_journal_units(self):
         try:
-            p = subprocess.Popen(["/usr/sbin/grommunio-admin", "config", "dump"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            exe = '/usr/sbin/grammm-admin'
+            if Path('/usr/sbin/groadmin').exists():
+                exe = '/usr/sbin/groadmin'
+            p = subprocess.Popen([exe, "config", "dump"],
+                                 stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             out, err = p.communicate()
             if type(out) is bytes:
                 out = out.decode()
@@ -517,9 +566,9 @@ class Application(ApplicationHandler):
             else:
                 self.config = yaml.load(out, Loader=SafeLoader)
         except BaseException as e:
-            # use dummy config if no grommunio-admin is there
+            # use dummy config if no groadmin is there
             self.config = {'logs': {'Gromox http': {'source': 'gromox-http.service'}}}
-        self.log_units = self.config.get('logs', {})
+        self.log_units = self.config.get('logs', {'Gromox http': {'source': 'gromox-http.service'}})
         for i, k in enumerate(self.log_units.keys()):
             if k == 'Gromox http':
                 self.current_log_unit = i
@@ -646,7 +695,7 @@ class Application(ApplicationHandler):
         if log.exists():
             # self.log_file_content = log.read_text('utf-8')[:lines * -1]
             if os.access(str(log), os.R_OK):
-                self.log_file_content = fast_tail(str(log.absolute()), lines)
+                self.log_file_content = util.fast_tail(str(log.absolute()), lines)
         self.log_viewer = LineBox(Pile([ScrollBar(Scrollable(Pile([GText(line) for line in self.log_file_content])))]))
 
     def prepare_log_viewer(self, unit: str = 'syslog', lines: int = 0):
@@ -745,8 +794,13 @@ class Application(ApplicationHandler):
     def reset_aapi_passwd(self, new_pw: str) -> bool:
         if new_pw:
             if new_pw != "":
-                proc = subprocess.Popen(['grommunio-admin', 'passwd', '--password', new_pw])
-                return True
+                exe = 'grammm-admin'
+                if Path('/usr/sbin/groadmin').exists():
+                    exe = 'groadmin'
+                proc = subprocess.Popen([exe, 'passwd', '--password', new_pw],
+                                        stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+
+                return proc.wait() == 0
         return False
 
     def open_timesyncd_conf(self):
@@ -791,7 +845,10 @@ class Application(ApplicationHandler):
     def open_setup_wizard(self):
         self._loop.stop()
         self.screen.tty_signal_keys(*self.old_termios)
-        os.system("/usr/sbin/grommunio-setup")
+        if Path("/usr/sbin/grosetup").exists():
+            os.system("/usr/sbin/grosetup")
+        else:
+            os.system("/usr/sbin/grammm-setup")
         self.screen.tty_signal_keys(*self.blank_termios)
         self._loop.start()
 
@@ -804,8 +861,8 @@ class Application(ApplicationHandler):
         self.current_window = _MAIN_MENU
         self.authorized_options = ', <F4> for Main-Menu'
         colormode: str = "light" if self._current_colormode == 'dark' else 'dark'
-        self.tb_header.set_text(self.text_header.format(colormode=colormode, kbd=self._current_kbdlayout,
-                                                        authorized_options=self.authorized_options))
+        self.prepare_mainscreen()
+        # self.refresh_head_text(colormode, self._current_kbdlayout, self.authorized_options)
         self._body = self.main_menu
         self._loop.widget = self._body
         menu_selected: int = self.handle_standard_menu_behaviour(self.main_menu_list, 'up',
@@ -818,7 +875,7 @@ class Application(ApplicationHandler):
         self.reset_layout()
         self.print("Returning to main screen!")
         self.current_window = _MAIN
-        self._body = self.mainframe
+        self.prepare_mainscreen()
         self._loop.widget = self._body
 
     def check_login(self, w: Widget = None):
@@ -830,7 +887,7 @@ class Application(ApplicationHandler):
             return
         msg = f"checking user {self.user_edit.get_edit_text()} with pass ***** ..."
         if self.current_window == _LOGIN:
-            if authenticate_user(self.user_edit.get_edit_text(), self.pass_edit.get_edit_text()):
+            if util.authenticate_user(self.user_edit.get_edit_text(), self.pass_edit.get_edit_text()):
                 self.open_main_menu()
             else:
                 self.message_box(f'You have taken a wrong password, {self.user_edit.get_edit_text()}!')
@@ -905,23 +962,23 @@ class Application(ApplicationHandler):
         ]))
 
     def change_colormode(self, mode: str):
-        p = get_palette(mode)
+        p = util.get_palette(mode)
         self._current_colormode = mode
         colormode: str = "light" if self._current_colormode == 'dark' else 'dark'
-        self.tb_header.set_text(self.text_header.format(colormode=colormode, kbd=self._current_kbdlayout,
-                                                        authorized_options=self.authorized_options))
+        self.refresh_header(colormode, self._current_kbdlayout, self.authorized_options)
         self._loop.screen.register_palette(p)
         self._loop.screen.clear()
 
     def switch_next_colormode(self):
         o = self._current_colormode
-        n = get_next_palette_name(o)
-        p = get_palette(n)
-        self.tb_header.set_text(self.text_header.format(colormode=get_next_palette_name(n), kbd=self._current_kbdlayout,
-                                                        authorized_options=self.authorized_options))
+        n = util.get_next_palette_name(o)
+        p = util.get_palette(n)
+        # show_next = util.get_next_palette_name(n)
+        show_next = n
+        self.refresh_header(show_next, self._current_kbdlayout, self.authorized_options)
         self._loop.screen.register_palette(p)
         self._loop.screen.clear()
-        self._current_colormode = n
+        self._current_colormode = show_next
 
     def switch_kbdlayout(self):
         # Base proposal on CUI's last known state
@@ -933,8 +990,7 @@ class Application(ApplicationHandler):
         util.minishell_write(file, vars)
         os.system("systemctl restart systemd-vconsole-setup")
         self._current_kbdlayout = proposal
-        self.tb_header.set_text(self.text_header.format(colormode=self._current_colormode, kbd=self._current_kbdlayout,
-                                                        authorized_options=self.authorized_options))
+        self.refresh_head_text(self._current_colormode, self._current_kbdlayout, self.authorized_options)
 
     def redraw(self):
         """
@@ -947,8 +1003,9 @@ class Application(ApplicationHandler):
         Resets the console UI to the default layout
         """
 
-        self._loop.widget = self._body
-        self._loop.draw_screen()
+        if getattr(self, '_loop', None):
+            self._loop.widget = self._body
+            self._loop.draw_screen()
 
     def create_menu_items(self, items: Dict[str, Widget]) -> List[MenuItem]:
         """
@@ -1047,7 +1104,9 @@ class Application(ApplicationHandler):
             string (str): The string to print
             align (str): The alignment of the printed text
         """
-        text = [('footer', f"{get_clockstring()}: "), ('footer', string)]
+        text = [('footer', f"{util.get_clockstring()}: ")]
+        text += util.get_footerbar(2, 10)
+        text += ('footer', string)
         if self.debug:
             text += ['\n', ('', f"({self.current_event})"), ('', f" on {self.current_window}")]
         self.footer_text.set_text([text])
@@ -1301,9 +1360,11 @@ class Application(ApplicationHandler):
         return rv
 
 
-if __name__ == '__main__':
+def create_application():
+    global _PRODUCTIVE
     set_encoding('utf-8')
     _PRODUCTIVE = True
+    app = None
     if "--help" in sys.argv:
         print(f"Usage: {sys.argv[0]} [OPTIONS]")
         print(f"\tOPTIONS:")
@@ -1319,4 +1380,9 @@ if __name__ == '__main__':
         if "--hidden-login" in sys.argv:
             _PRODUCTIVE = False
 
-        app.start()
+        return app
+
+
+if __name__ == '__main__':
+    app = create_application()
+    app.start()
