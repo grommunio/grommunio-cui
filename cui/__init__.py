@@ -553,8 +553,8 @@ class Application(ApplicationHandler):
     def _load_journal_units(self):
         try:
             exe = '/usr/sbin/grammm-admin'
-            if Path('/usr/sbin/grommunio-admin').exists():
-                exe = '/usr/sbin/grommunio-admin'
+            if Path('/usr/sbin/groadmin').exists():
+                exe = '/usr/sbin/groadmin'
             p = subprocess.Popen([exe, "config", "dump"],
                                  stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             out, err = p.communicate()
@@ -795,8 +795,8 @@ class Application(ApplicationHandler):
         if new_pw:
             if new_pw != "":
                 exe = 'grammm-admin'
-                if Path('/usr/sbin/grommunio-admin').exists():
-                    exe = 'grommunio-admin'
+                if Path('/usr/sbin/groadmin').exists():
+                    exe = 'groadmin'
                 proc = subprocess.Popen([exe, 'passwd', '--password', new_pw],
                                         stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
 
@@ -845,8 +845,8 @@ class Application(ApplicationHandler):
     def open_setup_wizard(self):
         self._loop.stop()
         self.screen.tty_signal_keys(*self.old_termios)
-        if Path("/usr/sbin/grommunio-setup").exists():
-            os.system("/usr/sbin/grommunio-setup")
+        if Path("/usr/sbin/grosetup").exists():
+            os.system("/usr/sbin/grosetup")
         else:
             os.system("/usr/sbin/grammm-setup")
         self.screen.tty_signal_keys(*self.blank_termios)
