@@ -163,7 +163,7 @@ def check_setup_state():
         rv += 4
     # check timesyncd config (8)
     if not check_timesyncd_config():
-        rv += 8
+        rv += 0  # give 0 error points cause timesyncd configuration is not necessarily needed.
     # check nginx config (16)
     if not check_nginx_config():
         rv += 16
@@ -282,6 +282,7 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
                 rv.append('\n')
                 rv.append(('important', STATES.get(state)))
             rv.append("\n")
+        rv.append("\n")
         rv.append(f"Boot Time: ")
         rv.append(('reverse', f'{bt.isoformat()}'))
         rv.append("\n")
