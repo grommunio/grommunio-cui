@@ -113,7 +113,7 @@ class Application(ApplicationHandler):
         # self._loop.screen.set_terminal_properties(colors=256)
 
         # Login Dialog
-        self.login_header = AttrMap(GText(('header', 'Please Login'), align='center'), 'header')
+        self.login_header = AttrMap(GText(('header', 'Login'), align='center'), 'header')
         self.user_edit = GEdit(("Username: ",), edit_text=getuser(), edit_pos=0)
         self.pass_edit = GEdit("Password: ", edit_text="", edit_pos=0, mask='*')
         self.login_body = Pile([
@@ -784,7 +784,7 @@ class Application(ApplicationHandler):
         self.current_window_input_box = _ADMIN_WEB_PW
         self.input_box(
             title='Admin-Web-Password Reset',
-            msg='Please enter your new admin-web password:',
+            msg='Enter your new admin-web password:',
             width=60,
             input_text="",
             height=10,
@@ -830,7 +830,7 @@ class Application(ApplicationHandler):
         ntp_server = ntp_from_file.split(' ')
         fallback_server = fallback_from_file.split(' ')
         self.timesyncd_body = LineBox(Padding(Filler(Pile([
-            GText('Please insert your NTP servers separated by <SPACE> char.', LEFT, wrap=SPACE),
+            GText('Insert your NTP servers separated by <SPACE> char.', LEFT, wrap=SPACE),
             GEdit((15, 'NTP: '), ' '.join(ntp_server), wrap=SPACE),
             GEdit((15, 'FallbackNTP: '), ' '.join(fallback_server), wrap=SPACE),
             # GEdit(('pack', 'packTest: '), ' '.join(fallback_server), wrap=SPACE),
