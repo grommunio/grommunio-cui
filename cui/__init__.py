@@ -271,8 +271,7 @@ class Application(ApplicationHandler):
         self.text_header += [u"You are in {colormode} colormode and use the {kbd} keyboard layout"]
         self.authorized_options = ''
         text_intro = [
-            u"Here is the grommunio terminal console user interface.", u"\n",
-            u"   From here you can configure your system.", u"\n",
+            u"Here you can configure your system.", u"\n",
             u"If you need help, please try pressing 'H' to view the logs!", u"\n"
         ]
         self.tb_intro = GText(text_intro, align=CENTER, wrap=SPACE)

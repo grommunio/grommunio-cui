@@ -14,9 +14,9 @@ import socket
 
 
 STATES = {
-    1: 'Password change is missing!',
+    1: 'System password is not set!!',
     2: 'Network configuration is missing!',
-    4: 'Execution of grommunio-setup is missing!',
+    4: 'grommunio-setup not executed yet!',
     8: 'Timesyncd configuration is missing!',
     16: 'nginx is not running!',
 }
@@ -276,7 +276,8 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
                     rv.append(f"{proto}://{address.address}:8080/ (interface {interface_name})\n")
         else:
             rv.append('\n')
-            rv.append('There are still some things missing to run grommunio in a clean environment.')
+            rv.append('There are still some things missing to run grommunio.')
+            rv.append('\n')
             statelist = extract_bits(check_setup_state())
             for state in statelist:
                 rv.append('\n')
