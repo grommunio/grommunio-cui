@@ -216,6 +216,19 @@ def get_ip_list() -> List[str]:
     return rv
 
 
+def get_last_login_time():
+    p = subprocess.Popen(['last', '-1', 'root'], stderr=subprocess.DEVNULL, stdout=subprocess.PIPE)
+    res, _ = p.communicate()
+    out = bytes(res).decode()
+    lines = out.splitlines()
+    last_login = ''
+    if len(lines) > 0:
+        parts = out.splitlines()[0].split('              ')
+        if len(parts) > 1:
+            last_login = parts[1].strip()
+    return last_login
+
+
 def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
     """
     Creates list of informations formatted in urwid stye.
@@ -287,6 +300,9 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
         rv.append(f"Boot Time: ")
         rv.append(('reverse', f'{bt.isoformat()}'))
         rv.append("\n")
+        last_login = get_last_login_time()
+        if last_login != '':
+            rv.append(f"Last login time: {last_login}")
         rv.append("\n")
     else:
         rv.append("Oups!")
