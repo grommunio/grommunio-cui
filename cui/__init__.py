@@ -664,9 +664,15 @@ class Application(ApplicationHandler):
         self.current_window = _PASSWORD
         self.print('Opening change password dialog.')
         self.prepare_password_dialog()
+        # footer = self.close_button_footer
+        footer = AttrMap(Columns([
+            ('weight', 1, GText('Note: Use "TAB" to jump to close.')),
+            ('weight', 1, Columns([('weight', 1, GText('')), self.close_button, ('weight', 1, GText(''))])),
+            ('weight', 1, GText(''))
+        ]), 'buttonbar')
         self.dialog(
             header=GText(f"Change password for user {getuser()}", align='center'),
-            body=self.password_frame, footer=self.close_button_footer, focus_part='body',
+            body=self.password_frame, footer=footer, focus_part='body',
             align=CENTER, valign='middle', width=80, height=25
         )
 
