@@ -220,27 +220,27 @@ class Application(ApplicationHandler):
         items = {
             'Change system password': Pile([
                 GText('Password change', CENTER), GText(""),
-                GText(f'Use this to change the password of the Linux system user "{getuser()}".')
+                GText(f'Change the password of the Linux system user "{getuser()}".')
             ]),
-            'Network Configuration': Pile([
-                GText('Network Configuration', CENTER), GText(""),
-                GText('Here you can configure the Network. Set up the active device, configure IP addresses and DNS.')
+            'Network configuration': Pile([
+                GText('Configuration of network', CENTER), GText(""),
+                GText('Set up the active device, interfaces, IP addresses, DNS and more network bonds.')
             ]),
-            'Timezone Configuration': Pile([
-                GText('Timezone Configuration', CENTER), GText(""),
+            'Timezone configuration': Pile([
+                GText('Configuration of timezone', CENTER), GText(""),
                 GText('Here you can set up your country and timezone settings.')
             ]),
             'grommunio setup wizard': Pile([
                 GText('Setup Wizard', CENTER), GText(""),
                 GText('Use this for the initial creation of the SQL database and TLS certificates.')
             ]),
-            'Change Admin Web UI password': Pile([
+            'Reset Admin Web UI password': Pile([
                 GText('Password Change', CENTER), GText(""),
-                GText('If you forgot the Administration Web Interface password set through the grommunio '
-                      'Setup Wizard, you can use this menu command to set it again.')
+                GText('If you forgot the administration web interface password set through the grommunio '
+                      'setup wizard, you can use this menu command to set it again.')
             ]),
-            'Timesyncd Configuration': Pile([
-                GText('Timesyncd Configuration', CENTER), GText(""),
+            'Timesyncd configuration': Pile([
+                GText('Configuration of timesyncd', CENTER), GText(""),
                 GText('The systemd-timesyncd is a lightweight NTP client only for fetching the correct time.')
             ]),
             'Terminal': Pile([
