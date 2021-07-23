@@ -39,7 +39,8 @@ _MAIN: str = 'MAIN'
 _MAIN_MENU: str = 'MAIN-MENU'
 _TERMINAL: str = 'TERMINAL'
 _LOGIN: str = 'LOGIN'
-_LOGOUT: str = 'LOGOUT'
+_REBOOT: str = 'REBOOT'
+_SHUTDOWN: str = 'SHUTDOWN'
 _NETWORK_CONFIG_MENU: str = 'NETWORK-CONFIG-MENU'
 _UNSUPPORTED: str = 'UNSUPPORTED'
 _PASSWORD: str = 'PASSWORD'
@@ -249,7 +250,11 @@ class Application(ApplicationHandler):
                 GText('Starts terminal for advanced system configuration.')
             ]),
             'Reboot': Pile([
-                GText('Reboot system', CENTER), GText(""),
+                GText('Reboot system.', CENTER), GText(""),
+                GText("")
+            ]),
+            'Shutdown': Pile([
+                GText('Shutdown system.', CENTER), GText(""),
                 GText("")
             ]),
         }
@@ -352,8 +357,10 @@ class Application(ApplicationHandler):
             self.key_ev_pass(key)
         elif self.current_window == _LOGIN:
             self.key_ev_login(key)
-        elif self.current_window == _LOGOUT:
-            self.key_ev_logout(key)
+        elif self.current_window == _REBOOT:
+            self.key_ev_reboot(key)
+        elif self.current_window == _SHUTDOWN:
+            self.key_ev_shutdown(key)
         elif self.current_window == _MAIN_MENU:
             self.key_ev_mainmenu(key)
         elif self.current_window == _LOG_VIEWER:
@@ -415,12 +422,25 @@ class Application(ApplicationHandler):
         elif key == 'esc':
             self.open_mainframe()
 
-    def key_ev_logout(self, key):
+    def key_ev_reboot(self, key):
         # Restore cursor etc. before going off.
-        self._loop.stop()
-        self.screen.tty_signal_keys(*self.old_termios)
-        os.system("reboot")
-        raise ExitMainLoop()
+        if key.lower() in ['enter']:
+            self._loop.stop()
+            self.screen.tty_signal_keys(*self.old_termios)
+            os.system("reboot")
+            raise ExitMainLoop()
+        else:
+            self.current_window = _MAIN_MENU
+
+    def key_ev_shutdown(self, key):
+        # Restore cursor etc. before going off.
+        if key.lower() in ['enter']:
+            self._loop.stop()
+            self.screen.tty_signal_keys(*self.old_termios)
+            os.system("poweroff")
+            raise ExitMainLoop()
+        else:
+            self.current_window = _MAIN_MENU
 
     def key_ev_mainmenu(self, key):
         menu_selected: int = self.handle_standard_menu_behaviour(self.main_menu_list, key,
@@ -442,6 +462,8 @@ class Application(ApplicationHandler):
                 self.open_terminal()
             elif menu_selected == 8:
                 self.reboot_confirm()
+            elif menu_selected == 9:
+                self.shutdown_confirm()
         elif key == 'esc':
             self.open_mainframe()
 
@@ -652,9 +674,16 @@ class Application(ApplicationHandler):
         self._loop.start()
 
     def reboot_confirm(self):
-        msg = "After pressing OK, the system will shut down!\nBe sure to leave nothing undone."
-        self.current_window = _LOGOUT
-        self.message_box(msg)
+        msg = "Are you sure?\nAfter pressing OK, the system will reboot!"
+        title = 'Reboot'
+        self.current_window = _REBOOT
+        self.message_box(msg, title, width=80, height=10)
+
+    def shutdown_confirm(self):
+        msg = "Are you sure?\nAfter pressing OK, the system will shut down!"
+        title = "Shutdown"
+        self.current_window = _SHUTDOWN
+        self.message_box(msg, title, width=80, height=10)
 
     def open_change_password(self):
         """
