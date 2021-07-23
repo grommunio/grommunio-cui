@@ -72,6 +72,7 @@ class Application(ApplicationHandler):
     menu_items: List[str] = []
     layout: Frame
     debug: bool = False
+    quiet: bool = False
     current_menu_state: int = -1
     maybe_menu_state: int = -1
     active_device: str = 'lo'
@@ -1105,7 +1106,10 @@ class Application(ApplicationHandler):
         """
         text = [('footer', f"{util.get_clockstring()}: ")]
         text += util.get_footerbar(2, 10)
-        text += ('footer', string)
+        text += util.get_load_avg_format_list()
+        if not self.quiet:
+            text += '\n'
+            text += ('footer', string)
         if self.debug:
             text += ['\n', ('', f"({self.current_event})"), ('', f" on {self.current_window}")]
         self.footer_text.set_text([text])
@@ -1375,6 +1379,8 @@ def create_application():
             app.set_debug(True)
         else:
             app.set_debug(False)
+
+        app.quiet = True
 
         if "--hidden-login" in sys.argv:
             _PRODUCTIVE = False

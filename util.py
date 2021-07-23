@@ -229,6 +229,33 @@ def get_last_login_time():
     return last_login
 
 
+def get_load():
+    p=subprocess.Popen(['cat', '/proc/loadavg'], stderr=subprocess.DEVNULL, stdout=subprocess.PIPE)
+    res, _ = p.communicate()
+    out = bytes(res).decode()
+    lines = out.splitlines()
+    load_1min = 0
+    load_5min = 0
+    load_15min = 0
+    if len(lines) > 0:
+        parts = lines[0].split()
+        if len(parts) > 1:
+            load_1min = float(parts[0].strip())
+            load_5min = float(parts[1].strip())
+            load_15min = float(parts[2].strip())
+    return load_1min, load_5min, load_15min
+
+
+def get_load_avg_format_list():
+    load_avg = get_load()
+    load_format = [('footer', 'Average load: ')]
+    _ = [load_format.append(('footer', f'{t} min:')) or
+         load_format.append(('body', f' {load_avg[i]:0.3f}')) or
+         load_format.append(('footer', ' | '))
+         for i, t in enumerate([1, 5, 15])]
+    return load_format[:-1]
+
+
 def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
     """
     Creates list of informations formatted in urwid stye.
