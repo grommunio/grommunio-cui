@@ -227,21 +227,21 @@ class Application(ApplicationHandler):
                 GText('Set up the active device, interfaces, IP addresses, DNS and more network bonds.')
             ]),
             'Timezone configuration': Pile([
-                GText('Configuration of timezone', CENTER), GText(""),
-                GText('Here you can set up your country and timezone settings.')
-            ]),
-            'grommunio setup wizard': Pile([
-                GText('Setup Wizard', CENTER), GText(""),
-                GText('Use this for the initial creation of the SQL database and TLS certificates.')
-            ]),
-            'Reset Admin Web UI password': Pile([
-                GText('Password Change', CENTER), GText(""),
-                GText('If you forgot the administration web interface password set through the grommunio '
-                      'setup wizard, you can use this menu command to set it again.')
+                GText('Timezone', CENTER), GText(""),
+                GText('Configuration of your country and timezone settings.')
             ]),
             'Timesyncd configuration': Pile([
-                GText('Configuration of timesyncd', CENTER), GText(""),
-                GText('The systemd-timesyncd is a lightweight NTP client only for fetching the correct time.')
+                GText('Timesyncd', CENTER), GText(""),
+                GText('Configuration of systemd-timesyncd as a lightweight NTP client for time synchronisation.')
+            ]),
+            'grommunio setup wizard': Pile([
+                GText('Setup wizard', CENTER), GText(""),
+                GText('Initial configuration of grommunio databases, TLS certificates, services and web UI.')
+            ]),
+            'Admin web password reset': Pile([
+                GText('Password Change', CENTER), GText(""),
+                GText('Reset the administration web interface password initially set by the grommunio '
+                      'setup wizard.')
             ]),
             'Terminal': Pile([
                 GText('Terminal', CENTER), GText(""),
@@ -433,11 +433,11 @@ class Application(ApplicationHandler):
             elif menu_selected == 3:
                 self.run_yast_module('timezone')
             elif menu_selected == 4:
-                self.open_setup_wizard()
-            elif menu_selected == 5:
-                self.open_reset_aapi_pw()
-            elif menu_selected == 6:
                 self.open_timesyncd_conf()
+            elif menu_selected == 5:
+                self.open_setup_wizard()
+            elif menu_selected == 6:
+                self.open_reset_aapi_pw()
             elif menu_selected == 7:
                 self.open_terminal()
             elif menu_selected == 8:
