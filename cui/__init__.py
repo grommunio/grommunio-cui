@@ -246,7 +246,7 @@ class Application(ApplicationHandler):
             'Terminal': Pile([
                 GText('Terminal', CENTER), GText(""),
                 # GText('Starts Terminal and closes everything else.'),
-                GText('Starts Terminal in a sub window.')
+                GText('Starts terminal for advanced system configuration.')
             ]),
             'Reboot': Pile([
                 GText('Reboot system', CENTER), GText(""),
@@ -510,10 +510,10 @@ class Application(ApplicationHandler):
                 res = self.reset_aapi_passwd(self.last_input_box_value)
             self.current_window = self.input_box_caller
             if res is not None:
-                success_msg = 'successful'
+                success_msg = 'successfully'
                 if not res:
                     success_msg = 'not successful'
-                self.message_box(f'Admin password reset has been {success_msg}!', 'Admin Password Reset', height=10)
+                self.message_box(f'Admin password reset was changed {success_msg}!', 'Admin password reset', height=10)
 
     def key_ev_timesyncd(self, key):
         self.handle_standard_tab_behaviour(key)
