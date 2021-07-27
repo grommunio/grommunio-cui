@@ -36,8 +36,8 @@ _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
         ('divider', 'black', 'light gray', ('bold', 'standout'), '#111', '#ccc'),
         ('MMI.selectable', 'white', 'black', '', '#fff', '#111'),
         ('MMI.focus', 'black', 'light gray', '', '#111', '#ccc'),
-        ('footerbar.fg', 'white', 'black', '', '#fff', '#111'),
-        ('footerbar.bg', 'black', 'dark blue', '', '#111', '#00a'),
+        ('footerbar.short', 'white', 'black', '', '#fff', '#111'),
+        ('footerbar.long', 'white', 'dark blue', '', '#111', '#00a'),
     ],
     "dark": [
         ('body', 'black', 'dark cyan', 'standout', '#111', '#0aa'),
@@ -53,8 +53,8 @@ _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
         ('divider', 'white', 'dark gray', ('bold', 'standout'), '#fff', '#888'),
         ('MMI.selectable', 'black', 'white', '', '#111', '#fff'),
         ('MMI.focus', 'white', 'dark gray', '', '#fff', '#888'),
-        ('footerbar.fg', 'black', 'white', '', '#111', '#fff'),
-        ('footerbar.bg', 'white', 'dark cyan', '', '#fff', '#111'),
+        ('footerbar.short', 'black', 'white', '', '#111', '#fff'),
+        ('footerbar.long', 'black', 'dark cyan', '', '#fff', '#111'),
     ],
     "orange light": [
         ('body', 'white', 'brown', 'standout', '#fff', '#880'),
@@ -70,8 +70,8 @@ _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
         ('divider', 'white', 'light gray', ('bold', 'standout'), '#fff', '#ccc'),
         ('MMI.selectable', 'white', 'black', '', '#fff', '#111'),
         ('MMI.focus', 'black', 'light gray', '', '#111', '#ccc'),
-        ('footerbar.fg', 'white', 'black', '', '#fff', '#111'),
-        ('footerbar.bg', 'black', 'brown', '', '#111', '#ccc'),
+        ('footerbar.short', 'white', 'black', '', '#fff', '#111'),
+        ('footerbar.long', 'white', 'brown', '', '#111', '#ccc'),
     ],
     "orange dark": [
         ('body', 'black', 'yellow', 'standout', '#111', '#ff0'),
@@ -87,8 +87,8 @@ _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
         ('divider', 'white', 'dark gray', ('bold', 'standout'), '#fff', '#888'),
         ('MMI.selectable', 'black', 'white', '', '#111', '#fff'),
         ('MMI.focus', 'white', 'dark gray', '', '#fff', '#888'),
-        ('footerbar.fg', 'black', 'white', '', '#111', '#fff'),
-        ('footerbar.bg', 'white', 'yellow', '', '#fff', '#888'),
+        ('footerbar.short', 'black', 'white', '', '#111', '#fff'),
+        ('footerbar.long', 'black', 'yellow', '', '#fff', '#888'),
     ]
 }
 
@@ -397,8 +397,8 @@ def get_footerbar(key_size=2, name_size=10):
     menu = {'F1': 'Color', 'F2': 'Login', 'F5': 'KBD-Layout', 'H': 'Logfiles'}
     spacebar = ''.join(' ' for _ in range(name_size))
     for item in menu.items():
-        nr = ('footerbar.fg', f"  {item[0]}"[-key_size:])
-        name = ('footerbar.bg', f"{item[1]}{spacebar}"[:name_size])
+        nr = ('footerbar.short', f"  {item[0]}"[-key_size:])
+        name = ('footerbar.long', f"{item[1]}{spacebar}"[:name_size])
         field = [nr, name]
         rv.append(field)
     return rv
