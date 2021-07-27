@@ -925,7 +925,8 @@ class Application(ApplicationHandler):
             if util.authenticate_user(self.user_edit.get_edit_text(), self.pass_edit.get_edit_text()):
                 self.open_main_menu()
             else:
-                self.message_box(f'You have taken a wrong password, {self.user_edit.get_edit_text()}!')
+                # self.message_box(f'You have taken a wrong password, {self.user_edit.get_edit_text()}!')
+                self.message_box('Incorrect credentials. Access denied!', 'Password verification')
                 self.print(f"Login wrong! ({msg})")
 
     def press_button(self, button: Widget, *args, **kwargs):
