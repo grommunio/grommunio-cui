@@ -71,7 +71,8 @@ class Application(ApplicationHandler):
     current_event = None
     current_bottom_info = 'Idle'
     menu_items: List[str] = []
-    layout: Frame
+    layout: Frame = None
+    old_layout: Frame = None
     debug: bool = False
     quiet: bool = False
     current_menu_state: int = -1
@@ -389,6 +390,8 @@ class Application(ApplicationHandler):
         if key.endswith('enter') or key == 'esc':
             self.current_window = self.message_box_caller
             self._body = self._message_box_caller_body
+            if self.old_layout:
+                self.layout = self.old_layout
             self.reset_layout()
 
     def key_ev_ibox(self, key):
@@ -400,6 +403,8 @@ class Application(ApplicationHandler):
                 self.last_input_box_value = ""
             self.current_window = self.current_window_input_box
             self._body = self._input_box_caller_body
+            if self.old_layout:
+                self.layout = self.old_layout
             self.reset_layout()
             self.handle_event(key)
 
@@ -1365,6 +1370,9 @@ class Application(ApplicationHandler):
             focus_part = 'footer'
 
         # Layout
+        if self.layout is not None:
+            self.old_layout = self.layout
+
         self.layout = Frame(
             body,
             header=header,
