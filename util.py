@@ -248,7 +248,7 @@ def get_load():
 
 def get_load_avg_format_list():
     load_avg = get_load()
-    load_format = [('footer', 'Average load: ')]
+    load_format = [('footer', ' Average load: ')]
     _ = [load_format.append(('footer', f'{t} min:')) or
          load_format.append(('body', f' {load_avg[i]:0.2f}')) or
          load_format.append(('footer', ' | '))
