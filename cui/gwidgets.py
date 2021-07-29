@@ -6,9 +6,9 @@ import urwid
 
 
 class GText(urwid.WidgetWrap):
-    def __init__(self, markup, align=urwid.LEFT, wrap=urwid.SPACE, layout=None):
+    def __init__(self, markup, align=urwid.LEFT, wrap=urwid.SPACE, layout=None, left=2, right=2):
         self._t = urwid.Text(markup, align, wrap, layout)
-        self._p = urwid.Padding(self._t, left=2, right=2)
+        self._p = urwid.Padding(self._t, left=left, right=right)
         super(GText, self).__init__(self._p)
         # self._w = t
 
@@ -25,6 +25,10 @@ class GText(urwid.WidgetWrap):
     @text.setter
     def text(self, text):
         self.set_text(text)
+
+    @property
+    def view(self):
+        return f"{' ' * self._p.left}{self.get_text()}{' ' * self._p.right}"
 
     def __len__(self):
         return len(self._t.text) + self._p.left + self._p.right
@@ -98,5 +102,3 @@ class GEdit(urwid.WidgetWrap):
     def edit_text(self, text):
         # self._wrapped_widget.base_widget.base_widget.edit_text = text
         self.edit_widget.edit_text = text
-
-

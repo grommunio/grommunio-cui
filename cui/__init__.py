@@ -68,7 +68,7 @@ class Application(ApplicationHandler):
     last_input_box_value: str = ""
     log_file_caller: str = ''
     _log_file_caller_body: Widget = None
-    current_event = None
+    current_event = ''
     current_bottom_info = 'Idle'
     menu_items: List[str] = []
     layout: Frame = None
@@ -85,6 +85,7 @@ class Application(ApplicationHandler):
     current_log_unit: int = 0
     log_line_count: int = 200
     log_finished: bool = False
+    footer_content = []
 
     _current_kbdlayout = util.get_current_kbdlayout()
 
@@ -305,12 +306,15 @@ class Application(ApplicationHandler):
         #                                                authorized_options=''), align=CENTER, wrap=SPACE)
         self.vsplitbox = Pile([("weight", 50, AttrMap(self.main_top, "body")), ("weight", 50, self.main_bottom)])
         self.footer_text = GText('heute')
-        self.print("Idle")
-        self.footer = AttrMap(self.footer_text, 'footer')
+        self.footer_content = [self.footer_text]
+        # self.footer = AttrMap(self.footer_text, 'footer')
+        # self.footer = Frame(ListBox(SimpleListWalker(self.footer_content)))
+        self.footer = Pile(self.footer_content)
         # frame = Frame(AttrMap(self.vsplitbox, 'body'), header=self.header, footer=self.footer)
         frame = Frame(AttrMap(self.vsplitbox, 'reverse'), header=self.header, footer=self.footer)
         self.mainframe = frame
         self._body = self.mainframe
+        self.print("Idle")
 
     def refresh_header(self, colormode, kbd, auth_options):
         self.refresh_head_text(colormode, kbd, auth_options)
@@ -1145,15 +1149,78 @@ class Application(ApplicationHandler):
             string (str): The string to print
             align (str): The alignment of the printed text
         """
-        text = [('footer', f"{util.get_clockstring()}: ")]
-        text += util.get_footerbar(2, 10)
-        text += util.get_load_avg_format_list()
+        def glen(widlist):
+            wl = widlist
+            rv = 0
+            if not wl:
+                return 0
+            elif isinstance(wl, list):
+                for elem in wl:
+                    if elem:
+                        rv += glen(elem)
+            elif isinstance(wl, GText):
+                rv += len(wl.view)
+            elif isinstance(wl, str):
+                rv += len(wl)
+            else:
+                rv += 0
+            return rv
+
+        clock = GText(util.get_clockstring(), right=1)
+        footerbar = GText(util.get_footerbar(3, 10), left=1, right=0)
+        avg_load = GText(util.get_load_avg_format_list(), left=1, right=2)
+        gstring = GText(('footer', string), left=1, right=2)
+        gdebug = GText(['\n', ('', f"({self.current_event})"), ('', f" on {self.current_window}")])
+        mainwidth = self.screen.get_cols_rows()[0]
+        all = [clock, footerbar, avg_load]
         if not self.quiet:
-            text += '\n'
-            text += ('footer', string)
+            all += [gstring]
+        content = []
+        rest = []
+        for elem in all:
+            if glen([content, elem]) < mainwidth:
+                content.append(elem)
+            else:
+                rest.append(elem)
+        col_list = [Columns([(len(elem), elem)
+                             for elem in content])]
+        if len(rest) > 0:
+            col_list += [Columns([(len(elem), elem)
+                                 for elem in rest])]
         if self.debug:
-            text += ['\n', ('', f"({self.current_event})"), ('', f" on {self.current_window}")]
-        self.footer_text.set_text([text])
+            col_list += Columns([gdebug])
+        self.footer_content = col_list
+        self.footer = AttrMap(Pile(self.footer_content), 'footer')
+        if getattr(self, '_loop', None):
+            if self._loop:
+                self._loop.widget.footer = self.footer
+        # text = ''
+        # for cont in self.footer_content:
+        #     if isinstance(cont, str):
+        #         text += cont
+        #     elif isinstance(cont, GText):
+        #         text += cont.text
+        #     elif isinstance(cont, list):
+        #         for elem in cont:
+        #             if isinstance(elem, str):
+        #                 text += elem
+        #             elif isinstance(elem, GText):
+        #                 text += elem.text
+        # self.footer_text.set_text([text])
+        # frame = Frame(AttrMap(self.vsplitbox, 'reverse'), header=self.header, footer=self.footer)
+        # self.mainframe = frame
+        # self._body = self.mainframe
+
+        # text = [('footer', f"{util.get_clockstring()}: ")]
+        # text += util.get_footerbar(2, 10)
+        # text += util.get_load_avg_format_list()
+        # if not self.quiet:
+        #     text += '\n'
+        #     text += ('footer', string)
+        # if self.debug:
+        #     text += ['\n', ('', f"({self.current_event})"), ('', f" on {self.current_window}")]
+        # self.footer_text.set_text([text])
+        # self.footer_text.set_text([self.footer_content])
         self.current_bottom_info = string
 
     def message_box(self, msg: Any, title: str = None, align: str = CENTER, width: int = 45,

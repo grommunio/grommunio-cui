@@ -115,6 +115,52 @@ def check_socket(host='127.0.0.1', port=22):
         return False
 
 
+def tlen(tuple_list, idx=0):
+    """Return length of all id'th element in a tuple over all tuple lists.
+    The tuples can be nested in list in list in list ...
+    tlen([(1, 'bla'), (2, 'blubb')], 1)
+    will return 8. It doesn't matter how many nested Lists there are.
+    [(1, a), ..., (23, b)] will return the same as [[[(1, a), ...]], (23, b)]
+    """
+    rv = 0
+    tl = tuple_list
+    if not tl:
+        return 0
+    if isinstance(tl, list):
+        for elem in tl:
+            rv += tlen(elem, idx)
+    elif isinstance(tl, tuple):
+        rv += len(tl[idx])
+    elif isinstance(tl, str):
+        rv += len(tl)
+    else:
+        rv += 0
+    return rv
+
+
+def rebase_list(deep_list):
+    rv = []
+    dl = deep_list
+    if isinstance(dl, list):
+        for elem in dl:
+            rv += rebase_list(elem)
+    else:
+        rv += [dl]
+    return rv
+
+
+def make_list_gtext(list_wowo_gtext):
+    from cui import GText
+    wowolist = list_wowo_gtext
+    rv = []
+    for wowo in wowolist:
+        if not isinstance(wowo, GText):
+            rv += [GText(wowo)]
+        else:
+            rv += [wowo]
+    return rv
+
+
 def check_setup_state():
     """Check states of setup and returns a combined binary number"""
     def check_if_password_is_set(user):
@@ -230,7 +276,7 @@ def get_last_login_time():
 
 
 def get_load():
-    p=subprocess.Popen(['cat', '/proc/loadavg'], stderr=subprocess.DEVNULL, stdout=subprocess.PIPE)
+    p = subprocess.Popen(['cat', '/proc/loadavg'], stderr=subprocess.DEVNULL, stdout=subprocess.PIPE)
     res, _ = p.communicate()
     out = bytes(res).decode()
     lines = out.splitlines()
