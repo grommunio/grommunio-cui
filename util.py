@@ -296,7 +296,7 @@ def get_load_avg_format_list():
     load_avg = get_load()
     load_format = [('footer', ' Average load: ')]
     _ = [load_format.append(('footer', f'{t} min:')) or
-         load_format.append(('body', f' {load_avg[i]:0.2f}')) or
+         load_format.append(('footer', f' {load_avg[i]:0.2f}')) or
          load_format.append(('footer', ' | '))
          for i, t in enumerate([1, 5, 15])]
     return load_format[:-1]
@@ -324,11 +324,11 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
         rv.append("\n")
         if cpufreq:
             rv.append(f"{psutil.cpu_count(logical=False)} x {uname.processor} CPUs"
-                      f" a {get_hr(cpufreq.current * 1000 * 1000, 'Hz', 1000)}")
+                      f" x {get_hr(cpufreq.current * 1000 * 1000, 'Hz', 1000)}")
         else:
             rv.append(f"{psutil.cpu_count(logical=False)} x {uname.processor} CPUs")
         rv.append("\n")
-        rv.append(f"Memory {get_hr(svmem.used)} used of {get_hr(svmem.total)}. {get_hr(svmem.available)} free.")
+        rv.append(f"Memory {get_hr(svmem.used)} used of {get_hr(svmem.total)} ({get_hr(svmem.available)} free)")
         rv.append("\n")
         rv.append("\n")
     elif which == "bottom":
@@ -440,11 +440,11 @@ def get_clockstring() -> str:
 def get_footerbar(key_size=2, name_size=10):
     """Return footerbar description"""
     rv = []
-    menu = {'F1': 'Color', 'F2': 'Login', 'F5': 'KBD-Layout', 'H': 'Logfiles'}
+    menu = {'F1': 'Color', 'F2': 'Login', 'F5': 'Keyboard', 'H': 'Logs'}
     spacebar = ''.join(' ' for _ in range(name_size))
     for item in menu.items():
         nr = ('footerbar.short', f"  {item[0]}"[-key_size:])
-        name = ('footerbar.long', f"{item[1]}{spacebar}"[:name_size])
+        name = ('footerbar.long', f" {item[1]}{spacebar}"[:name_size])
         field = [nr, name]
         rv.append(field)
     return rv

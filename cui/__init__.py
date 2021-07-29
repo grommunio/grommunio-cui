@@ -1167,7 +1167,7 @@ class Application(ApplicationHandler):
             return rv
 
         clock = GText(util.get_clockstring(), right=1)
-        footerbar = GText(util.get_footerbar(3, 10), left=1, right=0)
+        footerbar = GText(util.get_footerbar(2, 10), left=1, right=0)
         avg_load = GText(util.get_load_avg_format_list(), left=1, right=2)
         gstring = GText(('footer', string), left=1, right=2)
         gdebug = GText(['\n', ('', f"({self.current_event})"), ('', f" on {self.current_window}")])
