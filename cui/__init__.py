@@ -1093,6 +1093,11 @@ class Application(ApplicationHandler):
 
         keyboards: Set[str] = {
             'de-latin1-nodeadkeys', 'us',
+            'chinese',
+            'cz', 'es',
+            'fr_CH', 'jp106',
+            'ro', 'ru',
+
         }
         self.loaded_kbd = util.get_current_kbdlayout()
         keyboard_list = [self.loaded_kbd]
