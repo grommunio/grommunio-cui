@@ -5,9 +5,10 @@ import subprocess
 import sys
 from asyncio.events import AbstractEventLoop
 from pathlib import Path
-from typing import Any, List, Tuple, Dict, Union
+from typing import Any, List, Tuple, Dict, Union, Set
 import os
 
+import urwid
 import yaml
 from yaml import SafeLoader
 from getpass import getuser
@@ -53,13 +54,14 @@ _INPUT_BOX: str = 'INPUT-BOX'
 _LOG_VIEWER: str = 'LOG-VIEWER'
 _ADMIN_WEB_PW: str = 'ADMIN-WEB-PW'
 _TIMESYNCD: str = 'TIMESYNCD'
-
+_KEYBOARD_SWITCH: str = 'KEYBOARD_SWITCH'
 
 class Application(ApplicationHandler):
     """
     The console UI. Main application class.
     """
     current_window: str = _MAIN
+    last_current_window: str = ''
     current_window_input_box: str = ""
     message_box_caller: str = ''
     _message_box_caller_body: Widget = None
@@ -378,6 +380,8 @@ class Application(ApplicationHandler):
             self.key_ev_aapi(key)
         elif self.current_window == _TIMESYNCD:
             self.key_ev_timesyncd(key)
+        elif self.current_window == _KEYBOARD_SWITCH:
+            self.key_ev_kbd_switch(key)
         self.key_ev_anytime(key)
 
     def key_ev_main(self, key):
@@ -528,7 +532,8 @@ class Application(ApplicationHandler):
             # self.change_colormode('dark' if self._current_colormode == 'light' else 'light')
             self.switch_next_colormode()
         elif key == 'f5':
-            self.switch_kbdlayout()
+            self.open_keyboard_selection_menu()
+            # self.switch_kbdlayout()
         elif key in ['ctrl f1', 'H', 'h', 'L', 'l'] and self.current_window != _LOG_VIEWER \
                 and self.current_window != _UNSUPPORTED \
                 and not self.log_finished:
@@ -576,12 +581,34 @@ class Application(ApplicationHandler):
             self.message_box(f'Timesyncd configuration change has been {success_msg}!',
                              'Timesyncd Configuration', height=10)
 
+    def key_ev_kbd_switch(self, key: str):
+        self.handle_standard_tab_behaviour(key)
+        menu_id = self.handle_standard_menu_behaviour(self.keyboard_switch_body, key)
+        success_msg = 'NOTHING'
+        stay = False
+        if key.lower().endswith('enter'):
+            if key.lower().startswith('hidden'):
+                kbd = self.keyboard_content[menu_id - 1]
+                self.set_kbd_layout(kbd)
+        elif key.lower() == 'esc':
+            print()
+        else:
+            stay = True
+        if not stay:
+            self.return_to()
+
     def handle_mouse_event(self, event: Any):
         # event is a mouse event in the form ('mouse press or release', button, column, line)
         event: Tuple[str, float, int, int] = tuple(event)
         if event[0] == 'mouse press' and event[1] == 1:
             # self.handle_event('mouseclick left enter')
             self.handle_event('my mouseclick left button')
+
+    def return_to(self):
+        if self.last_current_window in [_MAIN_MENU]:
+            self.open_main_menu()
+        else:
+            self.open_mainframe()
 
     def _load_journal_units(self):
         try:
@@ -1030,14 +1057,56 @@ class Application(ApplicationHandler):
     def switch_kbdlayout(self):
         # Base proposal on CUI's last known state
         proposal = "de-latin1-nodeadkeys" if self._current_kbdlayout == "us" else "us"
-        # But do read the file again so newly added keys do not get lost
+        self.set_kbd_layout(proposal)
+
+    def set_kbd_layout(self, layout):
+        # Do read the file again so newly added keys do not get lost
         file = "/etc/vconsole.conf"
         vars = util.minishell_read(file)
-        vars["KEYMAP"] = proposal
+        vars["KEYMAP"] = layout
         util.minishell_write(file, vars)
         os.system("systemctl restart systemd-vconsole-setup")
-        self._current_kbdlayout = proposal
+        self._current_kbdlayout = layout
         self.refresh_head_text(self._current_colormode, self._current_kbdlayout, self.authorized_options)
+
+    def open_keyboard_selection_menu(self):
+        self.reset_layout()
+        self.print("Opening keyboard configuration")
+        self.last_current_window = self.current_window
+        self.current_window = _KEYBOARD_SWITCH
+        # header = AttrMap(GText('Keyboard layout', CENTER), 'header')
+        header = None
+        self.prepare_kbd_config()
+        # footer = AttrMap(Columns([self.ok_button, self.cancel_button]), 'buttonbar')
+        footer = None
+        self.dialog(
+            body=AttrMap(self.keyboard_switch_body, 'body'), header=header,
+            footer=footer, focus_part='body',
+            align=CENTER, width=30, valign=MIDDLE, height=10
+        )
+
+    def prepare_kbd_config(self):
+        def sub_press(button):
+            layout = button.label
+            self.set_kbd_layout(layout)
+            self.return_to()
+
+        keyboards: Set[str] = {
+            'de-latin1-nodeadkeys', 'us',
+        }
+        self.loaded_kbd = util.get_current_kbdlayout()
+        keyboard_list = [self.loaded_kbd]
+        _ = [keyboard_list.append(kbd) for kbd in keyboards if kbd != self.loaded_kbd]
+        self.keyboard_content = [
+            AttrMap(urwid.Button(kbd, sub_press), 'focus' if kbd == self.loaded_kbd else 'selectable')
+            for kbd in keyboard_list
+        ]
+        self.keyboard_list = ListBox(SimpleListWalker(self.keyboard_content))
+        # self.keyboard_switch_body = LineBox(Padding(Filler(Pile([
+        #     GText('Select your keyboard layout.', LEFT, wrap=SPACE)
+        #     ] + [urwid.Button(kbd) for kbd in keyboards]), TOP)))
+        # self.keyboard_switch_body = LineBox(Padding(Filler(self.keyboard_list)))
+        self.keyboard_switch_body = self.keyboard_list
 
     def redraw(self):
         """
@@ -1402,7 +1471,7 @@ class Application(ApplicationHandler):
         if self.old_termios is not None:
             self.screen.tty_signal_keys(*self.old_termios)
 
-    def dialog(self, body: Widget = None, header: Widget = None, footer: Widget = None, focus_part: str = None,
+    def dialog(self, body: Widget = None, header: Any = None, footer: Any = None, focus_part: str = None,
                align: str = CENTER, width: int = 40, valign: str = MIDDLE, height: int = 10):
         """
         Overlays a dialog box on top of the console UI
@@ -1418,7 +1487,7 @@ class Application(ApplicationHandler):
             height (int): The height of the box.
         """
         # Body
-        if body is None:
+        if isinstance(body, str) and body == '':
             body_text = GText('No body', align='center')
             body_filler = Filler(body_text, valign='top')
             body_padding = Padding(
@@ -1429,7 +1498,7 @@ class Application(ApplicationHandler):
             body = LineBox(body_padding)
 
         # Footer
-        if footer is None:
+        if isinstance(footer, str) and footer == '':
             footer = GBoxButton('Okay', self.reset_layout())
             footer = AttrWrap(footer, 'selectable', 'focus')
             footer = GridFlow([footer], 8, 1, 1, 'center')
