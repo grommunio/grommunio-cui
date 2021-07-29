@@ -279,8 +279,8 @@ class Application(ApplicationHandler):
         self.text_header += [u"You are in {colormode} colormode and use the {kbd} keyboard layout"]
         self.authorized_options = ''
         text_intro = [
-            u"Here you can configure your system.", u"\n",
-            u"If you need help, please try pressing 'H' to view the logs!", u"\n"
+            u"\n",
+            u"If you need help, please try pressing 'L' to view the logs!", u"\n"
         ]
         self.tb_intro = GText(text_intro, align=CENTER, wrap=SPACE)
         text_sysinfo_top = util.get_system_info("top")
@@ -350,6 +350,8 @@ class Application(ApplicationHandler):
     def handle_key_event(self, event: Any):
         # event was a key stroke
         key: str = str(event)
+        if self.log_finished and self.current_window != _LOG_VIEWER:
+            self.log_finished = False
         if self.current_window == _MAIN:
             self.key_ev_main(key)
         elif self.current_window == _MESSAGE_BOX:
@@ -477,7 +479,7 @@ class Application(ApplicationHandler):
             self.open_mainframe()
 
     def key_ev_logview(self, key):
-        if key in ['ctrl f1', 'H']:
+        if key in ['ctrl f1', 'H', 'h', 'L', 'l', 'esc']:
             self.current_window = self.log_file_caller
             self._body = self._log_file_caller_body
             self.reset_layout()
@@ -511,7 +513,7 @@ class Application(ApplicationHandler):
             self._hidden_pos = 0
 
     def key_ev_unsupp(self, key):
-        if key in ['ctrl d', 'esc', 'ctrl f1', 'H']:
+        if key in ['ctrl d', 'esc', 'ctrl f1', 'H', 'h', 'l', 'L']:
             self.current_window = self.log_file_caller
             self._body = self._log_file_caller_body
             self.log_finished = True
@@ -527,7 +529,7 @@ class Application(ApplicationHandler):
             self.switch_next_colormode()
         elif key == 'f5':
             self.switch_kbdlayout()
-        elif key in ['ctrl f1', 'H'] and self.current_window != _LOG_VIEWER \
+        elif key in ['ctrl f1', 'H', 'h', 'L', 'l'] and self.current_window != _LOG_VIEWER \
                 and self.current_window != _UNSUPPORTED \
                 and not self.log_finished:
             # self.open_log_viewer('test', 10)
