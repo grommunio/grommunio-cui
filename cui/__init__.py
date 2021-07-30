@@ -427,7 +427,7 @@ class Application(ApplicationHandler):
 
     def key_ev_pass(self, key):
         self.handle_standard_tab_behaviour(key)
-        if key.lower().endswith('close enter') or key == 'esc':
+        if key.lower().endswith('enter') or key == 'esc':
             self.open_main_menu()
 
     def key_ev_login(self, key):
