@@ -586,8 +586,8 @@ class Application(ApplicationHandler):
         menu_id = self.handle_standard_menu_behaviour(self.keyboard_switch_body, key)
         success_msg = 'NOTHING'
         stay = False
-        if key.lower().endswith('enter'):
-            if key.lower().startswith('hidden'):
+        if (key.lower().endswith('enter') and key.lower().startswith('hidden'))\
+                or key.lower() in ['space']:
                 kbd = self.keyboard_content[menu_id - 1]
                 self.set_kbd_layout(kbd)
         elif key.lower() == 'esc':
@@ -974,7 +974,7 @@ class Application(ApplicationHandler):
         :param button: The button been clicked.
         """
         label: str = "UNKNOWN LABEL"
-        if isinstance(button, Button) or isinstance(button, WidgetDrawer):
+        if isinstance(button, RadioButton) or isinstance(button, WidgetDrawer):
             label = button.label
         if not self.current_window == _MAIN:
             self.print(f"{self.__class__}.press_button(button={button}, *args={args}, kwargs={kwargs})")
@@ -1086,10 +1086,11 @@ class Application(ApplicationHandler):
         )
 
     def prepare_kbd_config(self):
-        def sub_press(button):
-            layout = button.label
-            self.set_kbd_layout(layout)
-            self.return_to()
+        def sub_press(button, is_set=True, **kwargs):
+            if is_set:
+                layout = button.label
+                self.set_kbd_layout(layout)
+                self.return_to()
 
         keyboards: Set[str] = {
             'de-latin1-nodeadkeys', 'us',
@@ -1102,8 +1103,9 @@ class Application(ApplicationHandler):
         self.loaded_kbd = util.get_current_kbdlayout()
         keyboard_list = [self.loaded_kbd]
         _ = [keyboard_list.append(kbd) for kbd in keyboards if kbd != self.loaded_kbd]
+        self.keyboard_rb = []
         self.keyboard_content = [
-            AttrMap(urwid.Button(kbd, sub_press), 'focus' if kbd == self.loaded_kbd else 'selectable')
+            AttrMap(urwid.RadioButton(self.keyboard_rb, kbd, 'first True', sub_press), 'focus' if kbd == self.loaded_kbd else 'selectable')
             for kbd in keyboard_list
         ]
         self.keyboard_list = ListBox(SimpleListWalker(self.keyboard_content))
