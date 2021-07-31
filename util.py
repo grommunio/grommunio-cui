@@ -14,11 +14,11 @@ import socket
 
 
 STATES = {
-    1: 'System password is not set!!',
-    2: 'Network configuration is missing!',
-    4: 'grommunio-setup not executed yet!',
-    8: 'Timesyncd configuration is missing!',
-    16: 'nginx is not running!',
+    1: 'System password is not set.',
+    2: 'Network configuration is missing.',
+    4: 'grommunio-setup has been been run yet.',
+    8: 'timesyncd configuration is missing.',
+    16: 'nginx is not running.',
 }
 
 _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
@@ -343,7 +343,7 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
             ]
             rv.append("\n")
             if uname.node.lower().startswith('localhost.'):
-                rv.append(('important', 'It is generally NOT the best idea to use localhost as hostname!'))
+                rv.append(('important', 'It is generally NOT recommended to use localhost as hostname.'))
                 rv.append('\n')
             rv.append(f"{proto}://{uname.node}:8080/\n")
             for interface_name, interface_addresses in if_addrs.items():
@@ -362,7 +362,7 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
                     rv.append(f"{proto}://{address.address}:8080/ (interface {interface_name})\n")
         else:
             rv.append('\n')
-            rv.append('There are still some things missing to run grommunio.')
+            rv.append('There are still some tasks missing to run/use grommunio.')
             rv.append('\n')
             statelist = extract_bits(check_setup_state())
             for state in statelist:
@@ -378,7 +378,7 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
             rv.append(f"Last login time: {last_login}")
         rv.append("\n")
     else:
-        rv.append("Oups!")
+        rv.append("Oops!")
         rv.append("There should be nothing.")
     return rv
 
