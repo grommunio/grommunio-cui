@@ -306,8 +306,6 @@ class Application(ApplicationHandler):
         # self.tb_header = GText(self.text_header.format(colormode=colormode, kbd=self._current_kbdlayout,
         #                                                authorized_options=''), align=CENTER, wrap=SPACE)
         self.vsplitbox = Pile([("weight", 50, AttrMap(self.main_top, "body")), ("weight", 50, self.main_bottom)])
-        self.footer_text = GText('heute')
-        self.footer_content = [self.footer_text]
         # self.footer = AttrMap(self.footer_text, 'footer')
         # self.footer = Frame(ListBox(SimpleListWalker(self.footer_content)))
         self.footer = Pile(self.footer_content)
