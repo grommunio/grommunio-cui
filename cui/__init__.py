@@ -277,7 +277,7 @@ class Application(ApplicationHandler):
         colormode: str = self._current_colormode
         self.text_header = [u"grommunio console user interface"]
         self.text_header += ['\n']
-        self.text_header += [u"You are in {colormode} colormode and use the {kbd} keyboard layout"]
+        self.text_header += [u"Active keyboard layout: {kbd}; color set: {colormode}."]
         self.authorized_options = ''
         text_intro = [
             u"\n",
