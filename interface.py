@@ -26,7 +26,7 @@ class ApplicationHandler(object):
             :type: Any
         """
         raise NotImplementedError(f"{self.__class__}.handle_event() must not be called directly in {self.__name__} "
-                                  f"and has to be implemented in sub classes!")
+                                  f"and has to be implemented in sub classes.")
     
     def get_focused_menu(self, menu: ListBox, event: Any) -> int:
         """
@@ -70,7 +70,7 @@ class ApplicationHandler(object):
             align (str): The alignment of the printed text
         """
         raise NotImplementedError(f"{self.__class__}.print(string, align) must'nt be called directly in {self.__name__}"
-                                  f"and has to be implemented in sub classes!")
+                                  f"and has to be implemented in sub classes.")
 
 
 class WidgetDrawer(WidgetWrap):
@@ -93,7 +93,7 @@ class WidgetDrawer(WidgetWrap):
         This method is not implemented here and must be done in sub classes.
         """
         raise NotImplementedError(f"{self.__class__}.mark_as_dirty() must not be called directly in {self.__name__} "
-                                  f"and has to be implemented in sub classes!")
+                                  f"and has to be implemented in sub classes.")
     
     def refresh_content(self, event: Any = None):
         """
@@ -101,7 +101,7 @@ class WidgetDrawer(WidgetWrap):
         This method is not implemented here and must be done in sub classes.
         """
         raise NotImplementedError(f"{self.__class__}.refresh_content() must not be called directly in {self.__name__} "
-                                  f"and has to be implemented in sub classes!")
+                                  f"and has to be implemented in sub classes.")
     
     def render(self, size, focus=False):
         return super(WidgetDrawer, self).render(size, focus)

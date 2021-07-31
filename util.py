@@ -473,7 +473,7 @@ def get_palette(mode: str = 'light') -> List[Tuple[str, ...]]:
 
 
 def fast_tail(file: str, n: int = 0) -> List[str]:
-    assert n >= 0, "Line count n musst be greater equal 0!"
+    assert n >= 0, "Line count n musst be greater equal 0."
     pos: int = n + 1
     lines: List[str] = []
     fname: Path = Path(file)

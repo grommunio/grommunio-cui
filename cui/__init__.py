@@ -225,28 +225,27 @@ class Application(ApplicationHandler):
         items = {
             'Change system password': Pile([
                 GText('Password change', CENTER), GText(""),
-                GText(f'Change the password of the Linux system user "{getuser()}".')
+                GText(f'Opens a dialog for changing the password of the Linux system user "{getuser()}".')
             ]),
-            'Network configuration': Pile([
+            'Network interface configuration': Pile([
                 GText('Configuration of network', CENTER), GText(""),
-                GText('Set up the active device, interfaces, IP addresses, DNS and more network bonds.')
+                GText('Opens the yast2 configurator for setting up devices, interfaces, IP addresses, DNS and more.')
             ]),
             'Timezone configuration': Pile([
                 GText('Timezone', CENTER), GText(""),
-                GText('Configuration of your country and timezone settings.')
+                GText('Opens the yast2 configurator for setting country and timezone settings.')
             ]),
-            'Timesyncd configuration': Pile([
-                GText('Timesyncd', CENTER), GText(""),
-                GText('Configuration of systemd-timesyncd as a lightweight NTP client for time synchronisation.')
+            'timesyncd configuration': Pile([
+                GText('timesyncd', CENTER), GText(""),
+                GText('Opens the yast2 configurator for configuring systemd-timesyncd as a lightweight NTP client for time synchronization.')
             ]),
             'grommunio setup wizard': Pile([
                 GText('Setup wizard', CENTER), GText(""),
-                GText('Initial configuration of grommunio databases, TLS certificates, services and web UI.')
+                GText('Executes the grammm-setup script for the initial configuration of grommunio databases, TLS certificates, services and the administration web user interface.')
             ]),
-            'Admin web password reset': Pile([
-                GText('Password Change', CENTER), GText(""),
-                GText('Reset the administration web interface password initially set by the grommunio '
-                      'setup wizard.')
+            'Change admin-web password': Pile([
+                GText('Password change', CENTER), GText(""),
+                GText('Opens a dialog for changing the password used by the administration web interface.')
             ]),
             'Terminal': Pile([
                 GText('Terminal', CENTER), GText(""),
@@ -259,7 +258,7 @@ class Application(ApplicationHandler):
             ]),
             'Shutdown': Pile([
                 GText('Shutdown system.', CENTER), GText(""),
-                GText("")
+                GText("Shuts down the system and powers off.")
             ]),
         }
         self.main_menu_list = self.prepare_menu_list(items)
@@ -282,7 +281,7 @@ class Application(ApplicationHandler):
         self.authorized_options = ''
         text_intro = [
             u"\n",
-            u"If you need help, please try pressing 'L' to view the logs!", u"\n"
+            u"If you need help, press the 'L' key to view logs.", u"\n"
         ]
         self.tb_intro = GText(text_intro, align=CENTER, wrap=SPACE)
         text_sysinfo_top = util.get_system_info("top")
@@ -621,14 +620,14 @@ class Application(ApplicationHandler):
             if type(out) is bytes:
                 out = out.decode()
             if out == "":
-                # self.message_box(err, "An Error occured!!", width=60, height=11)
-                self.config = {'logs': {'Gromox http': {'source': 'gromox-http.service'}}}
+                # self.message_box(err, "An error occured.", width=60, height=11)
+                self.config = {'logs': {'gromox-http': {'source': 'gromox-http.service'}}}
             else:
                 self.config = yaml.load(out, Loader=SafeLoader)
         except BaseException as e:
             # use dummy config if no groadmin is there
-            self.config = {'logs': {'Gromox http': {'source': 'gromox-http.service'}}}
-        self.log_units = self.config.get('logs', {'Gromox http': {'source': 'gromox-http.service'}})
+            self.config = {'logs': {'gromox-http': {'source': 'gromox-http.service'}}}
+        self.log_units = self.config.get('logs', {'gromox-http': {'source': 'gromox-http.service'}})
         for i, k in enumerate(self.log_units.keys()):
             if k == 'Gromox http':
                 self.current_log_unit = i
@@ -712,13 +711,13 @@ class Application(ApplicationHandler):
         self._loop.start()
 
     def reboot_confirm(self):
-        msg = "Are you sure?\nAfter pressing OK, the system will reboot!"
+        msg = "Are you sure?\nAfter pressing OK, the system will reboot."
         title = 'Reboot'
         self.current_window = _REBOOT
         self.message_box(msg, title, width=80, height=10)
 
     def shutdown_confirm(self):
-        msg = "Are you sure?\nAfter pressing OK, the system will shut down!"
+        msg = "Are you sure?\nAfter pressing OK, the system will shut down and power off."
         title = "Shutdown"
         self.current_window = _SHUTDOWN
         self.message_box(msg, title, width=80, height=10)
@@ -946,7 +945,7 @@ class Application(ApplicationHandler):
         Opens main window. (Welcome screen)
         """
         self.reset_layout()
-        self.print("Returning to main screen!")
+        self.print("Returning to main screen.")
         self.current_window = _MAIN
         self.prepare_mainscreen()
         self._loop.widget = self._body
@@ -956,7 +955,7 @@ class Application(ApplicationHandler):
         Checks login data and switch to authenticate on if successful.
         """
         if self.user_edit.get_edit_text() != getuser() and os.getegid() != 0:
-            self.message_box("You must have root privileges if you want to use another user!", height=10)
+            self.message_box("You need root privileges to use another user.", height=10)
             return
         msg = f"checking user {self.user_edit.get_edit_text()} with pass ***** ..."
         if self.current_window == _LOGIN:
@@ -1537,16 +1536,16 @@ class Application(ApplicationHandler):
         self._loop.widget = w
 
     def check_config_write(self, di) -> bool:
-        title: str = "Success on writing!"
+        title: str = "Write succeeded"
         height: int = 9
-        msg: List[str] = ["Config written"]
+        msg: List[str] = ["The configuration was"]
         rv: bool = True
         if di.write_config():
-            msg += [' ', "successfully."]
+            msg += [" updated."]
         else:
-            title = "Writing failed!"
+            title = "Write failed"
             height += 1
-            msg += [('important', ' not '), "successfully.", "\n", "Maybe you have insufficient rights?"]
+            msg += [('important', ' not'), " updated.", "\n", "Perhaps you have insufficient rights."]
             rv = False
         self.message_box(msg, title=title, height=height)
         return rv
