@@ -401,12 +401,13 @@ class Application(ApplicationHandler):
             if self.old_layout:
                 self.layout = self.old_layout
             self.reset_layout()
-            self.handle_event(key)
+            if self.current_window not in [_LOGIN, _MAIN_MENU, _TIMESYNCD]:
+                self.handle_event(key)
 
     def key_ev_ibox(self, key):
         self.handle_standard_tab_behaviour(key)
         if key.endswith('enter') or key == 'esc':
-            if key.endswith('enter'):
+            if key.lower().endswith('ok enter'):
                 self.last_input_box_value = self._loop.widget.top_w.base_widget.body.base_widget[1].edit_text
             else:
                 self.last_input_box_value = ""
@@ -976,7 +977,7 @@ class Application(ApplicationHandler):
         if isinstance(button, RadioButton) or isinstance(button, WidgetDrawer) or isinstance(button, GButton):
             label = button.label
         self.last_pressed_button = label
-        if not self.current_window == _MAIN:
+        if self.current_window not in [_MAIN]:
             self.print(f"{self.__class__}.press_button(button={button}, *args={args}, kwargs={kwargs})")
             self.handle_event(f"{label} enter")
 
