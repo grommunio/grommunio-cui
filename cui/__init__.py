@@ -65,6 +65,7 @@ class Application(ApplicationHandler):
     current_window_input_box: str = ""
     message_box_caller: str = ''
     _message_box_caller_body: Widget = None
+    last_pressed_button: str = ''
     input_box_caller: str = ''
     _input_box_caller_body: Widget = None
     last_input_box_value: str = ""
@@ -400,6 +401,7 @@ class Application(ApplicationHandler):
             if self.old_layout:
                 self.layout = self.old_layout
             self.reset_layout()
+            self.handle_event(key)
 
     def key_ev_ibox(self, key):
         self.handle_standard_tab_behaviour(key)
@@ -436,7 +438,7 @@ class Application(ApplicationHandler):
 
     def key_ev_reboot(self, key):
         # Restore cursor etc. before going off.
-        if key.lower() in ['enter']:
+        if key.endswith('enter') and self.last_pressed_button.lower().endswith('ok'):
             self._loop.stop()
             self.screen.tty_signal_keys(*self.old_termios)
             os.system("reboot")
@@ -446,7 +448,7 @@ class Application(ApplicationHandler):
 
     def key_ev_shutdown(self, key):
         # Restore cursor etc. before going off.
-        if key.lower() in ['enter']:
+        if key.endswith('enter') and self.last_pressed_button.lower().endswith('ok'):
             self._loop.stop()
             self.screen.tty_signal_keys(*self.old_termios)
             os.system("poweroff")
@@ -712,13 +714,13 @@ class Application(ApplicationHandler):
         msg = "Are you sure?\nAfter pressing OK, the system will reboot."
         title = 'Reboot'
         self.current_window = _REBOOT
-        self.message_box(msg, title, width=80, height=10)
+        self.message_box(msg, title, width=80, height=10, view_ok=True, view_cancel=True)
 
     def shutdown_confirm(self):
         msg = "Are you sure?\nAfter pressing OK, the system will shut down and power off."
         title = "Shutdown"
         self.current_window = _SHUTDOWN
-        self.message_box(msg, title, width=80, height=10)
+        self.message_box(msg, title, width=80, height=10, view_ok=True, view_cancel=True)
 
     def open_change_password(self):
         """
@@ -971,8 +973,9 @@ class Application(ApplicationHandler):
         :param button: The button been clicked.
         """
         label: str = "UNKNOWN LABEL"
-        if isinstance(button, RadioButton) or isinstance(button, WidgetDrawer):
+        if isinstance(button, RadioButton) or isinstance(button, WidgetDrawer) or isinstance(button, GButton):
             label = button.label
+        self.last_pressed_button = label
         if not self.current_window == _MAIN:
             self.print(f"{self.__class__}.press_button(button={button}, *args={args}, kwargs={kwargs})")
             self.handle_event(f"{label} enter")
@@ -1299,7 +1302,8 @@ class Application(ApplicationHandler):
         self.current_bottom_info = string
 
     def message_box(self, msg: Any, title: str = None, align: str = CENTER, width: int = 45,
-                    valign: str = MIDDLE, height: int = 9):
+                    valign: str = MIDDLE, height: int = 9, view_ok: bool = True, 
+                    view_cancel: bool = False):
         """
         Creates a message box dialog with an optional title. The message also can be a list of urwid formatted tuples.
 
@@ -1324,18 +1328,22 @@ class Application(ApplicationHandler):
         self._message_box_caller_body = self._loop.widget
         self.current_window = _MESSAGE_BOX
         body = LineBox(Padding(Filler(Pile([GText(msg, CENTER)]), TOP)))
+        # footer = self.ok_button_footer
+        footer = self.create_footer(view_ok, view_cancel)
+
         if title is None:
             title = 'Message'
         self.dialog(
             body=body, header=GText(title, CENTER),
-            footer=self.ok_button_footer, focus_part='footer',
+            footer=footer, focus_part='footer',
             align=align, width=width, valign=valign, height=height
         )
 
     def input_box(self, msg: Any, title: str = None, input_text: str = "", multiline: bool = False,
                   align: str = CENTER, width: int = 45,
                   valign: str = MIDDLE, height: int = 9,
-                  mask: Union[bytes, str] = None):
+                  mask: Union[bytes, str] = None, 
+                  view_ok: bool = True, view_cancel: bool = False):
         """Creates an input box dialog with an optional title and a default value. 
         The message also can be a list of urwid formatted tuples.
 
@@ -1368,14 +1376,27 @@ class Application(ApplicationHandler):
             GText(msg, CENTER),
             GEdit("", input_text, multiline, CENTER, mask=mask)
         ]), TOP)))
+        # footer = self.ok_button_footer
+        footer = self.create_footer(view_ok, view_cancel)
+
         if title is None:
             title = 'Input expected'
         self.dialog(
             body=body, header=GText(title, CENTER),
-            footer=self.ok_button_footer, focus_part='body',
+            footer=footer, focus_part='body',
             align=align, width=width, valign=valign, height=height
         )
 
+    def create_footer(self, view_ok: bool = True, view_cancel: bool = False):
+        cols = [('weight', 1, GText(''))]
+        if view_ok:
+            cols += [('weight', 1, Columns([('weight', 1, GText('')), self.ok_button, ('weight', 1, GText(''))]))]
+        if view_cancel:
+            cols += [('weight', 1, Columns([('weight', 1, GText('')), self.cancel_button, ('weight', 1, GText(''))]))]
+        cols += [('weight', 1, GText(''))]
+        footer = AttrMap(Columns(cols), 'buttonbar')
+        return footer
+    
     def printf(self, *strings):
         """
         Prints multiple strings with different alignment
