@@ -237,7 +237,7 @@ class Application(ApplicationHandler):
             ]),
             'timesyncd configuration': Pile([
                 GText('timesyncd', CENTER), GText(""),
-                GText('Opens the yast2 configurator for configuring systemd-timesyncd as a lightweight NTP client for time synchronization.')
+                GText('Opens a simple configurator for configuring systemd-timesyncd as a lightweight NTP client for time synchronization.')
             ]),
             'grommunio setup wizard': Pile([
                 GText('Setup wizard', CENTER), GText(""),
