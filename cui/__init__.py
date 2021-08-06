@@ -384,11 +384,14 @@ class Application(ApplicationHandler):
 
     def key_ev_main(self, key):
         if key == 'f2':
-            self.login_body.focus_position = 0 if getuser() == '' else 1  # focus on passwd if user detected
-            self.dialog(body=LineBox(Padding(Filler(self.login_body))), header=self.login_header,
-                        footer=self.login_footer, focus_part='body', align='center', valign='middle',
-                        width=40, height=10)
-            self.current_window = _LOGIN
+            if util.check_if_password_is_set(getuser()):
+                self.login_body.focus_position = 0 if getuser() == '' else 1  # focus on passwd if user detected
+                self.dialog(body=LineBox(Padding(Filler(self.login_body))), header=self.login_header,
+                            footer=self.login_footer, focus_part='body', align='center', valign='middle',
+                            width=40, height=10)
+                self.current_window = _LOGIN
+            else:
+                self.open_main_menu()
         elif key == 'l' and not _PRODUCTIVE:
             self.open_main_menu()
         elif key == 'tab':
