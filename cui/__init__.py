@@ -407,7 +407,7 @@ class Application(ApplicationHandler):
     def key_ev_ibox(self, key):
         self.handle_standard_tab_behaviour(key)
         if key.endswith('enter') or key == 'esc':
-            if key.lower().endswith('ok enter'):
+            if key.lower().endswith('enter'):
                 self.last_input_box_value = self._loop.widget.top_w.base_widget.body.base_widget[1].edit_text
             else:
                 self.last_input_box_value = ""
@@ -548,10 +548,11 @@ class Application(ApplicationHandler):
                 res = self.reset_aapi_passwd(self.last_input_box_value)
             self.current_window = self.input_box_caller
             if res is not None:
-                success_msg = 'successfully'
+                success = True
                 if not res:
-                    success_msg = 'not successful'
-                self.message_box(f'Admin password reset was changed {success_msg}!', 'Admin password reset', height=10)
+                    success = False
+                self.message_box(f'Admin password reset {"was successful" if success else "failed"}!',
+                                 'Admin password reset', height=10)
 
     def key_ev_timesyncd(self, key):
         self.handle_standard_tab_behaviour(key)
@@ -567,24 +568,23 @@ class Application(ApplicationHandler):
                     rc = subprocess.Popen(["timedatectl", "set-ntp", "true"],
                                           stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
                     res = rc.wait() == 0
-                    success_msg = 'successful'
+                    success_msg = 'was successful'
                     if not res:
-                        success_msg = 'not successful'
+                        success_msg = 'failed'
                     self.open_main_menu()
                 else:
                     success_msg = 'aborted'
                     self.open_main_menu()
-        elif key == 'esc':
+        elif key.lower().find('cancel') >= 0 or key.lower() in ['esc']:
             success_msg = 'aborted'
             self.open_main_menu()
         if key.lower().endswith('enter') or key in ['esc', 'enter']:
-            self.message_box(f'Timesyncd configuration change has been {success_msg}!',
+            self.message_box(f'Timesyncd configuration change {success_msg}!',
                              'Timesyncd Configuration', height=10)
 
     def key_ev_kbd_switch(self, key: str):
         self.handle_standard_tab_behaviour(key)
         menu_id = self.handle_standard_menu_behaviour(self.keyboard_switch_body, key)
-        success_msg = 'NOTHING'
         stay = False
         if (key.lower().endswith('enter') and key.lower().startswith('hidden'))\
                 or key.lower() in ['space']:
