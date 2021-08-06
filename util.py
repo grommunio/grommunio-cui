@@ -276,9 +276,8 @@ def get_last_login_time():
 
 
 def get_load():
-    p = subprocess.Popen(['cat', '/proc/loadavg'], stderr=subprocess.DEVNULL, stdout=subprocess.PIPE)
-    res, _ = p.communicate()
-    out = bytes(res).decode()
+    with open('/proc/loadavg', 'r') as f:
+        out = (f.read())
     lines = out.splitlines()
     load_1min = 0
     load_5min = 0
