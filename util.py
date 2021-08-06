@@ -161,22 +161,24 @@ def make_list_gtext(list_wowo_gtext):
     return rv
 
 
+def check_if_password_is_set(user):
+    """Check if user exists in /etc/shadow and has his pw set."""
+    file = '/etc/shadow'
+    items = {}
+    if os.access(file, os.R_OK):
+        with open(file) as fh:
+            for line in fh:
+                parts = line.split(":")
+                username = parts[0]
+                password = parts[1]
+                items[username.strip()] = password.strip()
+    if len(items.get(user)) > 0:
+        return True
+    return False
+
+
 def check_setup_state():
     """Check states of setup and returns a combined binary number"""
-    def check_if_password_is_set(user):
-        file = '/etc/shadow'
-        items = {}
-        if os.access(file, os.R_OK):
-            with open(file) as fh:
-                for line in fh:
-                    parts = line.split(":")
-                    username = parts[0]
-                    password = parts[1]
-                    items[username.strip()] = password.strip()
-        if len(items.get(user)) > 0:
-            return True
-        return False
-
     def check_network_config():
         return check_socket('127.0.0.1', 22)
 
