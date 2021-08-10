@@ -563,21 +563,23 @@ class Application(ApplicationHandler):
         if key.lower().endswith('enter'):
             if key.lower().startswith('hidden'):
                 button_type = key.lower().split(' ')[1]
-                if button_type == 'ok':
-                    # Save config and return to mainmenu
-                    self.timesyncd_vars['NTP'] = self.timesyncd_body.base_widget[1].edit_text
-                    self.timesyncd_vars['FallbackNTP'] = self.timesyncd_body.base_widget[2].edit_text
-                    util.minishell_write('/etc/systemd/timesyncd.conf', self.timesyncd_vars)
-                    rc = subprocess.Popen(["timedatectl", "set-ntp", "true"],
-                                          stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
-                    res = rc.wait() == 0
-                    success_msg = 'was successful'
-                    if not res:
-                        success_msg = 'failed'
-                    self.open_main_menu()
-                else:
-                    success_msg = 'aborted'
-                    self.open_main_menu()
+            else:
+                button_type = 'ok'
+            if button_type == 'ok':
+                # Save config and return to mainmenu
+                self.timesyncd_vars['NTP'] = self.timesyncd_body.base_widget[1].edit_text
+                self.timesyncd_vars['FallbackNTP'] = self.timesyncd_body.base_widget[2].edit_text
+                util.minishell_write('/etc/systemd/timesyncd.conf', self.timesyncd_vars)
+                rc = subprocess.Popen(["timedatectl", "set-ntp", "true"],
+                                      stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+                res = rc.wait() == 0
+                success_msg = 'was successful'
+                if not res:
+                    success_msg = 'failed'
+                self.open_main_menu()
+            else:
+                success_msg = 'aborted'
+                self.open_main_menu()
         elif key.lower().find('cancel') >= 0 or key.lower() in ['esc']:
             success_msg = 'aborted'
             self.open_main_menu()
