@@ -545,17 +545,29 @@ class Application(ApplicationHandler):
             # self.open_log_viewer('NetworkManager', self.log_line_count)
 
     def key_ev_aapi(self, key):
-        if key.lower().endswith('enter') or key == 'esc':
-            res = None
-            if key.lower().endswith('enter'):
+        success_msg = 'NOTHING'
+        if key.lower().endswith('enter'):
+            if key.lower().startswith('hidden'):
+                button_type = key.lower().split(' ')[1]
+            else:
+                button_type = 'ok'
+            if button_type == 'ok':
                 res = self.reset_aapi_passwd(self.last_input_box_value)
-            self.current_window = self.input_box_caller
-            if res is not None:
-                success = True
+                # self.current_window = self.input_box_caller
+                success_msg = 'was successful'
                 if not res:
-                    success = False
-                self.message_box(f'Admin password reset {"was successful" if success else "failed"}!',
-                                 'Admin password reset', height=10)
+                    success_msg = 'failed'
+                self.open_main_menu()
+            else:
+                success_msg = 'aborted'
+                self.open_main_menu()
+        elif key.lower().find('cancel') >= 0 or key.lower() in ['esc']:
+            success_msg = 'aborted'
+            self.open_main_menu()
+        if key.lower().endswith('enter') or key in ['esc', 'enter']:
+            self.current_window = self.input_box_caller
+            self.message_box(f'Admin password reset {success_msg}!',
+                             'Admin password reset', height=10)
 
     def key_ev_timesyncd(self, key):
         self.handle_standard_tab_behaviour(key)
@@ -867,7 +879,10 @@ class Application(ApplicationHandler):
             width=60,
             input_text="",
             height=10,
-            mask='*')
+            mask='*',
+            view_ok=True,
+            view_cancel=True
+        )
 
     def reset_aapi_passwd(self, new_pw: str) -> bool:
         if new_pw:
