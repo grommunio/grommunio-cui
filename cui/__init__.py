@@ -242,7 +242,7 @@ class Application(ApplicationHandler):
             ]),
             'grommunio setup wizard': Pile([
                 GText('Setup wizard', CENTER), GText(""),
-                GText('Executes the grammm-setup script for the initial configuration of grommunio databases, TLS certificates, services and the administration web user interface.')
+                GText('Executes the grommunio-setup script for the initial configuration of grommunio databases, TLS certificates, services and the administration web user interface.')
             ]),
             'Change admin-web password': Pile([
                 GText('Password change', CENTER), GText(""),
