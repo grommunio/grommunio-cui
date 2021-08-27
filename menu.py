@@ -190,8 +190,8 @@ class MultiMenuItem(WidgetDrawer):
                 if not key == 'esc':
                     # self.refresh_content(key)
                     self.application.handle_event(key)
-            if key in ['tab']:
-                return 'second tab'
+            if key.endswith('tab'):
+                return f'second {key}'
             return key
     
     def mouse_event(self, *args, **kwargs):

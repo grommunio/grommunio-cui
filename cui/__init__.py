@@ -1486,7 +1486,7 @@ class Application(ApplicationHandler):
 
         :param key: The key to be handled.
         """
-        if key == 'tab':
+        if key.endswith('tab'):
             if self.layout.focus_position == 'body':
                 self.layout.focus_position = 'footer'
             elif self.layout.focus_position == 'footer':
