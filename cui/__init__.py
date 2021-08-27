@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # SPDX-FileCopyrightText: 2021 grommunio GmbH
+import re
 import subprocess
 import sys
 from asyncio.events import AbstractEventLoop
@@ -1113,23 +1114,26 @@ class Application(ApplicationHandler):
                 self.set_kbd_layout(layout)
                 self.return_to()
 
-        keyboards: Set[str] = {
-            'de-latin1-nodeadkeys', 'us',
-            'chinese',
-            'cz', 'es',
-            'fr_CH', 'jp106',
-            'ro', 'ru',
+        def basename_wo_suffix(complete_path: str) -> str:
+            base = os.path.basename(complete_path)
+            p = Path(base)
+            while p.suffix != '':
+                p = Path(p.stem)
+            return os.path.basename(p)
 
-        }
+        keyboards: Set[str] = {'de-latin1-nodeadkeys', 'us'}
+        all_kbds = [basename_wo_suffix(kbd) for kbd in os.listdir('/usr/share/kbd/keymaps/xkb/')]
+        _ = [keyboards.add(kbd) for kbd in all_kbds if re.match('^[a-z][a-z]$', kbd)]
         self.loaded_kbd = util.get_current_kbdlayout()
         keyboard_list = [self.loaded_kbd]
-        _ = [keyboard_list.append(kbd) for kbd in keyboards if kbd != self.loaded_kbd]
+        _ = [keyboard_list.append(kbd) for kbd in sorted(keyboards) if kbd != self.loaded_kbd]
         self.keyboard_rb = []
         self.keyboard_content = [
             AttrMap(urwid.RadioButton(self.keyboard_rb, kbd, 'first True', sub_press), 'focus' if kbd == self.loaded_kbd else 'selectable')
             for kbd in keyboard_list
         ]
-        self.keyboard_list = ListBox(SimpleListWalker(self.keyboard_content))
+        # self.keyboard_list = ListBox(SimpleListWalker(self.keyboard_content))
+        self.keyboard_list = ScrollBar(Scrollable(Pile(self.keyboard_content)))
         # self.keyboard_switch_body = LineBox(Padding(Filler(Pile([
         #     GText('Select your keyboard layout.', LEFT, wrap=SPACE)
         #     ] + [urwid.Button(kbd) for kbd in keyboards]), TOP)))
