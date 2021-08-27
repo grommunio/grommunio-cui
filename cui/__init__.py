@@ -1476,6 +1476,8 @@ class Application(ApplicationHandler):
         :param description_box: The ListBox containing the menu content that may be refreshed with the next description.
         :return: The id of the menu having the focus (1+)
         """
+        if event == 'esc':
+            return 1
         id: int = self.get_focused_menu(menu, event)
         if str(event) not in ['up', 'down']:
             return id
