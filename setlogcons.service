@@ -1,0 +1,9 @@
+[Unit]
+Description=Change of the kernel logconsole to tty8
+Documentation=man:setlogcons(8)
+ConditionPathExists=/dev/tty8
+
+[Service]
+Type=oneshot
+ExecStart=/bin/touch /dev/tty8
+ExecStart=/usr/bin/setlogcons 8
