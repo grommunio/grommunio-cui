@@ -24,4 +24,3 @@ or let the install script copy cui.sh to the system:
 .. code-block::
 
     ./install.sh
-
