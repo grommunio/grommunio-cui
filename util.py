@@ -16,7 +16,7 @@ import socket
 STATES = {
     1: 'System password is not set.',
     2: 'Network configuration is missing.',
-    4: 'grommunio-setup has been been run yet.',
+    4: 'grommunio-setup has not been run yet.',
     8: 'timesyncd configuration is missing.',
     16: 'nginx is not running.',
 }
