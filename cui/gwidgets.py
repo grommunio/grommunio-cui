@@ -93,6 +93,9 @@ class GEdit(urwid.WidgetWrap):
     def get_edit_text(self):
         return self.edit_widget.get_edit_text()
 
+    def set_edit_text(self, text):
+        self.edit_widget.set_edit_text(text)
+
     @property
     def edit_text(self):
         # return self._wrapped_widget.base_widget.base_widget.edit_text

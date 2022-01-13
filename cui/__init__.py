@@ -982,6 +982,7 @@ class Application(ApplicationHandler):
         msg = f"checking user {self.user_edit.get_edit_text()} with pass ***** ..."
         if self.current_window == _LOGIN:
             if util.authenticate_user(self.user_edit.get_edit_text(), self.pass_edit.get_edit_text()):
+                self.pass_edit.set_edit_text("")
                 self.open_main_menu()
             else:
                 # self.message_box(f'You have taken a wrong password, {self.user_edit.get_edit_text()}!')
