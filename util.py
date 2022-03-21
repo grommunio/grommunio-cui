@@ -498,7 +498,11 @@ def minishell_read(file):
         with open(file) as fh:
             for line in fh:
                 key, value = line.partition("=")[::2]
-                items[key.strip()] = value.strip()
+                if '=' in line:
+                    new_value = value.strip()
+                else:
+                    new_value = None
+                items[key.strip()] = new_value
     except IOError:
         pass
     return items
@@ -508,8 +512,9 @@ def minishell_write(file, items):
     with open(file, "w") as fh:
         for key in items:
             fh.write(key)
-            fh.write("=")
-            fh.write(items[key])
+            if items[key] is not None:
+                fh.write("=")
+                fh.write(items[key])
             fh.write("\n")
 
 
