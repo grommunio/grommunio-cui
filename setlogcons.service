@@ -7,3 +7,6 @@ ConditionPathExists=/dev/tty8
 Type=oneshot
 ExecStart=/bin/touch /dev/tty8
 ExecStart=/usr/bin/setlogcons 8
+
+[Install]
+WantedBy=getty.target
