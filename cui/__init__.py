@@ -1115,15 +1115,9 @@ class Application(ApplicationHandler):
                 self.set_kbd_layout(layout)
                 self.return_to()
 
-        def basename_wo_suffix(complete_path: str) -> str:
-            base = os.path.basename(complete_path)
-            p = Path(base)
-            while p.suffix != '':
-                p = Path(p.stem)
-            return os.path.basename(p)
-
         keyboards: Set[str] = {'de-latin1-nodeadkeys', 'us'}
-        all_kbds = [basename_wo_suffix(kbd) for kbd in os.listdir('/usr/share/kbd/keymaps/xkb/')]
+        all_kbds = [y.split('.') for x in os.walk("/usr/share/kbd/keymaps") for y in x[2]]
+        all_kbds = [x[0] for x in all_kbds if len(x) >= 2 and x[1] == "map"]
         _ = [keyboards.add(kbd) for kbd in all_kbds if re.match('^[a-z][a-z]$', kbd)]
         self.loaded_kbd = util.get_current_kbdlayout()
         keyboard_list = [self.loaded_kbd]
