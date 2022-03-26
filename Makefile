@@ -10,6 +10,7 @@ unitdir = /usr/lib/systemd/system
 install:
 	${MKDIR_P} ${DESTDIR}${pkglibexecdir} ${DESTDIR}${sbindir} ${DESTDIR}${unitdir}
 	cp -afv getty *.py ${DESTDIR}${pkglibexecdir}/
+	cp -afv setlogcons.service ${DESTDIR}${unitdir}/
 	# overwrite desired
 	cp -afv cui/*.py ${DESTDIR}${pkglibexecdir}/
 	${SED} 's!@pkglibexecdir@!${pkglibexecdir}!g' <grommunio-cui.in >${DESTDIR}${sbindir}/grommunio-cui
