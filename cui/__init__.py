@@ -639,7 +639,7 @@ class Application(ApplicationHandler):
             if type(out) is bytes:
                 out = out.decode()
             if out == "":
-                # self.message_box(err, "An error occured.", width=60, height=11)
+                # self.message_box(err, "An error occurred.", width=60, height=11)
                 self.config = {'logs': {'gromox-http': {'source': 'gromox-http.service'}}}
             else:
                 self.config = yaml.load(out, Loader=SafeLoader)
@@ -696,7 +696,7 @@ class Application(ApplicationHandler):
 
     def handle_menu_changed(self, *args, **kwargs):
         """
-        Is called additionally if item is chnaged (???).
+        Is called additionally if item is changed (???).
         TODO Check what this does exactly.  or when it is called
 
         :param args: Optional user_args.
@@ -1008,7 +1008,7 @@ class Application(ApplicationHandler):
         Prepare general menu list.
 
         :param items: A dictionary of widgets representing the menu items.
-        :return: ListBox containig menu items.
+        :return: ListBox containing menu items.
         """
         menu_items: List[MenuItem] = self.create_menu_items(items)
         return ListBox(SimpleFocusListWalker(menu_items))
@@ -1040,7 +1040,7 @@ class Application(ApplicationHandler):
     def wrap_radio(self, master: ListBox, slave: ListBox, header: Widget, title: str = None) -> LineBox:
         """
         Wraps the two ListBoxes returned by ::self::.prepare_radio_list() as master (RadioButton) and slave (content)
-        with menues header and an optional title.
+        with menus header and an optional title.
 
         :param master: The leading RadioButtons.
         :param slave: The following content widgets.
@@ -1420,7 +1420,7 @@ class Application(ApplicationHandler):
     def printf(self, *strings):
         """
         Prints multiple strings with different alignment
-        TODO implemnt a similar method
+        TODO implement a similar method
 
         Args:
             strings (tuple): A string, alignment pair
@@ -1483,7 +1483,7 @@ class Application(ApplicationHandler):
 
     def handle_standard_tab_behaviour(self, key: str = 'tab'):
         """
-        Handles standard tabulator bahaviour in dialogs. Switching from body to footer and vice versa.
+        Handles standard tabulator behaviour in dialogs. Switching from body to footer and vice versa.
 
         :param key: The key to be handled.
         """

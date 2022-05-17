@@ -292,7 +292,7 @@ class MultiMenuItem(WidgetDrawer):
     
     def handle_changed(self, *args, **kwargs):
         """
-        Is called if item is chnaged (???).
+        Is called if item is changed (???).
         TODO Check what this does exactly.  or when it is called
 
         :param args: Optional user_args.
@@ -320,7 +320,7 @@ class MultiMenuItem(WidgetDrawer):
     @classmethod
     def handle_menu_changed(cls, item: WidgetDrawer, state: bool, *args, **kwargs):
         """
-        Is called additionally if item is chnaged (???).
+        Is called additionally if item is changed (???).
         TODO Check what this does exactly.  or when it is called
         
         :param item: The calling MWidget.

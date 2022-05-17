@@ -305,10 +305,10 @@ def get_load_avg_format_list():
 
 def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
     """
-    Creates list of informations formatted in urwid stye.
+    Creates list of information formatted in urwid stye.
 
     :param which: Kind of information to return. (top or bottom)
-    :return: List of tuples or strings descibing urwid attributes and content.
+    :return: List of tuples or strings describing urwid attributes and content.
     """
     rv: List[Union[str, Tuple[str, str]]] = []
     if which == "top":
@@ -474,7 +474,7 @@ def get_palette(mode: str = 'light') -> List[Tuple[str, ...]]:
 
 
 def fast_tail(file: str, n: int = 0) -> List[str]:
-    assert n >= 0, "Line count n musst be greater equal 0."
+    assert n >= 0, "Line count n must be greater equal 0."
     pos: int = n + 1
     lines: List[str] = []
     fname: Path = Path(file)
