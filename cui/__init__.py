@@ -430,6 +430,31 @@ class Application(ApplicationHandler):
             self.open_main_menu()
 
     def key_ev_pass(self, key):
+        success_msg = 'NOTHING'
+        if key.lower().endswith('enter'):
+            if key.lower().startswith('hidden'):
+                button_type = key.lower().split(' ')[1]
+            else:
+                button_type = 'ok'
+            if button_type == 'ok':
+                res = self.reset_system_passwd(self.last_input_box_value)
+                # self.current_window = self.input_box_caller
+                success_msg = 'was successful'
+                if not res:
+                    success_msg = 'failed'
+                self.open_main_menu()
+            else:
+                success_msg = 'aborted'
+                self.open_main_menu()
+        elif key.lower().find('cancel') >= 0 or key.lower() in ['esc']:
+            success_msg = 'aborted'
+            self.open_main_menu()
+        if key.lower().endswith('enter') or key in ['esc', 'enter']:
+            self.current_window = self.input_box_caller
+            self.message_box(f'System password reset {success_msg}!',
+                             'System password reset', height=10)
+
+    def key_ev_pass_old(self, key):
         self.handle_standard_tab_behaviour(key)
         if key.lower().endswith('enter') or key == 'esc':
             self.open_main_menu()
@@ -746,20 +771,33 @@ class Application(ApplicationHandler):
         Opens password changing dialog.
         """
         self.reset_layout()
-        self.current_window = _PASSWORD
-        self.print('Opening change password dialog.')
-        self.prepare_password_dialog()
-        # footer = self.close_button_footer
-        footer = AttrMap(Columns([
-            ('weight', 1, GText('Note: Use "TAB" to jump to close.')),
-            ('weight', 1, Columns([('weight', 1, GText('')), self.close_button, ('weight', 1, GText(''))])),
-            ('weight', 1, GText(''))
-        ]), 'buttonbar')
-        self.dialog(
-            header=GText(f"Change password for user {getuser()}", align='center'),
-            body=self.password_frame, footer=footer, focus_part='body',
-            align=CENTER, valign='middle', width=80, height=25
+        self.print("Changing system password")
+        self.current_window_input_box = _PASSWORD
+        self.input_box(
+            title='System-Password Reset',
+            msg='Enter your new system password:',
+            width=60,
+            input_text="",
+            height=10,
+            mask='*',
+            view_ok=True,
+            view_cancel=True
         )
+
+    def reset_system_passwd(self, new_pw: str) -> bool:
+        if new_pw:
+            if new_pw != "":
+                proc = subprocess.Popen(['passwd'], stdin=subprocess.PIPE)
+                proc.stdin.write(f"{new_pw}\n{new_pw}\n".encode())
+                proc.stdin.flush()
+                for i in range(0,10):
+                    if proc.poll() is not None:
+                        break
+                    time.sleep(0.1)
+                proc.terminate()
+                proc.kill()
+                return proc.returncode == 0
+        return False
 
     def prepare_password_dialog(self):
         self.password = Terminal(["passwd"])
