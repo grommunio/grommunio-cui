@@ -21,7 +21,7 @@ from interface import ApplicationHandler, WidgetDrawer
 import util
 from urwid.widget import SPACE
 from urwid import AttrWrap, ExitMainLoop, Padding, Columns, ListBox, Frame, LineBox, SimpleListWalker, \
-    MainLoop, LEFT, CENTER, Filler, Pile, Button, connect_signal, AttrMap, GridFlow, Overlay, Widget, \
+    MainLoop, LEFT, CENTER, Filler, Pile, connect_signal, AttrMap, GridFlow, Overlay, Widget, \
     Terminal, SimpleFocusListWalker, set_encoding, MIDDLE, TOP, RadioButton, ListWalker, raw_display, \
     RELATIVE_100
 from systemd import journal
@@ -29,7 +29,6 @@ import datetime
 import time
 
 
-# print(sys.path)
 try:
     import asyncio
 except ImportError:
@@ -56,6 +55,7 @@ _LOG_VIEWER: str = 'LOG-VIEWER'
 _ADMIN_WEB_PW: str = 'ADMIN-WEB-PW'
 _TIMESYNCD: str = 'TIMESYNCD'
 _KEYBOARD_SWITCH: str = 'KEYBOARD_SWITCH'
+
 
 class Application(ApplicationHandler):
     """
@@ -105,7 +105,7 @@ class Application(ApplicationHandler):
         set_encoding('utf-8')
         self.screen = raw_display.Screen()
         self.old_termios = self.screen.tty_signal_keys()
-        self.blank_termios = ['undefined' for bla in range(0, 5)]
+        self.blank_termios = ['undefined' for _ in range(0, 5)]
         self.screen.tty_signal_keys(*self.blank_termios)
         self.prepare_mainscreen()
 
@@ -239,11 +239,13 @@ class Application(ApplicationHandler):
             ]),
             'timesyncd configuration': Pile([
                 GText('timesyncd', CENTER), GText(""),
-                GText('Opens a simple configurator for configuring systemd-timesyncd as a lightweight NTP client for time synchronization.')
+                GText('Opens a simple configurator for configuring systemd-timesyncd as a lightweight NTP client for '
+                      'time synchronization.')
             ]),
             'grommunio setup wizard': Pile([
                 GText('Setup wizard', CENTER), GText(""),
-                GText('Executes the grommunio-setup script for the initial configuration of grommunio databases, TLS certificates, services and the administration web user interface.')
+                GText('Executes the grommunio-setup script for the initial configuration of grommunio databases, TLS '
+                      'certificates, services and the administration web user interface.')
             ]),
             'Change admin-web password': Pile([
                 GText('Password change', CENTER), GText(""),
@@ -539,7 +541,7 @@ class Application(ApplicationHandler):
             self._hidden_input += key
             self._hidden_pos += 1
             if self._hidden_input == _UNSUPPORTED.lower():
-                self.open_unsupported()
+                self.open_log_viewer('syslog')
                 # raise ExitMainLoop()
         else:
             self._hidden_input = ""
@@ -631,8 +633,8 @@ class Application(ApplicationHandler):
         stay = False
         if (key.lower().endswith('enter') and key.lower().startswith('hidden'))\
                 or key.lower() in ['space']:
-                kbd = self.keyboard_content[menu_id - 1]
-                self.set_kbd_layout(kbd)
+            kbd = self.keyboard_content[menu_id - 1]
+            self.set_kbd_layout(kbd)
         elif key.lower() == 'esc':
             print()
         else:
@@ -654,23 +656,19 @@ class Application(ApplicationHandler):
             self.open_mainframe()
 
     def _load_journal_units(self):
-        try:
-            exe = '/usr/sbin/grammm-admin'
-            if Path('/usr/sbin/grommunio-admin').exists():
-                exe = '/usr/sbin/grommunio-admin'
-            p = subprocess.Popen([exe, "config", "dump"],
-                                 stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            out, err = p.communicate()
-            if type(out) is bytes:
-                out = out.decode()
-            if out == "":
-                # self.message_box(err, "An error occurred.", width=60, height=11)
-                self.config = {'logs': {'gromox-http': {'source': 'gromox-http.service'}}}
-            else:
-                self.config = yaml.load(out, Loader=SafeLoader)
-        except BaseException as e:
-            # use dummy config if no groadmin is there
+        exe = '/usr/sbin/grammm-admin'
+        if Path('/usr/sbin/grommunio-admin').exists():
+            exe = '/usr/sbin/grommunio-admin'
+        p = subprocess.Popen([exe, "config", "dump"],
+                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = p.communicate()
+        if type(out) is bytes:
+            out = out.decode()
+        if out == "":
+            # self.message_box(err, "An error occurred.", width=60, height=11)
             self.config = {'logs': {'gromox-http': {'source': 'gromox-http.service'}}}
+        else:
+            self.config = yaml.load(out, Loader=SafeLoader)
         self.log_units = self.config.get('logs', {'gromox-http': {'source': 'gromox-http.service'}})
         for i, k in enumerate(self.log_units.keys()):
             if k == 'Gromox http':
@@ -790,7 +788,7 @@ class Application(ApplicationHandler):
                 proc = subprocess.Popen(['passwd'], stdin=subprocess.PIPE)
                 proc.stdin.write(f"{new_pw}\n{new_pw}\n".encode())
                 proc.stdin.flush()
-                for i in range(0,10):
+                for i in range(0, 10):
                     if proc.poll() is not None:
                         break
                     time.sleep(0.1)
@@ -812,6 +810,7 @@ class Application(ApplicationHandler):
         Prepares log file viewer widget and fills last lines of file content.
 
         :param logfile: The logfile to be viewed.
+        :param lines: The number of lines to be viewed. (0 = unlimited)
         """
         filename: str = '/var/log/messages'
         if logfile == 'syslog':
@@ -832,18 +831,19 @@ class Application(ApplicationHandler):
         Prepares log file viewer widget and fills last lines of file content.
 
         :param unit: The journal unit to be viewed.
+        :param lines: The number of lines to be viewed. (0 = unlimited)
         """
         unitname: str = unit if unit.strip().endswith('.service') else f"{unit}.service"
 
-        h = 60 * 60
-        d = 24 * h
-        sincetime = time.time() - 4 * d
         r = journal.Reader()
         r.this_boot()
-        #r.log_level(sj.LOG_INFO)
+        # r.log_level(sj.LOG_INFO)
         r.add_match(_SYSTEMD_UNIT=unitname)
-        #r.seek_realtime(sincetime)
-        l = []
+        # h = 60 * 60
+        # d = 24 * h
+        # sincetime = time.time() - 4 * d
+        # r.seek_realtime(sincetime)
+        l: List[str] = []
         for entry in r:
             if entry.get('__REALTIME_TIMESTAMP', '') == "":
                 continue
@@ -992,13 +992,10 @@ class Application(ApplicationHandler):
         self.print("Login successful")
         self.current_window = _MAIN_MENU
         self.authorized_options = ', <F4> for Main-Menu'
-        colormode: str = "light" if self._current_colormode == 'dark' else 'dark'
         self.prepare_mainscreen()
-        # self.refresh_head_text(colormode, self._current_kbdlayout, self.authorized_options)
         self._body = self.main_menu
         self._loop.widget = self._body
-        menu_selected: int = self.handle_standard_menu_behaviour(self.main_menu_list, 'up',
-                                                                 self.main_menu.base_widget.body[1])
+        self.handle_standard_menu_behaviour(self.main_menu_list, 'up', self.main_menu.base_widget.body[1])
 
     def open_mainframe(self):
         """
@@ -1123,9 +1120,9 @@ class Application(ApplicationHandler):
     def set_kbd_layout(self, layout):
         # Do read the file again so newly added keys do not get lost
         file = "/etc/vconsole.conf"
-        vars = util.minishell_read(file)
-        vars["KEYMAP"] = layout
-        util.minishell_write(file, vars)
+        var = util.minishell_read(file)
+        var["KEYMAP"] = layout
+        util.minishell_write(file, var)
         os.system("systemctl restart systemd-vconsole-setup")
         self._current_kbdlayout = layout
         self.refresh_head_text(self._current_colormode, self._current_kbdlayout, self.authorized_options)
@@ -1161,16 +1158,11 @@ class Application(ApplicationHandler):
         keyboard_list = [self.loaded_kbd]
         _ = [keyboard_list.append(kbd) for kbd in sorted(keyboards) if kbd != self.loaded_kbd]
         self.keyboard_rb = []
-        self.keyboard_content = [
-            AttrMap(urwid.RadioButton(self.keyboard_rb, kbd, 'first True', sub_press), 'focus' if kbd == self.loaded_kbd else 'selectable')
-            for kbd in keyboard_list
-        ]
-        # self.keyboard_list = ListBox(SimpleListWalker(self.keyboard_content))
+        self.keyboard_content = []
+        for kbd in keyboard_list:
+            self.keyboard_content.append(AttrMap(urwid.RadioButton(self.keyboard_rb, kbd, 'first True', sub_press),
+                                                 'focus' if kbd == self.loaded_kbd else 'selectable'))
         self.keyboard_list = ScrollBar(Scrollable(Pile(self.keyboard_content)))
-        # self.keyboard_switch_body = LineBox(Padding(Filler(Pile([
-        #     GText('Select your keyboard layout.', LEFT, wrap=SPACE)
-        #     ] + [urwid.Button(kbd) for kbd in keyboards]), TOP)))
-        # self.keyboard_switch_body = LineBox(Padding(Filler(self.keyboard_list)))
         self.keyboard_switch_body = self.keyboard_list
 
     def redraw(self):
@@ -1308,12 +1300,12 @@ class Application(ApplicationHandler):
         gstring = GText(('footer', string), left=1, right=2)
         gdebug = GText(['\n', ('', f"({self.current_event})"), ('', f" on {self.current_window}")])
         mainwidth = self.screen.get_cols_rows()[0]
-        all = [clock, footerbar, avg_load]
+        footer_elements = [clock, footerbar, avg_load]
         if not self.quiet:
-            all += [gstring]
+            footer_elements += [gstring]
         content = []
         rest = []
-        for elem in all:
+        for elem in footer_elements:
             if glen([content, elem]) < mainwidth:
                 content.append(elem)
             else:
@@ -1360,13 +1352,13 @@ class Application(ApplicationHandler):
         self.current_bottom_info = string
 
     def message_box(self, msg: Any, title: str = None, align: str = CENTER, width: int = 45,
-                    valign: str = MIDDLE, height: int = 9, view_ok: bool = True, 
+                    valign: str = MIDDLE, height: int = 9, view_ok: bool = True,
                     view_cancel: bool = False):
         """
         Creates a message box dialog with an optional title. The message also can be a list of urwid formatted tuples.
 
-        To use the box as standard message box always returning to it's parent, then you have to implement something like
-        this in your event handler: (f.e. **self**.handle_event)
+        To use the box as standard message box always returning to it's parent, then you have to implement something
+        like this in your event handler: (f.e. **self**.handle_event)
 
             elif self.current_window == _MESSAGE_BOX:
                 if key.endswith('enter') or key == 'esc':
@@ -1381,12 +1373,13 @@ class Application(ApplicationHandler):
         :param width: The width of the box.
         :param valign: Vertical align.
         :param height: The height of the box.
+        :param view_ok: Should the OK button be visible?
+        :param view_cancel: Should the Cancel button be visible?
         """
         self.message_box_caller = self.current_window
         self._message_box_caller_body = self._loop.widget
         self.current_window = _MESSAGE_BOX
         body = LineBox(Padding(Filler(Pile([GText(msg, CENTER)]), TOP)))
-        # footer = self.ok_button_footer
         footer = self.create_footer(view_ok, view_cancel)
 
         if title is None:
@@ -1400,7 +1393,7 @@ class Application(ApplicationHandler):
     def input_box(self, msg: Any, title: str = None, input_text: str = "", multiline: bool = False,
                   align: str = CENTER, width: int = 45,
                   valign: str = MIDDLE, height: int = 9,
-                  mask: Union[bytes, str] = None, 
+                  mask: Union[bytes, str] = None,
                   view_ok: bool = True, view_cancel: bool = False):
         """Creates an input box dialog with an optional title and a default value. 
         The message also can be a list of urwid formatted tuples.
@@ -1426,6 +1419,8 @@ class Application(ApplicationHandler):
         :param valign: Vertical align.
         :param height: The height of the box.
         :param mask: hide text entered by this character. If None, mask will be disabled.
+        :param view_ok: Should the OK button be visible?
+        :param view_cancel: Should the Cancel button be visible?
         """
         self.input_box_caller = self.current_window
         self._input_box_caller_body = self._loop.widget
@@ -1454,24 +1449,6 @@ class Application(ApplicationHandler):
         cols += [('weight', 1, GText(''))]
         footer = AttrMap(Columns(cols), 'buttonbar')
         return footer
-    
-    def printf(self, *strings):
-        """
-        Prints multiple strings with different alignment
-        TODO implement a similar method
-
-        Args:
-            strings (tuple): A string, alignment pair
-        """
-
-        self._body_walker.append(
-            Columns(
-                [
-                    GText(string, align=align)
-                    for string, align in strings
-                ]
-            )
-        )
 
     def get_focused_menu(self, menu: ListBox, event: Any) -> int:
         """
@@ -1539,14 +1516,15 @@ class Application(ApplicationHandler):
         """
         self.debug = on
 
-    def update_clock(self, loop: MainLoop, data: Any = None):
+    def update_clock(self, cb_loop: MainLoop, data: Any = None):
         """
         Updates taskbar every second.
 
-        :param loop: The event loop calling next update_clock()
+        :param cb_loop: The event loop calling next update_clock()
+        :param data: Optional user data
         """
         self.print(self.current_bottom_info)
-        loop.set_alarm_in(1, self.update_clock)
+        cb_loop.set_alarm_in(1, self.update_clock, data)
 
     def start(self):
         """
@@ -1634,7 +1612,6 @@ def create_application():
     global _PRODUCTIVE
     set_encoding('utf-8')
     _PRODUCTIVE = True
-    app = None
     if "--help" in sys.argv:
         print(f"Usage: {sys.argv[0]} [OPTIONS]")
         print(f"\tOPTIONS:")
@@ -1656,5 +1633,5 @@ def create_application():
 
 
 if __name__ == '__main__':
-    app = create_application()
-    app.start()
+    application = create_application()
+    application.start()
