@@ -821,7 +821,8 @@ class Application(ApplicationHandler):
     def reset_system_passwd(self, new_pw: str) -> bool:
         if new_pw:
             if new_pw != "":
-                proc = subprocess.Popen(['passwd'], stdin=subprocess.PIPE)
+                proc = subprocess.Popen(['passwd'],
+                                        stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 proc.stdin.write(f"{new_pw}\n{new_pw}\n".encode())
                 proc.stdin.flush()
                 for i in range(0, 10):
