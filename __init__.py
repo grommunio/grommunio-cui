@@ -1,5 +1,5 @@
+#!/usr/bin/env python3
 """The console user interface (cui) is a console utility for configuring grommunio"""
-from cui import Application
 import cui
 
 if __name__ == '__main__':
