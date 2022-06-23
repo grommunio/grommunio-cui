@@ -596,9 +596,15 @@ class Application(ApplicationHandler):
             else:
                 button_type = 'ok'
             if button_type == 'ok':
-                res = self.reset_aapi_passwd(self.last_input_box_value)
-                # self.current_window = self.input_box_caller
                 success_msg = 'was successful'
+                pw1 = self._loop.widget.top_w.base_widget.body.base_widget[1].edit_text
+                pw2 = self._loop.widget.top_w.base_widget.body.base_widget[2].edit_text
+                if pw1 == pw2:
+                    res = self.reset_aapi_passwd(pw1)
+                else:
+                    res = 2
+                    success_msg = 'failed, because you gave two different password values'
+                # self.current_window = self.input_box_caller
                 if not res:
                     success_msg = 'failed'
                 self.open_main_menu()
@@ -608,6 +614,16 @@ class Application(ApplicationHandler):
         elif key.lower().find('cancel') >= 0 or key.lower() in ['esc']:
             success_msg = 'aborted'
             self.open_main_menu()
+        elif key.lower().endswith('tab'):
+            f: urwid.Frame = self._loop.widget.top_w.base_widget
+            if f.focus_position == 'body':
+                try:
+                    f.body.base_widget.focus_position = f.body.base_widget.focus_position + 1
+                except IndexError as e:
+                    f.focus_position = 'footer'
+            else:
+                f.body.base_widget.focus_position = 1
+                f.focus_position = 'body'
         if key.lower().endswith('enter') or key in ['esc', 'enter']:
             self.current_window = self.input_box_caller
             self.message_box(f'Admin password reset {success_msg}!',
@@ -946,18 +962,33 @@ class Application(ApplicationHandler):
         self._loop.start()
 
     def open_reset_aapi_pw(self):
-        self.reset_layout()
-        self.print("Resetting admin-web password")
-        self.current_window_input_box = _ADMIN_WEB_PW
-        self.input_box(
-            title='Admin-Web-Password Reset',
-            msg='Enter your new admin-web password:',
-            width=60,
-            input_text="",
-            height=10,
-            mask='*',
-            view_ok=True,
-            view_cancel=True
+        title = 'Admin-Web-Password Reset'
+        msg = 'Enter your new admin-web password:'
+        width = 60
+        input_text = ""
+        height = 12
+        mask = '*'
+        view_ok = True
+        view_cancel = True
+        align = CENTER
+        valign = MIDDLE
+        self.input_box_caller = self.current_window
+        self._input_box_caller_body = self._loop.widget
+        self.current_window = _ADMIN_WEB_PW
+        body = LineBox(Padding(Filler(Pile([
+            GText(msg, CENTER),
+            GEdit("", input_text, False, CENTER, mask=mask),
+            GEdit("", input_text, False, CENTER, mask=mask),
+        ]), TOP)))
+        # footer = self.ok_button_footer
+        footer = self.create_footer(view_ok, view_cancel)
+
+        if title is None:
+            title = 'Input expected'
+        self.dialog(
+            body=body, header=GText(title, CENTER),
+            footer=footer, focus_part='body',
+            align=align, width=width, valign=valign, height=height
         )
 
     def reset_aapi_passwd(self, new_pw: str) -> bool:
