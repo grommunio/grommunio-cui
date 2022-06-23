@@ -49,7 +49,7 @@ if [ $userid -eq 0 ]; then
 
   echo '#!/bin/bash' > "${tmp}/${file}"
   echo >> "${tmp}/${file}"
-  echo "export PYTHONPATH=\"\$PYTHONPATH:/opt/urwid:$(pwd)\"" >> "${tmp}/${file}"
+  echo "export PYTHONPATH=\"\$PYTHONPATH:/opt/urwid:./cui:$(pwd)\"" >> "${tmp}/${file}"
   echo >> "${tmp}/${file}"
   echo "python3 $(pwd)/cui/__init__.py \$@" >> "${tmp}/${file}"
   echo >> "${tmp}/${file}"
