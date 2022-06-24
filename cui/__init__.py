@@ -13,12 +13,12 @@ import urwid
 import yaml
 from yaml import SafeLoader
 from getpass import getuser
-from scroll import ScrollBar, Scrollable
-from button import GButton, GBoxButton
-from menu import MenuItem, MultiMenuItem
+from cui.scroll import ScrollBar, Scrollable
+from cui.button import GButton, GBoxButton
+from cui.menu import MenuItem, MultiMenuItem
 from gwidgets import GText, GEdit
-from interface import ApplicationHandler, WidgetDrawer
-import util
+from cui.interface import ApplicationHandler, WidgetDrawer
+from cui import util
 from urwid.widget import SPACE
 from urwid import AttrWrap, ExitMainLoop, Padding, Columns, ListBox, Frame, LineBox, SimpleListWalker, \
     MainLoop, LEFT, CENTER, Filler, Pile, connect_signal, AttrMap, GridFlow, Overlay, Widget, \

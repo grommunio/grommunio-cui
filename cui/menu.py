@@ -4,7 +4,7 @@
 from typing import Any, List, Dict
 from urwid import AttrMap, Columns, ListBox, RadioButton, Widget, connect_signal, emit_signal, \
     register_signal, CompositeCanvas
-from interface import ApplicationHandler, WidgetDrawer
+from cui.interface import ApplicationHandler, WidgetDrawer
 from gwidgets import GText
 
 
