@@ -121,23 +121,36 @@ class Application(ApplicationHandler):
         # self._loop.screen.set_terminal_properties(colors=256)
 
         # Login Dialog
-        self.login_header = AttrMap(GText(('header', 'Login'), align='center'), 'header')
-        self.user_edit = GEdit(("Username: ",), edit_text=getuser(), edit_pos=0)
-        self.pass_edit = GEdit("Password: ", edit_text="", edit_pos=0, mask='*')
+        self.login_header = AttrMap(
+            GText(('header', 'Login'), align='center'), 'header')
+        self.user_edit = GEdit(
+            ("Username: ",), edit_text=getuser(), edit_pos=0)
+        self.pass_edit = GEdit(
+            "Password: ",
+            edit_text="",
+            edit_pos=0,
+            mask='*')
         self.login_body = Pile([
             self.user_edit,
             # AttrMap(self.user_edit, 'MMI.selectable', 'MMI.focus'),
             self.pass_edit,
         ])
         login_button = GBoxButton("Login", self.check_login)
-        connect_signal(login_button, 'click', lambda button: self.handle_event('login enter'))
+        connect_signal(
+            login_button,
+            'click',
+            lambda button: self.handle_event('login enter'))
         # self.login_footer = GridFlow([login_button], 10, 1, 1, 'center')
-        self.login_footer = AttrMap(Columns([GText(""), login_button, GText("")]), 'buttonbar')
+        self.login_footer = AttrMap(
+            Columns([GText(""), login_button, GText("")]), 'buttonbar')
 
         # Common OK Button
         # self.ok_button = GButton("OK", self.press_button, left_end='[', right_end=']')
         self.ok_button = GBoxButton("OK", self.press_button)
-        connect_signal(self.ok_button, 'click', lambda button: self.handle_event('ok enter'))
+        connect_signal(
+            self.ok_button,
+            'click',
+            lambda button: self.handle_event('ok enter'))
         self.ok_button = (8, self.ok_button)
         self.ok_button_footer = AttrMap(Columns([
             ('weight', 1, GText('')),
@@ -147,13 +160,20 @@ class Application(ApplicationHandler):
 
         # Common Cancel Button
         self.cancel_button = GBoxButton("Cancel", self.press_button)
-        connect_signal(self.cancel_button, 'click', lambda button: self.handle_event('cancel enter'))
+        connect_signal(
+            self.cancel_button,
+            'click',
+            lambda button: self.handle_event('cancel enter'))
         self.cancel_button = (12, self.cancel_button)
-        self.cancel_button_footer = GridFlow([self.cancel_button[1]], 10, 1, 1, 'center')
+        self.cancel_button_footer = GridFlow(
+            [self.cancel_button[1]], 10, 1, 1, 'center')
 
         # Common Close Button
         self.close_button = GBoxButton("Close", self.press_button)
-        connect_signal(self.close_button, 'click', lambda button: self.handle_event('close enter'))
+        connect_signal(
+            self.close_button,
+            'click',
+            lambda button: self.handle_event('close enter'))
         self.close_button = (11, self.close_button)
         # self.close_button_footer = GridFlow([self.close_button], 10, 1, 1, 'center')
         self.close_button_footer = AttrMap(Columns([
@@ -164,39 +184,60 @@ class Application(ApplicationHandler):
 
         # Common Add Button
         self.add_button = GBoxButton("Add", self.press_button)
-        connect_signal(self.add_button, 'click', lambda button: self.handle_event('add enter'))
+        connect_signal(
+            self.add_button,
+            'click',
+            lambda button: self.handle_event('add enter'))
         self.add_button = (9, self.add_button)
-        self.add_button_footer = GridFlow([self.add_button[1]], 10, 1, 1, 'center')
+        self.add_button_footer = GridFlow(
+            [self.add_button[1]], 10, 1, 1, 'center')
 
         # Common Edit Button
         self.edit_button = GBoxButton("Edit", self.press_button)
-        connect_signal(self.edit_button, 'click', lambda button: self.handle_event('edit enter'))
+        connect_signal(
+            self.edit_button,
+            'click',
+            lambda button: self.handle_event('edit enter'))
         self.edit_button = (10, self.edit_button)
-        self.edit_button_footer = GridFlow([self.edit_button[1]], 10, 1, 1, 'center')
+        self.edit_button_footer = GridFlow(
+            [self.edit_button[1]], 10, 1, 1, 'center')
 
         # Common Details Button
         self.details_button = GBoxButton("Details", self.press_button)
-        connect_signal(self.details_button, 'click', lambda button: self.handle_event('details enter'))
+        connect_signal(
+            self.details_button,
+            'click',
+            lambda button: self.handle_event('details enter'))
         self.details_button = (13, self.details_button)
-        self.details_button_footer = GridFlow([self.details_button[1]], 10, 1, 1, 'center')
+        self.details_button_footer = GridFlow(
+            [self.details_button[1]], 10, 1, 1, 'center')
 
         # Common Toggle Button
         self.toggle_button = GBoxButton("Space to toggle", self.press_button)
         self.toggle_button._selectable = False
         self.toggle_button = (21, self.toggle_button)
-        self.toggle_button_footer = GridFlow([self.toggle_button[1]], 10, 1, 1, 'center')
+        self.toggle_button_footer = GridFlow(
+            [self.toggle_button[1]], 10, 1, 1, 'center')
 
         # Common Apply Button
         self.apply_button = GBoxButton("Apply", self.press_button)
-        connect_signal(self.apply_button, 'click', lambda button: self.handle_event('apply enter'))
+        connect_signal(
+            self.apply_button,
+            'click',
+            lambda button: self.handle_event('apply enter'))
         self.apply_button = (12, self.apply_button)
-        self.apply_button_footer = GridFlow([self.apply_button[1]], 10, 1, 1, 'center')
+        self.apply_button_footer = GridFlow(
+            [self.apply_button[1]], 10, 1, 1, 'center')
 
         # Common Save Button
         self.save_button = GBoxButton("Save", self.press_button)
-        connect_signal(self.save_button, 'click', lambda button: self.handle_event('save enter'))
+        connect_signal(
+            self.save_button,
+            'click',
+            lambda button: self.handle_event('save enter'))
         self.save_button = (10, self.save_button)
-        self.save_button_footer = GridFlow([self.save_button[1]], 10, 1, 1, 'center')
+        self.save_button_footer = GridFlow(
+            [self.save_button[1]], 10, 1, 1, 'center')
 
         self.refresh_main_menu()
 
@@ -222,20 +263,24 @@ class Application(ApplicationHandler):
 
     def refresh_main_menu(self):
         # The common menu description column
-        self.menu_description = Pile([GText('Main Menu', CENTER), GText('Here you can do the main actions', LEFT)])
+        self.menu_description = Pile(
+            [GText('Main Menu', CENTER), GText('Here you can do the main actions', LEFT)])
         # Main Menu
         items = {
             'Change system password': Pile([
                 GText('Password change', CENTER), GText(""),
-                GText(f'Opens a dialog for changing the password of the Linux system user "{getuser()}".')
+                GText(
+                    f'Opens a dialog for changing the password of the Linux system user "{getuser()}".')
             ]),
             'Network interface configuration': Pile([
                 GText('Configuration of network', CENTER), GText(""),
-                GText('Opens the yast2 configurator for setting up devices, interfaces, IP addresses, DNS and more.')
+                GText(
+                    'Opens the yast2 configurator for setting up devices, interfaces, IP addresses, DNS and more.')
             ]),
             'Timezone configuration': Pile([
                 GText('Timezone', CENTER), GText(""),
-                GText('Opens the yast2 configurator for setting country and timezone settings.')
+                GText(
+                    'Opens the yast2 configurator for setting country and timezone settings.')
             ]),
             'timesyncd configuration': Pile([
                 GText('timesyncd', CENTER), GText(""),
@@ -249,7 +294,8 @@ class Application(ApplicationHandler):
             ]),
             'Change admin-web password': Pile([
                 GText('Password change', CENTER), GText(""),
-                GText('Opens a dialog for changing the password used by the administration web interface.')
+                GText(
+                    'Opens a dialog for changing the password used by the administration web interface.')
             ]),
             'Terminal': Pile([
                 GText('Terminal', CENTER), GText(""),
@@ -270,18 +316,21 @@ class Application(ApplicationHandler):
 
     def recreate_text_header(self):
         self.tb_header = GText(
-            ''.join(self.text_header).format(colormode=self._current_colormode,
-                                             kbd=self._current_kbdlayout,
-                                             authorized_options=self.authorized_options),
-            align=CENTER, wrap=SPACE
-        )
+            ''.join(
+                self.text_header).format(
+                colormode=self._current_colormode,
+                kbd=self._current_kbdlayout,
+                authorized_options=self.authorized_options),
+            align=CENTER,
+            wrap=SPACE)
 
     def prepare_mainscreen(self):
         # colormode: str = "light" if self._current_colormode == 'dark' else 'dark'
         colormode: str = self._current_colormode
         self.text_header = [u"grommunio console user interface"]
         self.text_header += ['\n']
-        self.text_header += [u"Active keyboard layout: {kbd}; color set: {colormode}."]
+        self.text_header += [
+            u"Active keyboard layout: {kbd}; color set: {colormode}."]
         self.authorized_options = ''
         text_intro = [
             u"\n",
@@ -291,30 +340,50 @@ class Application(ApplicationHandler):
         text_sysinfo_top = util.get_system_info("top")
         self.tb_sysinfo_top = GText(text_sysinfo_top, align=LEFT, wrap=SPACE)
         text_sysinfo_bottom = util.get_system_info("bottom")
-        self.tb_sysinfo_bottom = GText(text_sysinfo_bottom, align=LEFT, wrap=SPACE)
+        self.tb_sysinfo_bottom = GText(
+            text_sysinfo_bottom, align=LEFT, wrap=SPACE)
         self.main_top = ScrollBar(Scrollable(
             Pile([
                 Padding(self.tb_intro, left=2, right=2, min_width=20),
                 Padding(self.tb_sysinfo_top, align=LEFT, left=6, width=('relative', 80))
             ])
         ))
-        self.main_bottom = ScrollBar(Scrollable(
-            Pile([AttrWrap(Padding(self.tb_sysinfo_bottom, align=LEFT, left=6, width=('relative', 80)), 'reverse')])
-        ))
+        self.main_bottom = ScrollBar(
+            Scrollable(
+                Pile(
+                    [
+                        AttrWrap(
+                            Padding(
+                                self.tb_sysinfo_bottom,
+                                align=LEFT,
+                                left=6,
+                                width=(
+                                    'relative',
+                                    80)),
+                            'reverse')])))
         self.tb_header = GText(
-            ''.join(self.text_header).format(colormode=colormode, kbd=self._current_kbdlayout,
-                                             authorized_options=''),
-            align=CENTER, wrap=SPACE
-        )
+            ''.join(
+                self.text_header).format(
+                colormode=colormode,
+                kbd=self._current_kbdlayout,
+                authorized_options=''),
+            align=CENTER,
+            wrap=SPACE)
         self.refresh_header(colormode, self._current_kbdlayout, '')
         # self.tb_header = GText(self.text_header.format(colormode=colormode, kbd=self._current_kbdlayout,
-        #                                                authorized_options=''), align=CENTER, wrap=SPACE)
-        self.vsplitbox = Pile([("weight", 50, AttrMap(self.main_top, "body")), ("weight", 50, self.main_bottom)])
+        # authorized_options=''), align=CENTER, wrap=SPACE)
+        self.vsplitbox = Pile([("weight", 50, AttrMap(
+            self.main_top, "body")), ("weight", 50, self.main_bottom)])
         # self.footer = AttrMap(self.footer_text, 'footer')
         # self.footer = Frame(ListBox(SimpleListWalker(self.footer_content)))
         self.footer = Pile(self.footer_content)
         # frame = Frame(AttrMap(self.vsplitbox, 'body'), header=self.header, footer=self.footer)
-        frame = Frame(AttrMap(self.vsplitbox, 'reverse'), header=self.header, footer=self.footer)
+        frame = Frame(
+            AttrMap(
+                self.vsplitbox,
+                'reverse'),
+            header=self.header,
+            footer=self.footer)
         self.mainframe = frame
         self._body = self.mainframe
         self.print("Idle")
@@ -326,8 +395,12 @@ class Application(ApplicationHandler):
             self.refresh_main_menu()
 
     def refresh_head_text(self, colormode, kbd, authorized_options):
-        self.tb_header.set_text(''.join(self.text_header).format(colormode=colormode, kbd=kbd,
-                                                                 authorized_options=authorized_options))
+        self.tb_header.set_text(
+            ''.join(
+                self.text_header).format(
+                colormode=colormode,
+                kbd=kbd,
+                authorized_options=authorized_options))
 
     def listen_unsupported(self, what: str, key: Any):
         self.print(f"What is {what}.")
@@ -388,10 +461,20 @@ class Application(ApplicationHandler):
     def key_ev_main(self, key):
         if key == 'f2':
             if util.check_if_password_is_set(getuser()):
-                self.login_body.focus_position = 0 if getuser() == '' else 1  # focus on passwd if user detected
-                self.dialog(body=LineBox(Padding(Filler(self.login_body))), header=self.login_header,
-                            footer=self.login_footer, focus_part='body', align='center', valign='middle',
-                            width=40, height=10)
+                self.login_body.focus_position = 0 if getuser(
+                ) == '' else 1  # focus on passwd if user detected
+                self.dialog(
+                    body=LineBox(
+                        Padding(
+                            Filler(
+                                self.login_body))),
+                    header=self.login_header,
+                    footer=self.login_footer,
+                    focus_part='body',
+                    align='center',
+                    valign='middle',
+                    width=40,
+                    height=10)
                 self.current_window = _LOGIN
             else:
                 self.open_main_menu()
@@ -414,7 +497,8 @@ class Application(ApplicationHandler):
         self.handle_standard_tab_behaviour(key)
         if key.endswith('enter') or key == 'esc':
             if key.lower().endswith('enter'):
-                self.last_input_box_value = self._loop.widget.top_w.base_widget.body.base_widget[1].edit_text
+                self.last_input_box_value = self._loop.widget.top_w.base_widget.body.base_widget[
+                    1].edit_text
             else:
                 self.last_input_box_value = ""
             self.current_window = self.current_window_input_box
@@ -486,7 +570,8 @@ class Application(ApplicationHandler):
 
     def key_ev_reboot(self, key):
         # Restore cursor etc. before going off.
-        if key.endswith('enter') and self.last_pressed_button.lower().endswith('ok'):
+        if key.endswith(
+                'enter') and self.last_pressed_button.lower().endswith('ok'):
             self._loop.stop()
             self.screen.tty_signal_keys(*self.old_termios)
             os.system("reboot")
@@ -496,7 +581,8 @@ class Application(ApplicationHandler):
 
     def key_ev_shutdown(self, key):
         # Restore cursor etc. before going off.
-        if key.endswith('enter') and self.last_pressed_button.lower().endswith('ok'):
+        if key.endswith(
+                'enter') and self.last_pressed_button.lower().endswith('ok'):
             self._loop.stop()
             self.screen.tty_signal_keys(*self.old_termios)
             os.system("poweroff")
@@ -505,8 +591,8 @@ class Application(ApplicationHandler):
             self.current_window = _MAIN_MENU
 
     def key_ev_mainmenu(self, key):
-        menu_selected: int = self.handle_standard_menu_behaviour(self.main_menu_list, key,
-                                                                 self.main_menu.base_widget.body[1])
+        menu_selected: int = self.handle_standard_menu_behaviour(
+            self.main_menu_list, key, self.main_menu.base_widget.body[1])
         if key.endswith('enter') or key in range(ord('1'), ord('9') + 1):
             if menu_selected == 1:
                 self.open_change_password()
@@ -552,7 +638,10 @@ class Application(ApplicationHandler):
                 self.current_log_unit = 0
             elif self.current_log_unit >= len(self.log_units):
                 self.current_log_unit = len(self.log_units) - 1
-            self.open_log_viewer(self.get_log_unit_by_id(self.current_log_unit), self.log_line_count)
+            self.open_log_viewer(
+                self.get_log_unit_by_id(
+                    self.current_log_unit),
+                self.log_line_count)
         elif self._hidden_pos < len(_UNSUPPORTED) and key == _UNSUPPORTED.lower()[self._hidden_pos]:
             self._hidden_input += key
             self._hidden_pos += 1
@@ -641,9 +730,14 @@ class Application(ApplicationHandler):
                 # Save config and return to mainmenu
                 self.timesyncd_vars['NTP'] = self.timesyncd_body.base_widget[1].edit_text
                 self.timesyncd_vars['FallbackNTP'] = self.timesyncd_body.base_widget[2].edit_text
-                util.minishell_write('/etc/systemd/timesyncd.conf', self.timesyncd_vars)
-                rc = subprocess.Popen(["timedatectl", "set-ntp", "true"],
-                                      stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+                util.minishell_write(
+                    '/etc/systemd/timesyncd.conf',
+                    self.timesyncd_vars)
+                rc = subprocess.Popen(["timedatectl",
+                                       "set-ntp",
+                                       "true"],
+                                      stderr=subprocess.DEVNULL,
+                                      stdout=subprocess.DEVNULL)
                 res = rc.wait() == 0
                 success_msg = 'was successful'
                 if not res:
@@ -661,10 +755,11 @@ class Application(ApplicationHandler):
 
     def key_ev_kbd_switch(self, key: str):
         self.handle_standard_tab_behaviour(key)
-        menu_id = self.handle_standard_menu_behaviour(self.keyboard_switch_body, key)
+        menu_id = self.handle_standard_menu_behaviour(
+            self.keyboard_switch_body, key)
         stay = False
-        if (key.lower().endswith('enter') and key.lower().startswith('hidden'))\
-                or key.lower() in ['space']:
+        if (key.lower().endswith('enter') and key.lower().startswith(
+                'hidden')) or key.lower() in ['space']:
             kbd = self.keyboard_content[menu_id - 1]
             self.set_kbd_layout(kbd)
         elif key.lower() == 'esc':
@@ -675,7 +770,8 @@ class Application(ApplicationHandler):
             self.return_to()
 
     def handle_mouse_event(self, event: Any):
-        # event is a mouse event in the form ('mouse press or release', button, column, line)
+        # event is a mouse event in the form ('mouse press or release', button,
+        # column, line)
         event: Tuple[str, float, int, int] = tuple(event)
         if event[0] == 'mouse press' and event[1] == 1:
             # self.handle_event('mouseclick left enter')
@@ -691,17 +787,23 @@ class Application(ApplicationHandler):
         exe = '/usr/sbin/grammm-admin'
         if Path('/usr/sbin/grommunio-admin').exists():
             exe = '/usr/sbin/grommunio-admin'
-        p = subprocess.Popen([exe, "config", "dump"],
-                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p = subprocess.Popen([exe,
+                              "config",
+                              "dump"],
+                             stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
         out, err = p.communicate()
         if type(out) is bytes:
             out = out.decode()
         if out == "":
             # self.message_box(err, "An error occurred.", width=60, height=11)
-            self.config = {'logs': {'gromox-http': {'source': 'gromox-http.service'}}}
+            self.config = {
+                'logs': {'gromox-http': {'source': 'gromox-http.service'}}}
         else:
             self.config = yaml.load(out, Loader=SafeLoader)
-        self.log_units = self.config.get('logs', {'gromox-http': {'source': 'gromox-http.service'}})
+        self.log_units = self.config.get(
+            'logs', {'gromox-http': {'source': 'gromox-http.service'}})
         for i, k in enumerate(self.log_units.keys()):
             if k == 'Gromox http':
                 self.current_log_unit = i
@@ -714,8 +816,16 @@ class Application(ApplicationHandler):
         #             'mi-default': {
         #                 'format': '[%(asctime)s] [%(levelname)s] (%(module)s): "%(message)s"'
         #             }}}}
-        default = self.config.get('logging', {}).get('formatters', {}).get('mi-default', {})
-        return default.get('format', '[%(asctime)s] [%(levelname)s] (%(module)s): "%(message)s"')
+        default = self.config.get(
+            'logging',
+            {}).get(
+            'formatters',
+            {}).get(
+            'mi-default',
+            {})
+        return default.get(
+            'format',
+            '[%(asctime)s] [%(levelname)s] (%(module)s): "%(message)s"')
 
     def get_log_unit_by_id(self, id) -> str:
         for i, k in enumerate(self.log_units.keys()):
@@ -757,7 +867,8 @@ class Application(ApplicationHandler):
         :param args: Optional user_args.
         :param kwargs: Optional keyword args
         """
-        self.print(f"Called handle_menu_changed() with args({args}) und kwargs({kwargs})")
+        self.print(
+            f"Called handle_menu_changed() with args({args}) und kwargs({kwargs})")
 
     def handle_menu_activated(self, *args, **kwargs):
         """
@@ -767,7 +878,8 @@ class Application(ApplicationHandler):
         :param args: Optional user_args.
         :param kwargs: Optional keyword args
         """
-        self.print(f"Called handle_menu_activated() with args({args}) und kwargs({kwargs})")
+        self.print(
+            f"Called handle_menu_activated() with args({args}) und kwargs({kwargs})")
 
     def open_terminal(self):
         """
@@ -776,7 +888,8 @@ class Application(ApplicationHandler):
         self._loop.stop()
         self.screen.tty_signal_keys(*self.old_termios)
         print("\x1b[K")
-        print("\x1b[K \x1b[36m▼\x1b[0m To return to the CUI, issue the `exit` command.")
+        print(
+            "\x1b[K \x1b[36m▼\x1b[0m To return to the CUI, issue the `exit` command.")
         print("\x1b[J")
         # We have no environment, and so need su instead of just bash to launch
         # a proper PAM session and set $HOME, etc.
@@ -788,13 +901,25 @@ class Application(ApplicationHandler):
         msg = "Are you sure?\nAfter pressing OK, the system will reboot."
         title = 'Reboot'
         self.current_window = _REBOOT
-        self.message_box(msg, title, width=80, height=10, view_ok=True, view_cancel=True)
+        self.message_box(
+            msg,
+            title,
+            width=80,
+            height=10,
+            view_ok=True,
+            view_cancel=True)
 
     def shutdown_confirm(self):
         msg = "Are you sure?\nAfter pressing OK, the system will shut down and power off."
         title = "Shutdown"
         self.current_window = _SHUTDOWN
-        self.message_box(msg, title, width=80, height=10, view_ok=True, view_cancel=True)
+        self.message_box(
+            msg,
+            title,
+            width=80,
+            height=10,
+            view_ok=True,
+            view_cancel=True)
 
     def open_change_password(self):
         """
@@ -837,8 +962,11 @@ class Application(ApplicationHandler):
     def reset_system_passwd(self, new_pw: str) -> bool:
         if new_pw:
             if new_pw != "":
-                proc = subprocess.Popen(['passwd'],
-                                        stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                proc = subprocess.Popen(
+                    ['passwd'],
+                    stdin=subprocess.PIPE,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL)
                 proc.stdin.write(f"{new_pw}\n{new_pw}\n".encode())
                 proc.stdin.flush()
                 for i in range(0, 10):
@@ -876,8 +1004,10 @@ class Application(ApplicationHandler):
         if log.exists():
             # self.log_file_content = log.read_text('utf-8')[:lines * -1]
             if os.access(str(log), os.R_OK):
-                self.log_file_content = util.fast_tail(str(log.absolute()), lines)
-        self.log_viewer = LineBox(Pile([ScrollBar(Scrollable(Pile([GText(line) for line in self.log_file_content])))]))
+                self.log_file_content = util.fast_tail(
+                    str(log.absolute()), lines)
+        self.log_viewer = LineBox(Pile(
+            [ScrollBar(Scrollable(Pile([GText(line) for line in self.log_file_content])))]))
 
     def prepare_log_viewer(self, unit: str = 'syslog', lines: int = 0):
         """
@@ -886,7 +1016,8 @@ class Application(ApplicationHandler):
         :param unit: The journal unit to be viewed.
         :param lines: The number of lines to be viewed. (0 = unlimited)
         """
-        unitname: str = unit if unit.strip().endswith('.service') else f"{unit}.service"
+        unitname: str = unit if unit.strip().endswith(
+            '.service') else f"{unit}.service"
 
         r = journal.Reader()
         r.this_boot()
@@ -901,11 +1032,24 @@ class Application(ApplicationHandler):
             if entry.get('__REALTIME_TIMESTAMP', '') == "":
                 continue
             d = {
-                'asctime': entry.get('__REALTIME_TIMESTAMP', datetime.datetime(1970, 1, 1, 0, 0, 0)).isoformat(),
-                'levelname': entry.get('PRIORITY', ''),
-                'module': entry.get('_SYSTEMD_UNIT', 'gromox-http.service').split('.service')[0],
-                'message': entry.get('MESSAGE', '')
-            }
+                'asctime': entry.get(
+                    '__REALTIME_TIMESTAMP',
+                    datetime.datetime(
+                        1970,
+                        1,
+                        1,
+                        0,
+                        0,
+                        0)).isoformat(),
+                'levelname': entry.get(
+                    'PRIORITY',
+                    ''),
+                'module': entry.get(
+                    '_SYSTEMD_UNIT',
+                    'gromox-http.service').split('.service')[0],
+                'message': entry.get(
+                        'MESSAGE',
+                    '')}
             l.append(self.get_logging_formatter() % d)
             # ll = entry.get('NM_LOG_LEVEL', 'None')
 #             l.append(f"""\
@@ -955,7 +1099,8 @@ class Application(ApplicationHandler):
         self._loop.stop()
         self.screen.tty_signal_keys(*self.old_termios)
         print("\x1b[K")
-        print("\x1b[K \x1b[36m▼\x1b[0m Please wait while `yast2 {}` is being run.".format(modulename))
+        print("\x1b[K \x1b[36m▼\x1b[0m Please wait while `yast2 {}` is being run.".format(
+            modulename))
         print("\x1b[J")
         os.system("yast2 {}".format(modulename))
         self.screen.tty_signal_keys(*self.blank_termios)
@@ -997,8 +1142,12 @@ class Application(ApplicationHandler):
                 exe = 'grammm-admin'
                 if Path('/usr/sbin/grommunio-admin').exists():
                     exe = 'grommunio-admin'
-                proc = subprocess.Popen([exe, 'passwd', '--password', new_pw],
-                                        stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+                proc = subprocess.Popen([exe,
+                                         'passwd',
+                                         '--password',
+                                         new_pw],
+                                        stderr=subprocess.DEVNULL,
+                                        stdout=subprocess.DEVNULL)
 
                 return proc.wait() == 0
         return False
@@ -1009,7 +1158,8 @@ class Application(ApplicationHandler):
         self.current_window = _TIMESYNCD
         header = AttrMap(GText('Timesyncd Configuration', CENTER), 'header')
         self.prepare_timesyncd_config()
-        footer = AttrMap(Columns([self.ok_button, self.cancel_button]), 'buttonbar')
+        footer = AttrMap(
+            Columns([self.ok_button, self.cancel_button]), 'buttonbar')
         self.dialog(
             body=AttrMap(self.timesyncd_body, 'body'), header=header,
             footer=footer, focus_part='body',
@@ -1025,15 +1175,21 @@ class Application(ApplicationHandler):
             '0.opensuse.pool.ntp.org', '1.opensuse.pool.ntp.org',
             '2.opensuse.pool.ntp.org', '3.opensuse.pool.ntp.org'
         ]
-        self.timesyncd_vars = util.minishell_read('/etc/systemd/timesyncd.conf')
+        self.timesyncd_vars = util.minishell_read(
+            '/etc/systemd/timesyncd.conf')
         ntp_from_file = self.timesyncd_vars.get('NTP', ' '.join(ntp_server))
-        fallback_from_file = self.timesyncd_vars.get('FallbackNTP', ' '.join(fallback_server))
+        fallback_from_file = self.timesyncd_vars.get(
+            'FallbackNTP', ' '.join(fallback_server))
         ntp_server = ntp_from_file.split(' ')
         fallback_server = fallback_from_file.split(' ')
         self.timesyncd_body = LineBox(Padding(Filler(Pile([
-            GText('Insert your NTP servers separated by <SPACE> char.', LEFT, wrap=SPACE),
+            GText(
+                'Insert your NTP servers separated by <SPACE> char.',
+                LEFT,
+                wrap=SPACE),
             GEdit((15, 'NTP: '), ' '.join(ntp_server), wrap=SPACE),
-            GEdit((15, 'FallbackNTP: '), ' '.join(fallback_server), wrap=SPACE),
+            GEdit((15, 'FallbackNTP: '), ' '.join(
+                fallback_server), wrap=SPACE),
             # GEdit(('pack', 'packTest: '), ' '.join(fallback_server), wrap=SPACE),
             # GEdit(('weight', 5, '5weightTest: '), ' '.join(fallback_server), wrap=SPACE),
             # GEdit(('weight', 15, '15weightTest: '), ' '.join(fallback_server), wrap=SPACE),
@@ -1063,7 +1219,8 @@ class Application(ApplicationHandler):
         self.prepare_mainscreen()
         self._body = self.main_menu
         self._loop.widget = self._body
-        self.handle_standard_menu_behaviour(self.main_menu_list, 'up', self.main_menu.base_widget.body[1])
+        self.handle_standard_menu_behaviour(
+            self.main_menu_list, 'up', self.main_menu.base_widget.body[1])
 
     def open_mainframe(self):
         """
@@ -1080,16 +1237,22 @@ class Application(ApplicationHandler):
         Checks login data and switch to authenticate on if successful.
         """
         if self.user_edit.get_edit_text() != getuser() and os.getegid() != 0:
-            self.message_box("You need root privileges to use another user.", height=10)
+            self.message_box(
+                "You need root privileges to use another user.",
+                height=10)
             return
         msg = f"checking user {self.user_edit.get_edit_text()} with pass ***** ..."
         if self.current_window == _LOGIN:
-            if util.authenticate_user(self.user_edit.get_edit_text(), self.pass_edit.get_edit_text()):
+            if util.authenticate_user(
+                    self.user_edit.get_edit_text(),
+                    self.pass_edit.get_edit_text()):
                 self.pass_edit.set_edit_text("")
                 self.open_main_menu()
             else:
                 # self.message_box(f'You have taken a wrong password, {self.user_edit.get_edit_text()}!')
-                self.message_box('Incorrect credentials. Access denied!', 'Password verification')
+                self.message_box(
+                    'Incorrect credentials. Access denied!',
+                    'Password verification')
                 self.print(f"Login wrong! ({msg})")
 
     def press_button(self, button: Widget, *args, **kwargs):
@@ -1099,11 +1262,18 @@ class Application(ApplicationHandler):
         :param button: The button been clicked.
         """
         label: str = "UNKNOWN LABEL"
-        if isinstance(button, RadioButton) or isinstance(button, WidgetDrawer) or isinstance(button, GButton):
+        if isinstance(
+                button,
+                RadioButton) or isinstance(
+                button,
+                WidgetDrawer) or isinstance(
+                button,
+                GButton):
             label = button.label
         self.last_pressed_button = label
         if self.current_window not in [_MAIN]:
-            self.print(f"{self.__class__}.press_button(button={button}, *args={args}, kwargs={kwargs})")
+            self.print(
+                f"{self.__class__}.press_button(button={button}, *args={args}, kwargs={kwargs})")
             self.handle_event(f"{label} enter")
 
     def prepare_menu_list(self, items: Dict[str, Widget]) -> ListBox:
@@ -1117,14 +1287,13 @@ class Application(ApplicationHandler):
         return ListBox(SimpleFocusListWalker(menu_items))
 
     def menu_to_frame(self, listbox: ListBox):
-        menu = Columns([
-            AttrMap(listbox, 'body'),
-            AttrMap(ListBox(SimpleListWalker([self.menu_description])), 'reverse'),
-        ])
+        menu = Columns([AttrMap(listbox, 'body'), AttrMap(
+            ListBox(SimpleListWalker([self.menu_description])), 'reverse'), ])
         menu[1]._selectable = False
         return Frame(menu, header=self.header, footer=self.footer)
 
-    def prepare_radio_list(self, items: Dict[str, Widget]) -> Tuple[ListBox, ListBox]:
+    def prepare_radio_list(
+            self, items: Dict[str, Widget]) -> Tuple[ListBox, ListBox]:
         """
         Prepares general radio list containing RadioButtons and content.
 
@@ -1137,10 +1306,21 @@ class Application(ApplicationHandler):
         radio_walker: ListWalker = SimpleListWalker(radio_items)
         content_walker: ListWalker = SimpleListWalker(radio_content)
         if len(radio_items) > 0:
-            connect_signal(radio_walker, 'modified', self.handle_event, user_args=[radio_walker, radio_items])
+            connect_signal(
+                radio_walker,
+                'modified',
+                self.handle_event,
+                user_args=[
+                    radio_walker,
+                    radio_items])
         return ListBox(radio_walker), ListBox(content_walker)
 
-    def wrap_radio(self, master: ListBox, slave: ListBox, header: Widget, title: str = None) -> LineBox:
+    def wrap_radio(
+            self,
+            master: ListBox,
+            slave: ListBox,
+            header: Widget,
+            title: str = None) -> LineBox:
         """
         Wraps the two ListBoxes returned by ::self::.prepare_radio_list() as master (RadioButton) and slave (content)
         with menus header and an optional title.
@@ -1165,7 +1345,10 @@ class Application(ApplicationHandler):
         p = util.get_palette(mode)
         self._current_colormode = mode
         colormode: str = "light" if self._current_colormode == 'dark' else 'dark'
-        self.refresh_header(colormode, self._current_kbdlayout, self.authorized_options)
+        self.refresh_header(
+            colormode,
+            self._current_kbdlayout,
+            self.authorized_options)
         self._loop.screen.register_palette(p)
         self._loop.screen.clear()
 
@@ -1175,7 +1358,10 @@ class Application(ApplicationHandler):
         p = util.get_palette(n)
         # show_next = util.get_next_palette_name(n)
         show_next = n
-        self.refresh_header(show_next, self._current_kbdlayout, self.authorized_options)
+        self.refresh_header(
+            show_next,
+            self._current_kbdlayout,
+            self.authorized_options)
         self._loop.screen.register_palette(p)
         self._loop.screen.clear()
         self._current_colormode = show_next
@@ -1193,7 +1379,10 @@ class Application(ApplicationHandler):
         util.minishell_write(file, var)
         os.system("systemctl restart systemd-vconsole-setup")
         self._current_kbdlayout = layout
-        self.refresh_head_text(self._current_colormode, self._current_kbdlayout, self.authorized_options)
+        self.refresh_head_text(
+            self._current_colormode,
+            self._current_kbdlayout,
+            self.authorized_options)
 
     def open_keyboard_selection_menu(self):
         self.reset_layout()
@@ -1219,17 +1408,26 @@ class Application(ApplicationHandler):
                 self.return_to()
 
         keyboards: Set[str] = {'de-latin1-nodeadkeys', 'us'}
-        all_kbds = [y.split('.') for x in os.walk("/usr/share/kbd/keymaps") for y in x[2]]
+        all_kbds = [y.split('.') for x in os.walk(
+            "/usr/share/kbd/keymaps") for y in x[2]]
         all_kbds = [x[0] for x in all_kbds if len(x) >= 2 and x[1] == "map"]
-        _ = [keyboards.add(kbd) for kbd in all_kbds if re.match('^[a-z][a-z]$', kbd)]
+        _ = [keyboards.add(kbd)
+             for kbd in all_kbds if re.match('^[a-z][a-z]$', kbd)]
         self.loaded_kbd = util.get_current_kbdlayout()
         keyboard_list = [self.loaded_kbd]
-        _ = [keyboard_list.append(kbd) for kbd in sorted(keyboards) if kbd != self.loaded_kbd]
+        _ = [keyboard_list.append(kbd) for kbd in sorted(
+            keyboards) if kbd != self.loaded_kbd]
         self.keyboard_rb = []
         self.keyboard_content = []
         for kbd in keyboard_list:
-            self.keyboard_content.append(AttrMap(urwid.RadioButton(self.keyboard_rb, kbd, 'first True', sub_press),
-                                                 'focus' if kbd == self.loaded_kbd else 'selectable'))
+            self.keyboard_content.append(
+                AttrMap(
+                    urwid.RadioButton(
+                        self.keyboard_rb,
+                        kbd,
+                        'first True',
+                        sub_press),
+                    'focus' if kbd == self.loaded_kbd else 'selectable'))
         self.keyboard_list = ScrollBar(Scrollable(Pile(self.keyboard_content)))
         self.keyboard_switch_body = self.keyboard_list
 
@@ -1262,7 +1460,8 @@ class Application(ApplicationHandler):
             menu_items.append(AttrMap(item, 'selectable', 'focus'))
         return menu_items
 
-    def create_radiobutton_items(self, items: Dict[str, Widget]) -> Tuple[List[RadioButton], List[Widget]]:
+    def create_radiobutton_items(
+            self, items: Dict[str, Widget]) -> Tuple[List[RadioButton], List[Widget]]:
         """
         Takes a dictionary with menu labels as keys and widget(lists) as content and creates a tuple of two lists.
         One list of leading RadioButtons and the second list contains the following widget..
@@ -1275,12 +1474,20 @@ class Application(ApplicationHandler):
         my_items: List[RadioButton] = []
         my_items_content: List[Widget] = []
         for id, caption in enumerate(items.keys(), 1):
-            item = RadioButton(menu_items, caption, on_state_change=self.handle_click)
+            item = RadioButton(
+                menu_items,
+                caption,
+                on_state_change=self.handle_click)
             my_items.append(AttrMap(item, 'MMI-selectable', 'MMI.focus'))
-            my_items_content.append(AttrMap(items.get(caption), 'MMI-selectable', 'MMI.focus'))
+            my_items_content.append(
+                AttrMap(
+                    items.get(caption),
+                    'MMI-selectable',
+                    'MMI.focus'))
         return my_items, my_items_content
 
-    def create_multi_menu_items(self, items: Dict[str, Widget], selected: str = None) -> List[MultiMenuItem]:
+    def create_multi_menu_items(
+            self, items: Dict[str, Widget], selected: str = None) -> List[MultiMenuItem]:
         """
         Takes a dictionary with menu labels as keys and widget(lists) as content and creates a list of multi menu items
         with being one selected..
@@ -1301,14 +1508,21 @@ class Application(ApplicationHandler):
                     state = False
             else:
                 state = 'first True'
-            item = MultiMenuItem(menu_items, id, caption_wo_no, items.get(caption), state=state,
-                                 on_state_change=MultiMenuItem.handle_menu_changed, app=self)
+            item = MultiMenuItem(
+                menu_items,
+                id,
+                caption_wo_no,
+                items.get(caption),
+                state=state,
+                on_state_change=MultiMenuItem.handle_menu_changed,
+                app=self)
             my_items.append(item)
             # connect_signal(item, 'activate', self.handle_event)
             # menu_items.append(AttrMap(item, 'selectable', 'focus'))
         return my_items
 
-    def create_multi_menu_listbox(self, menu_list: List[MultiMenuItem]) -> ListBox:
+    def create_multi_menu_listbox(
+            self, menu_list: List[MultiMenuItem]) -> ListBox:
         """
         Creates general listbox of multi menu items from list of multi menu items.
 
@@ -1321,7 +1535,11 @@ class Application(ApplicationHandler):
             item.set_parent_listbox(listbox)
         return listbox
 
-    def wrap_multi_menu_listbox(self, listbox: ListBox, header: Widget = None, title: str = None) -> LineBox:
+    def wrap_multi_menu_listbox(
+            self,
+            listbox: ListBox,
+            header: Widget = None,
+            title: str = None) -> LineBox:
         """
         Wraps general listbox of multi menu items with a linebox.
 
@@ -1366,7 +1584,8 @@ class Application(ApplicationHandler):
         footerbar = GText(util.get_footerbar(2, 10), left=1, right=0)
         avg_load = GText(util.get_load_avg_format_list(), left=1, right=2)
         gstring = GText(('footer', string), left=1, right=2)
-        gdebug = GText(['\n', ('', f"({self.current_event})"), ('', f" on {self.current_window}")])
+        gdebug = GText(
+            ['\n', ('', f"({self.current_event})"), ('', f" on {self.current_window}")])
         mainwidth = self.screen.get_cols_rows()[0]
         footer_elements = [clock, footerbar, avg_load]
         if not self.quiet:
@@ -1419,9 +1638,16 @@ class Application(ApplicationHandler):
         # self.footer_text.set_text([self.footer_content])
         self.current_bottom_info = string
 
-    def message_box(self, msg: Any, title: str = None, align: str = CENTER, width: int = 45,
-                    valign: str = MIDDLE, height: int = 9, view_ok: bool = True,
-                    view_cancel: bool = False):
+    def message_box(
+            self,
+            msg: Any,
+            title: str = None,
+            align: str = CENTER,
+            width: int = 45,
+            valign: str = MIDDLE,
+            height: int = 9,
+            view_ok: bool = True,
+            view_cancel: bool = False):
         """
         Creates a message box dialog with an optional title. The message also can be a list of urwid formatted tuples.
 
@@ -1458,12 +1684,20 @@ class Application(ApplicationHandler):
             align=align, width=width, valign=valign, height=height
         )
 
-    def input_box(self, msg: Any, title: str = None, input_text: str = "", multiline: bool = False,
-                  align: str = CENTER, width: int = 45,
-                  valign: str = MIDDLE, height: int = 9,
-                  mask: Union[bytes, str] = None,
-                  view_ok: bool = True, view_cancel: bool = False):
-        """Creates an input box dialog with an optional title and a default value. 
+    def input_box(self,
+                  msg: Any,
+                  title: str = None,
+                  input_text: str = "",
+                  multiline: bool = False,
+                  align: str = CENTER,
+                  width: int = 45,
+                  valign: str = MIDDLE,
+                  height: int = 9,
+                  mask: Union[bytes,
+                              str] = None,
+                  view_ok: bool = True,
+                  view_cancel: bool = False):
+        """Creates an input box dialog with an optional title and a default value.
         The message also can be a list of urwid formatted tuples.
 
         To use the box as standard input box always returning to it's parent, then you have to implement something like
@@ -1511,9 +1745,11 @@ class Application(ApplicationHandler):
     def create_footer(self, view_ok: bool = True, view_cancel: bool = False):
         cols = [('weight', 1, GText(''))]
         if view_ok:
-            cols += [('weight', 1, Columns([('weight', 1, GText('')), self.ok_button, ('weight', 1, GText(''))]))]
+            cols += [('weight', 1, Columns([('weight', 1, GText('')),
+                      self.ok_button, ('weight', 1, GText(''))]))]
         if view_cancel:
-            cols += [('weight', 1, Columns([('weight', 1, GText('')), self.cancel_button, ('weight', 1, GText(''))]))]
+            cols += [('weight', 1, Columns([('weight', 1, GText('')),
+                      self.cancel_button, ('weight', 1, GText(''))]))]
         cols += [('weight', 1, GText(''))]
         footer = AttrMap(Columns(cols), 'buttonbar')
         return footer
@@ -1530,7 +1766,9 @@ class Application(ApplicationHandler):
         :returns: The id of the selected menu item. (>=1)
         :rtype: int
         """
-        self.current_menu_focus = super(Application, self).get_focused_menu(menu, event)
+        self.current_menu_focus = super(
+            Application, self).get_focused_menu(
+            menu, event)
         if not self.last_menu_focus == self.current_menu_focus:
             cid: int = self.last_menu_focus - 1
             nid: int = self.current_menu_focus - 1
@@ -1545,7 +1783,11 @@ class Application(ApplicationHandler):
                 cmmi.refresh_content()
         return self.current_menu_focus
 
-    def handle_standard_menu_behaviour(self, menu: ListBox, event: Any, description_box: ListBox = None) -> int:
+    def handle_standard_menu_behaviour(
+            self,
+            menu: ListBox,
+            event: Any,
+            description_box: ListBox = None) -> int:
         """
         Handles standard menu behaviour and returns the focused id, if any.
 
@@ -1602,8 +1844,16 @@ class Application(ApplicationHandler):
         if self.old_termios is not None:
             self.screen.tty_signal_keys(*self.old_termios)
 
-    def dialog(self, body: Widget = None, header: Any = None, footer: Any = None, focus_part: str = None,
-               align: str = CENTER, width: int = 40, valign: str = MIDDLE, height: int = 10):
+    def dialog(
+            self,
+            body: Widget = None,
+            header: Any = None,
+            footer: Any = None,
+            focus_part: str = None,
+            align: str = CENTER,
+            width: int = 40,
+            valign: str = MIDDLE,
+            height: int = 10):
         """
         Overlays a dialog box on top of the console UI
 
@@ -1670,7 +1920,8 @@ class Application(ApplicationHandler):
         else:
             title = "Write failed"
             height += 1
-            msg += [('important', ' not'), " updated.", "\n", "Perhaps you have insufficient rights."]
+            msg += [('important', ' not'), " updated.", "\n",
+                    "Perhaps you have insufficient rights."]
             rv = False
         self.message_box(msg, title=title, height=height)
         return rv

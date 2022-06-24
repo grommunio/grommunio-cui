@@ -366,13 +366,14 @@ if __name__ == '__main__' or __name__ == 'color':
         print_all()
         raise SystemExit
     arg = sys.argv[1]
-    if type(arg) is str and not arg.isnumeric():
+    if isinstance(arg, str) and not arg.isnumeric():
         print_all(arg)
         raise SystemExit
     if len(arg) < 4 and int(arg) < 256:
         rgb_color = short2rgb(arg)
-        sys.stdout.write('xterm color \033[38;5;%sm%s\033[0m -> RGB exact \033[38;5;%sm%s\033[0m'
-                         % (arg, arg, arg, rgb_color))
+        sys.stdout.write(
+            'xterm color \033[38;5;%sm%s\033[0m -> RGB exact \033[38;5;%sm%s\033[0m' %
+            (arg, arg, arg, rgb_color))
         sys.stdout.write("\033[0m\n")
     else:
         short_color, rgb_color = rgb2short(arg)

@@ -13,14 +13,19 @@ class MenuItem(GText):
     Standard MenuItem enhances Text Widget by signal 'activate'
     """
     application: ApplicationHandler = None
-    
-    def __init__(self, menu_id, caption, description: Any = None, app: ApplicationHandler = None):
+
+    def __init__(
+            self,
+            menu_id,
+            caption,
+            description: Any = None,
+            app: ApplicationHandler = None):
         GText.__init__(self, caption)
         self.id = menu_id
         self.description = description
         register_signal(self.__class__, ['activate'])
         self.application = app
-    
+
     def keypress(self, _, key: str = '') -> str:
         if key == 'enter':
             emit_signal(self, 'activate', key)
@@ -29,13 +34,13 @@ class MenuItem(GText):
                 if key not in ['c', 'f1', 'f5', 'esc']:
                     self.application.handle_event(key)
             return key
-    
+
     def get_id(self) -> int:
         return self.id
-    
+
     def get_description(self) -> str:
         return self.description
-    
+
     def selectable(self):
         return True
 
@@ -45,34 +50,48 @@ class MultiRadioButton(RadioButton):
     Enhances RadioButton with content columns and ability to have a parent.
     """
     _parent: WidgetDrawer = None
-    
-    def __init__(self, group: List[Widget], radio_id: int, label: Any, column_content: List[Widget],
-                 state: bool = "first True", on_state_change: Any = None, user_data: Any = None):
+
+    def __init__(
+            self,
+            group: List[Widget],
+            radio_id: int,
+            label: Any,
+            column_content: List[Widget],
+            state: bool = "first True",
+            on_state_change: Any = None,
+            user_data: Any = None):
         self.id = radio_id
         self.column_content = column_content
         # register_signal(self.__class__, ['activate'])
-        super(MultiRadioButton, self).__init__(group, label, state, on_state_change, user_data)
-    
+        super(
+            MultiRadioButton,
+            self).__init__(
+            group,
+            label,
+            state,
+            on_state_change,
+            user_data)
+
     def selectable(self):
         return True
-    
+
     def get_id(self) -> int:
         return self.id
-    
+
     def get_column_content(self) -> List[Widget]:
         return self.column_content
-    
+
     def trigger_multi_menu_item_redraw(self, event):
         self._parent.refresh_content(event)
-    
+
     @property
     def parent(self):
         return self._parent
-    
+
     @parent.setter
     def parent(self, parent: WidgetDrawer):
         self._parent = parent
-    
+
     @parent.deleter
     def parent(self):
         del self._parent
@@ -88,10 +107,17 @@ class MultiMenuItem(WidgetDrawer):
     last_focus: int = -1
     current_focus: int = 0
     _state: bool = False
-    
-    def __init__(self, group: List[MultiRadioButton], menu_id: int, label: Any, column_content: List[Widget],
-                 state: Any = "first True", on_state_change: Any = None, user_data: Any = None,
-                 app: ApplicationHandler = None):
+
+    def __init__(
+            self,
+            group: List[MultiRadioButton],
+            menu_id: int,
+            label: Any,
+            column_content: List[Widget],
+            state: Any = "first True",
+            on_state_change: Any = None,
+            user_data: Any = None,
+            app: ApplicationHandler = None):
         self._group = group
         self._id = menu_id
         self._label = label
@@ -111,20 +137,25 @@ class MultiMenuItem(WidgetDrawer):
             self._state = True if select_on == self._id else False
         if len(self._group) >= self._id:
             del self._group[self._id - 1]  # remove old MMI from self._group
-        self._hidden_widget: MultiRadioButton = MultiRadioButton(self._group, self._id, self._label,
-                                                                 self._column_content, self._state,
-                                                                 self._on_state_change, self._user_data)
+        self._hidden_widget: MultiRadioButton = MultiRadioButton(
+            self._group,
+            self._id,
+            self._label,
+            self._column_content,
+            self._state,
+            self._on_state_change,
+            self._user_data)
         self._hidden_widget.parent = self
         connect_signal(self._hidden_widget, 'change', self.handle_changed)
         self.display_widget = self._create_display_widget()
         super(MultiMenuItem, self).__init__(self.display_widget)
         register_signal(self.__class__, ['change', 'postchange'])
         connect_signal(self, 'change', self.mark_as_dirty)
-    
+
     def _create_display_widget(self, event: Any = None) -> Columns:
         """
         Returns the Columns Widget needed to draw the wrapped Widget every event.
-        
+
         :param event: The event to be drawn by.
         :return: The columns to be rendered.
         """
@@ -139,11 +170,11 @@ class MultiMenuItem(WidgetDrawer):
             ('weight', 4, AttrMap(self._column_content, color, color)),
         ])
         return self.display_widget
-    
+
     def get_focus_id(self, event: Any = None) -> int:
         """
         Returns the id starting by 1 of the item holding the current focus.
-        
+
         :param event: The current event.
         :return: The id of the focused item (1+)
         """
@@ -152,30 +183,31 @@ class MultiMenuItem(WidgetDrawer):
         else:
             if event is None:
                 event = 'no event'
-            focus_on = self.application.get_focused_menu(self.parent_listbox, event)
+            focus_on = self.application.get_focused_menu(
+                self.parent_listbox, event)
         return focus_on
-    
+
     def mark_as_dirty(self, event: Any = None):
         """
         Marks this item as dirty on event.
-        
+
         :param event: The event that marks the item as dirty.
         """
         self.dirty = True
-    
+
     def refresh_content(self, event: Any = None):
         """
         Refreshes content on event.
-        
+
         :param event: The event to refresh.
         """
         # if self.dirty:
         self._w = self._create_display_widget(event)
         # self.dirty = False
-    
+
     def selectable(self):
         return True
-    
+
     def keypress(self, size, key: str = '') -> str:
         if key in ['enter', ' ', 'up', 'down']:
             if self.application is not None:
@@ -193,20 +225,20 @@ class MultiMenuItem(WidgetDrawer):
             if key.endswith('tab'):
                 return f'second {key}'
             return key
-    
+
     def mouse_event(self, *args, **kwargs):
         return self._hidden_widget.mouse_event(*args, **kwargs)
-    
+
     def get_id(self):
         return self._id
-    
+
     def get_column_content(self):
         return self._column_content
-    
+
     def get_selected(self) -> MultiRadioButton:
         """
         Gives the selected item back.
-        
+
         :return: The selected MultioRadioButton.
         """
         mrb = None
@@ -214,7 +246,7 @@ class MultiMenuItem(WidgetDrawer):
             if mrb.state:
                 return mrb
         return mrb
-    
+
     def get_selected_id(self) -> int:
         """
         Gives the selected id back (1+).
@@ -222,7 +254,7 @@ class MultiMenuItem(WidgetDrawer):
         :return: The selected id as int > 1.
         """
         return None if self.get_selected() is None else self.get_selected().get_id()
-    
+
     def redraw(self, event: Any):
         """
         Redraws on event.
@@ -245,7 +277,7 @@ class MultiMenuItem(WidgetDrawer):
             self.refresh_content(event)
             # self._group[self.current_focus].parent.refresh_content(event)
             # self._group[0].parent.refresh_content(event)
-    
+
     def redraw_triggered(self, event):
         """
         Redraws on event. Method triggers all groups MultiRadioButtons trigger_multi_menu_item_redraw methods.
@@ -257,39 +289,47 @@ class MultiMenuItem(WidgetDrawer):
         self._group = []
         for mrb in group_clone:
             mrb.trigger_multi_menu_item_redraw(event)
-    
+
     def set_parent_listbox(self, parent: ListBox):
         """
         Sets the parent ListBox containing this item.
-        
+
         :param parent: Parent ListBox
         """
         self.parent_listbox = parent
-        userdata: Dict = {'parent_listbox_focus': (lambda: self.parent_listbox.focus_position)}
-        connect_signal(self.parent_listbox.body, 'modified', self.handle_modified, user_args=[self.parent_listbox.body,
-                                                                                              userdata])
-    
+        userdata: Dict = {
+            'parent_listbox_focus': (
+                lambda: self.parent_listbox.focus_position)}
+        connect_signal(
+            self.parent_listbox.body,
+            'modified',
+            self.handle_modified,
+            user_args=[
+                self.parent_listbox.body,
+                userdata])
+
     def render(self, size: Any, focus: bool = False) -> CompositeCanvas:
         """
         Renders the widget.
-        
+
         :param size: Size of cols and/or rows.
         :param focus: True if item has focus.
         """
         return super(MultiMenuItem, self).render(size, focus)
-    
+
     def handle_modified(self, *args, **kwargs):
         """
         Is called if item is modified (changes state).
-        
+
         :param args: Optional user_args.
         :param kwargs: Optional keyword args
         """
         focus: int = args[0]['parent_listbox_focus']()
         if self.application is not None:
-            self.application.print(f"MultiMenuItem({self._id}).handle_modified() *args({args}) **kwargs({kwargs})")
+            self.application.print(
+                f"MultiMenuItem({self._id}).handle_modified() *args({args}) **kwargs({kwargs})")
             self.redraw(f'modified multi menu item focus on {focus} enter')
-    
+
     def handle_changed(self, *args, **kwargs):
         """
         Is called if item is changed (???).
@@ -299,30 +339,36 @@ class MultiMenuItem(WidgetDrawer):
         :param kwargs: Optional keyword args
         """
         if self.application is not None:
-            self.application.print(f"Called MultiMenuItem({self._id}).handle_changed() with args({args}) und "
-                                   f"kwargs({kwargs})")
-    
+            self.application.print(
+                f"Called MultiMenuItem({self._id}).handle_changed() with args({args}) und "
+                f"kwargs({kwargs})")
+
     def set_focus(self):
         """
         Sets focus to this item.
         """
         if self.parent_listbox is not None:
             self.parent_listbox.body.set_focus(self._id - 1)
-    
+
     def set_state(self, state):
         """
         Toggles state at this item to state.
-        
+
         :param state: Set toggle to on if True, off otherwise.
         """
         self._state = state
-    
+
     @classmethod
-    def handle_menu_changed(cls, item: WidgetDrawer, state: bool, *args, **kwargs):
+    def handle_menu_changed(
+            cls,
+            item: WidgetDrawer,
+            state: bool,
+            *args,
+            **kwargs):
         """
         Is called additionally if item is changed (???).
         TODO Check what this does exactly.  or when it is called
-        
+
         :param item: The calling MWidget.
         :param state: The new state.
         :param args: Optional user_args.
@@ -341,6 +387,21 @@ class MenuItemError(Exception):
     pass
 
 
-def multi_menu_item(group, menu_id, label, column_content, state, on_state_change, user_data, application)\
-        -> MultiMenuItem:
-    return MultiMenuItem(group, menu_id, label, column_content, state, on_state_change, user_data, application)
+def multi_menu_item(
+        group,
+        menu_id,
+        label,
+        column_content,
+        state,
+        on_state_change,
+        user_data,
+        application) -> MultiMenuItem:
+    return MultiMenuItem(
+        group,
+        menu_id,
+        label,
+        column_content,
+        state,
+        on_state_change,
+        user_data,
+        application)

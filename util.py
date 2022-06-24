@@ -184,7 +184,8 @@ def check_setup_state():
 
     def check_grommunio_setup():
         # return os.path.isfile('/etc/grommunio/setup_done')
-        return os.path.isfile('/etc/grammm/setup_done') or os.path.isfile('/etc/grommunio-common/setup_done')
+        return os.path.isfile(
+            '/etc/grammm/setup_done') or os.path.isfile('/etc/grommunio-common/setup_done')
 
     def check_timesyncd_config():
         out = subprocess.check_output(['timedatectl', 'status']).decode()
@@ -192,7 +193,8 @@ def check_setup_state():
         for line in out.splitlines():
             key, value = line.partition(':')[::2]
             items[key.strip()] = value.strip()
-        if items.get('Network time on') == 'yes' and items.get('NTP synchronized') == 'yes':
+        if items.get('Network time on') == 'yes' and items.get(
+                'NTP synchronized') == 'yes':
             return True
         return False
 
@@ -211,14 +213,19 @@ def check_setup_state():
         rv += 4
     # check timesyncd config (8)
     if not check_timesyncd_config():
-        rv += 0  # give 0 error points cause timesyncd configuration is not necessarily needed.
+        # give 0 error points cause timesyncd configuration is not necessarily
+        # needed.
+        rv += 0
     # check nginx config (16)
     if not check_nginx_config():
         rv += 16
     return rv
 
 
-def authenticate_user(username: str, password: str, service: str = 'login') -> bool:
+def authenticate_user(
+        username: str,
+        password: str,
+        service: str = 'login') -> bool:
     """
     Authenticates username against password on service.
 
@@ -265,7 +272,8 @@ def get_ip_list() -> List[str]:
 
 
 def get_last_login_time():
-    p = subprocess.Popen(['last', '-1', 'root'], stderr=subprocess.DEVNULL, stdout=subprocess.PIPE)
+    p = subprocess.Popen(['last', '-1', 'root'],
+                         stderr=subprocess.DEVNULL, stdout=subprocess.PIPE)
     res, _ = p.communicate()
     out = bytes(res).decode()
     lines = out.splitlines()
@@ -316,20 +324,22 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
         cpufreq = psutil.cpu_freq()
         svmem = psutil.virtual_memory()
         distro, version = get_os_release()
-        rv += [
-            "Console User Interface", "\n", u"© 2021 ", "grommunio GmbH", u"\n",
-        ]
+        rv += ["Console User Interface", "\n",
+               u"© 2021 ", "grommunio GmbH", u"\n", ]
         if distro.lower().startswith('grammm') or distro.lower().startswith('grommunio'):
             rv.append(f"Distribution: {distro} Version: {version}")
             rv.append("\n")
         rv.append("\n")
         if cpufreq:
-            rv.append(f"{psutil.cpu_count(logical=False)} x {uname.processor} CPUs"
-                      f" @ {get_hr(cpufreq.current * 1000 * 1000, 'Hz', 1000)}")
+            rv.append(
+                f"{psutil.cpu_count(logical=False)} x {uname.processor} CPUs"
+                f" @ {get_hr(cpufreq.current * 1000 * 1000, 'Hz', 1000)}")
         else:
-            rv.append(f"{psutil.cpu_count(logical=False)} x {uname.processor} CPUs")
+            rv.append(
+                f"{psutil.cpu_count(logical=False)} x {uname.processor} CPUs")
         rv.append("\n")
-        rv.append(f"Memory {get_hr(svmem.used)} used of {get_hr(svmem.total)} ({get_hr(svmem.available)} free)")
+        rv.append(
+            f"Memory {get_hr(svmem.used)} used of {get_hr(svmem.total)} ({get_hr(svmem.available)} free)")
         rv.append("\n")
         rv.append("\n")
     elif which == "bottom":
@@ -339,12 +349,13 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
         bt = datetime.fromtimestamp(boot_time_timestamp)
         proto = 'http'
         if check_setup_state() == 0:
-            rv += [
-                u"\n", "For further configuration, these URLs can be used:", u"\n"
-            ]
+            rv += [u"\n",
+                   "For further configuration, these URLs can be used:",
+                   u"\n"]
             rv.append("\n")
             if uname.node.lower().startswith('localhost.'):
-                rv.append(('important', 'It is generally NOT recommended to use localhost as hostname.'))
+                rv.append(
+                    ('important', 'It is generally NOT recommended to use localhost as hostname.'))
                 rv.append('\n')
             rv.append(f"{proto}://{uname.node}:8080/\n")
             for interface_name, interface_addresses in if_addrs.items():
@@ -356,11 +367,13 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
                     adr = ipaddress.IPv6Address(address.address.split('%')[0])
                     if adr.is_link_local is True:
                         continue
-                    rv.append(f"{proto}://[{address.address}]:8080/ (interface {interface_name})\n")
+                    rv.append(
+                        f"{proto}://[{address.address}]:8080/ (interface {interface_name})\n")
                 for address in interface_addresses:
                     if address.family != socket.AF_INET:
                         continue
-                    rv.append(f"{proto}://{address.address}:8080/ (interface {interface_name})\n")
+                    rv.append(
+                        f"{proto}://{address.address}:8080/ (interface {interface_name})\n")
         else:
             rv.append('\n')
             rv.append('There are still some tasks missing to run/use grommunio.')
@@ -384,7 +397,11 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
     return rv
 
 
-def pad(text: Any, sign: str = ' ', length: int = 2, left_pad: bool = True) -> str:
+def pad(
+        text: Any,
+        sign: str = ' ',
+        length: int = 2,
+        left_pad: bool = True) -> str:
     """
     Is padding text to length filling with sign chars  Can pad from right or left.
 
