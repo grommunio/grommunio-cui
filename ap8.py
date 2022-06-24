@@ -15,7 +15,7 @@ def fix_file(filename):
         'diff': False,
         'exclude': {},
         'exit_code': False,
-        'experimental': False,
+        'experimental': True,
         'files': [''],
         'hang_closing': False,
         'ignore': {'W50', 'E226', 'E24', 'W690'},
@@ -28,9 +28,12 @@ def fix_file(filename):
         'max_line_length': 79,
         'pep8_passes': -1,
         'recursive': False,
-        'verbose': 0
+        'verbose': 1
     }
-    return ap8.fix_code(content, options=o)
+    res = ap8.fix_code(content, options=o)
+    nl = '\n'
+    print(f"Before {content.count(nl)} and after: {res.count(nl)}")
+    return res
 
 
 def main():
@@ -51,6 +54,7 @@ def process_walk(cur_path, inplace=True):
             with open(new_f, 'w') as w:
                 w.write(fix)
                 w.close()
+                print(f"Optimized file {new_f} written.")
 
 
 if __name__ == '__main__':
