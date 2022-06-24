@@ -152,11 +152,16 @@ class Application(ApplicationHandler):
             'click',
             lambda button: self.handle_event('ok enter'))
         self.ok_button = (8, self.ok_button)
-        self.ok_button_footer = AttrMap(Columns([
-            ('weight', 1, GText('')),
-            ('weight', 1, Columns([('weight', 1, GText('')), self.ok_button, ('weight', 1, GText(''))])),
-            ('weight', 1, GText(''))
-        ]), 'buttonbar')
+        self.ok_button_footer = AttrMap(
+            Columns(
+                [('weight', 1, GText('')),
+                 ('weight', 1,
+                  Columns(
+                      [('weight', 1, GText('')),
+                       self.ok_button,
+                       ('weight', 1, GText(''))])),
+                 ('weight', 1, GText(''))]),
+            'buttonbar')
 
         # Common Cancel Button
         self.cancel_button = GBoxButton("Cancel", self.press_button)
@@ -176,11 +181,15 @@ class Application(ApplicationHandler):
             lambda button: self.handle_event('close enter'))
         self.close_button = (11, self.close_button)
         # self.close_button_footer = GridFlow([self.close_button], 10, 1, 1, 'center')
-        self.close_button_footer = AttrMap(Columns([
-            ('weight', 1, GText('')),
-            ('weight', 1, Columns([('weight', 1, GText('')), self.close_button, ('weight', 1, GText(''))])),
-            ('weight', 1, GText(''))
-        ]), 'buttonbar')
+        self.close_button_footer = AttrMap(
+            Columns(
+                [('weight', 1, GText('')),
+                 ('weight', 1,
+                  Columns(
+                      [('weight', 1, GText('')),
+                       self.close_button, ('weight', 1, GText(''))])),
+                 ('weight', 1, GText(''))]),
+            'buttonbar')
 
         # Common Add Button
         self.add_button = GBoxButton("Add", self.press_button)
@@ -264,7 +273,8 @@ class Application(ApplicationHandler):
     def refresh_main_menu(self):
         # The common menu description column
         self.menu_description = Pile(
-            [GText('Main Menu', CENTER), GText('Here you can do the main actions', LEFT)])
+            [GText('Main Menu', CENTER),
+             GText('Here you can do the main actions', LEFT)])
         # Main Menu
         items = {
             'Change system password': Pile([
@@ -1072,15 +1082,42 @@ class Application(ApplicationHandler):
                     post.append(src[:-8])
         header = 'Use arrow keys to switch between the logfiles. <LEFT> and <RIGHT> changes the logfile, ' \
                  'while <+> and <-> changes the line count to view. ({})'.format(self.log_line_count)
-        self.log_viewer = LineBox(AttrMap(Pile([
-            (2, Filler(Padding(GText(('body', header), CENTER), CENTER, RELATIVE_100))),
-            (1, Columns([Filler(GText([
-                ('body', '*** '),
-                ('body', ' '.join([u for u in pre[-3:]])), ('reverse', cur), ('body', ' '.join([u for u in post[:3]])),
-                ('body', ' ***'),
-            ], CENTER))])),
-            AttrMap(ScrollBar(Scrollable(Pile([GText(line) for line in self.log_file_content]))), 'default')
-        ]), 'body'))
+        self.log_viewer = LineBox(
+            AttrMap(
+                Pile(
+                    [(2,
+                      Filler(
+                          Padding(
+                              GText(
+                                  ('body', header),
+                                  CENTER),
+                              CENTER, RELATIVE_100))),
+                     (1,
+                      Columns(
+                          [
+                              Filler(
+                                  GText(
+                                      [('body', '*** '),
+                                       ('body', ' '.join(
+                                           [u
+                                            for u in pre
+                                            [-3:]])),
+                                       ('reverse', cur),
+                                       ('body', ' '.join(
+                                           [u
+                                            for u in post
+                                            [: 3]])),
+                                       ('body', ' ***'), ],
+                                      CENTER))])),
+                     AttrMap(
+                        ScrollBar(
+                            Scrollable(
+                                Pile(
+                                    [GText(line)
+                                     for line in
+                                     self.log_file_content]))),
+                        'default')]),
+                'body'))
 
     def open_log_viewer(self, unit: str, lines: int = 0):
         """
@@ -1487,7 +1524,8 @@ class Application(ApplicationHandler):
         return my_items, my_items_content
 
     def create_multi_menu_items(
-            self, items: Dict[str, Widget], selected: str = None) -> List[MultiMenuItem]:
+            self, items: Dict[str, Widget],
+            selected: str = None) -> List[MultiMenuItem]:
         """
         Takes a dictionary with menu labels as keys and widget(lists) as content and creates a list of multi menu items
         with being one selected..
@@ -1585,7 +1623,8 @@ class Application(ApplicationHandler):
         avg_load = GText(util.get_load_avg_format_list(), left=1, right=2)
         gstring = GText(('footer', string), left=1, right=2)
         gdebug = GText(
-            ['\n', ('', f"({self.current_event})"), ('', f" on {self.current_window}")])
+            ['\n', ('', f"({self.current_event})"),
+             ('', f" on {self.current_window}")])
         mainwidth = self.screen.get_cols_rows()[0]
         footer_elements = [clock, footerbar, avg_load]
         if not self.quiet:

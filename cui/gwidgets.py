@@ -58,8 +58,9 @@ class GEdit(urwid.WidgetWrap):
         else:
             caption_object = caption
         if isinstance(caption_object, tuple):
-            t = urwid.Text(caption_object[len(
-                caption_object) - 1], align, wrap=urwid.widget.CLIP, layout=layout)
+            t = urwid.Text(
+                caption_object[len(caption_object) - 1],
+                align, wrap=urwid.widget.CLIP, layout=layout)
         else:
             t = urwid.Text(
                 caption_object,
