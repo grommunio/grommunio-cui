@@ -144,7 +144,6 @@ class Application(ApplicationHandler):
             handle_mouse=False,
         )
         self._loop.set_alarm_in(1, self.update_clock)
-        # self._loop.screen.set_terminal_properties(colors=256)
 
         # Login Dialog
         self.login_header = AttrMap(
@@ -159,7 +158,6 @@ class Application(ApplicationHandler):
         self.login_body = Pile(
             [
                 self.user_edit,
-                # AttrMap(self.user_edit, 'MMI.selectable', 'MMI.focus'),
                 self.pass_edit,
             ]
         )
@@ -169,13 +167,11 @@ class Application(ApplicationHandler):
             "click",
             lambda button: self.handle_event("login enter"),
         )
-        # self.login_footer = GridFlow([login_button], 10, 1, 1, 'center')
         self.login_footer = AttrMap(
             Columns([GText(""), login_button, GText("")]), "buttonbar"
         )
 
         # Common OK Button
-        # self.ok_button = GButton("OK", self.press_button, left_end='[', right_end=']')
         self.ok_button = GBoxButton("OK", self.press_button)
         connect_signal(
             self.ok_button,
@@ -224,7 +220,6 @@ class Application(ApplicationHandler):
             lambda button: self.handle_event("close enter"),
         )
         self.close_button = (11, self.close_button)
-        # self.close_button_footer = GridFlow([self.close_button], 10, 1, 1, 'center')
         self.close_button_footer = AttrMap(
             Columns(
                 [
@@ -327,7 +322,6 @@ class Application(ApplicationHandler):
             "If this is not that what you expected to see,",
             "You probably have insufficient permissions!?",
         ]
-        # self.prepare_log_viewer('gromox-http', self.log_line_count)
         self.prepare_log_viewer("NetworkManager", self.log_line_count)
 
         self.prepare_timesyncd_config()
@@ -406,7 +400,6 @@ class Application(ApplicationHandler):
                 [
                     GText("Terminal", CENTER),
                     GText(""),
-                    # GText('Starts Terminal and closes everything else.'),
                     GText(
                         "Starts terminal for advanced system configuration."
                     ),
@@ -438,7 +431,6 @@ class Application(ApplicationHandler):
         )
 
     def prepare_mainscreen(self):
-        # colormode: str = "light" if self._current_colormode == 'dark' else 'dark'
         colormode: str = self._current_colormode
         self.text_header = ["grommunio console user interface"]
         self.text_header += ["\n"]
@@ -500,18 +492,13 @@ class Application(ApplicationHandler):
             wrap=SPACE,
         )
         self.refresh_header(colormode, self._current_kbdlayout, "")
-        # self.tb_header = GText(self.text_header.format(colormode=colormode, kbd=self._current_kbdlayout,
-        # authorized_options=''), align=CENTER, wrap=SPACE)
         self.vsplitbox = Pile(
             [
                 ("weight", 50, AttrMap(self.main_top, "body")),
                 ("weight", 50, self.main_bottom),
             ]
         )
-        # self.footer = AttrMap(self.footer_text, 'footer')
-        # self.footer = Frame(ListBox(SimpleListWalker(self.footer_content)))
         self.footer = Pile(self.footer_content)
-        # frame = Frame(AttrMap(self.vsplitbox, 'body'), header=self.header, footer=self.footer)
         frame = Frame(
             AttrMap(self.vsplitbox, "reverse"),
             header=self.header,
@@ -673,7 +660,6 @@ class Application(ApplicationHandler):
                 else:
                     res = 2
                     success_msg = "failed, because you gave two different password values"
-                # self.current_window = self.input_box_caller
                 if not res:
                     success_msg = "failed"
                 self.open_main_menu()
@@ -800,7 +786,6 @@ class Application(ApplicationHandler):
             self._hidden_pos += 1
             if self._hidden_input == _UNSUPPORTED.lower():
                 self.open_log_viewer("syslog")
-                # raise ExitMainLoop()
         else:
             self._hidden_input = ""
             self._hidden_pos = 0
@@ -818,20 +803,16 @@ class Application(ApplicationHandler):
         elif key == "f4" and len(self.authorized_options) > 0:
             self.open_main_menu()
         elif key == "f1" or key == "c":
-            # self.change_colormode('dark' if self._current_colormode == 'light' else 'light')
             self.switch_next_colormode()
         elif key == "f5":
             self.open_keyboard_selection_menu()
-            # self.switch_kbdlayout()
         elif (
             key in ["ctrl f1", "H", "h", "L", "l"]
             and self.current_window != _LOG_VIEWER
             and self.current_window != _UNSUPPORTED
             and not self.log_finished
         ):
-            # self.open_log_viewer('test', 10)
             self.open_log_viewer("gromox-http", self.log_line_count)
-            # self.open_log_viewer('NetworkManager', self.log_line_count)
 
     def key_ev_aapi(self, key):
         success_msg = "NOTHING"
@@ -853,7 +834,6 @@ class Application(ApplicationHandler):
                 else:
                     res = 2
                     success_msg = "failed, because you gave two different password values"
-                # self.current_window = self.input_box_caller
                 if not res:
                     success_msg = "failed"
                 self.open_main_menu()
@@ -971,7 +951,6 @@ class Application(ApplicationHandler):
         if type(out) is bytes:
             out = out.decode()
         if out == "":
-            # self.message_box(err, "An error occurred.", width=60, height=11)
             self.config = {
                 "logs": {"gromox-http": {"source": "gromox-http.service"}}
             }
@@ -986,12 +965,6 @@ class Application(ApplicationHandler):
                 break
 
     def get_logging_formatter(self) -> str:
-        # conf = {
-        #     'logging': {
-        #         'formatters': {
-        #             'mi-default': {
-        #                 'format': '[%(asctime)s] [%(levelname)s] (%(module)s): "%(message)s"'
-        #             }}}}
         default = (
             self.config.get("logging", {})
             .get("formatters", {})
@@ -1127,7 +1100,6 @@ class Application(ApplicationHandler):
                 )
             )
         )
-        # footer = self.ok_button_footer
         footer = self.create_footer(view_ok, view_cancel)
 
         if title is None:
@@ -1189,7 +1161,6 @@ class Application(ApplicationHandler):
         log: Path = Path(filename)
 
         if log.exists():
-            # self.log_file_content = log.read_text('utf-8')[:lines * -1]
             if os.access(str(log), os.R_OK):
                 self.log_file_content = util.fast_tail(
                     str(log.absolute()), lines
@@ -1243,11 +1214,6 @@ class Application(ApplicationHandler):
                 "message": entry.get("MESSAGE", ""),
             }
             l.append(self.get_logging_formatter() % d)
-            # ll = entry.get('NM_LOG_LEVEL', 'None')
-        #             l.append(f"""\
-        # {entry['__REALTIME_TIMESTAMP'].isoformat():19.19} {entry['_HOSTNAME']:8.8} \
-        # {entry['_SYSTEMD_UNIT'].split('.service')[0]:>10.10} {entry['_COMM']:>10.10}: {entry['MESSAGE']}\
-        #             """)
         self.log_file_content = l[-lines:]
         found: bool = False
         pre: List[str] = []
@@ -1385,7 +1351,6 @@ class Application(ApplicationHandler):
                 )
             )
         )
-        # footer = self.ok_button_footer
         footer = self.create_footer(view_ok, view_cancel)
 
         if title is None:
@@ -1476,12 +1441,6 @@ class Application(ApplicationHandler):
                                 " ".join(fallback_server),
                                 wrap=SPACE,
                             ),
-                            # GEdit(('pack', 'packTest: '), ' '.join(fallback_server), wrap=SPACE),
-                            # GEdit(('weight', 5, '5weightTest: '), ' '.join(fallback_server), wrap=SPACE),
-                            # GEdit(('weight', 15, '15weightTest: '), ' '.join(fallback_server), wrap=SPACE),
-                            # GEdit(('weight', 35, '35weightTest: '), ' '.join(fallback_server), wrap=SPACE),
-                            # GEdit('', ' '.join(fallback_server), wrap=SPACE),
-                            # GEdit('Test: ', ' '.join(fallback_server), wrap=SPACE),
                         ]
                     ),
                     TOP,
@@ -1541,7 +1500,6 @@ class Application(ApplicationHandler):
                 self.pass_edit.set_edit_text("")
                 self.open_main_menu()
             else:
-                # self.message_box(f'You have taken a wrong password, {self.user_edit.get_edit_text()}!')
                 self.message_box(
                     "Incorrect credentials. Access denied!",
                     "Password verification",
@@ -1678,7 +1636,6 @@ class Application(ApplicationHandler):
         o = self._current_colormode
         n = util.get_next_palette_name(o)
         p = util.get_palette(n)
-        # show_next = util.get_next_palette_name(n)
         show_next = n
         self.refresh_header(
             show_next, self._current_kbdlayout, self.authorized_options
@@ -1713,10 +1670,8 @@ class Application(ApplicationHandler):
         self.print("Opening keyboard configuration")
         self.last_current_window = self.current_window
         self.current_window = _KEYBOARD_SWITCH
-        # header = AttrMap(GText('Keyboard layout', CENTER), 'header')
         header = None
         self.prepare_kbd_config()
-        # footer = AttrMap(Columns([self.ok_button, self.cancel_button]), 'buttonbar')
         footer = None
         self.dialog(
             body=AttrMap(self.keyboard_switch_body, "body"),
@@ -1855,8 +1810,6 @@ class Application(ApplicationHandler):
                 app=self,
             )
             my_items.append(item)
-            # connect_signal(item, 'activate', self.handle_event)
-            # menu_items.append(AttrMap(item, 'selectable', 'focus'))
         return my_items
 
     def create_multi_menu_listbox(
@@ -1954,33 +1907,6 @@ class Application(ApplicationHandler):
         if getattr(self, "_loop", None):
             if self._loop:
                 self._loop.widget.footer = self.footer
-        # text = ''
-        # for cont in self.footer_content:
-        #     if isinstance(cont, str):
-        #         text += cont
-        #     elif isinstance(cont, GText):
-        #         text += cont.text
-        #     elif isinstance(cont, list):
-        #         for elem in cont:
-        #             if isinstance(elem, str):
-        #                 text += elem
-        #             elif isinstance(elem, GText):
-        #                 text += elem.text
-        # self.footer_text.set_text([text])
-        # frame = Frame(AttrMap(self.vsplitbox, 'reverse'), header=self.header, footer=self.footer)
-        # self.mainframe = frame
-        # self._body = self.mainframe
-
-        # text = [('footer', f"{util.get_clockstring()}: ")]
-        # text += util.get_footerbar(2, 10)
-        # text += util.get_load_avg_format_list()
-        # if not self.quiet:
-        #     text += '\n'
-        #     text += ('footer', string)
-        # if self.debug:
-        #     text += ['\n', ('', f"({self.current_event})"), ('', f" on {self.current_window}")]
-        # self.footer_text.set_text([text])
-        # self.footer_text.set_text([self.footer_content])
         self.current_bottom_info = string
 
     def message_box(
@@ -2094,7 +2020,6 @@ class Application(ApplicationHandler):
                 )
             )
         )
-        # footer = self.ok_button_footer
         footer = self.create_footer(view_ok, view_cancel)
 
         if title is None:
