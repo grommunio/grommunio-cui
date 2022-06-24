@@ -38,9 +38,9 @@ def fix_file(filename):
     return res
 
 
-def main():
+def main(inplace=True):
     cur_path = '.'
-    process_walk(cur_path, False)
+    process_walk(cur_path, inplace=inplace)
     print('Ende')
 
 
@@ -73,4 +73,4 @@ def process_walk(cur_path, inplace=True):
 
 
 if __name__ == '__main__':
-    main()
+    main(inplace=True)
