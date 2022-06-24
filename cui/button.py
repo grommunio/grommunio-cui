@@ -2,7 +2,15 @@
 # SPDX-FileCopyrightText: 2021 grommunio GmbH
 
 from typing import Any
-from urwid import AttrMap, Button, Padding, Pile, Text, connect_signal, register_signal
+from urwid import (
+    AttrMap,
+    Button,
+    Padding,
+    Pile,
+    Text,
+    connect_signal,
+    register_signal,
+)
 from interface import ApplicationHandler, WidgetDrawer
 
 
@@ -10,21 +18,23 @@ class GButton(Button):
     """
     Extended Button class with custom left and right sign.
     """
+
     application: ApplicationHandler = None
 
     def __init__(
-            self,
-            label: Any,
-            on_press: Any = None,
-            user_data: Any = None,
-            left_end: str = '<',
-            right_end: str = '>'):
+        self,
+        label: Any,
+        on_press: Any = None,
+        user_data: Any = None,
+        left_end: str = "<",
+        right_end: str = ">",
+    ):
         self.button_left = Text(left_end)
         self.button_right = Text(right_end)
         super(GButton, self).__init__(label, on_press, user_data)
 
     def wrap(self, left_pad: int = 4, right_pad: int = 4) -> Padding:
-        button = AttrMap(self, 'buttn', 'buttnf')
+        button = AttrMap(self, "buttn", "buttnf")
         button = Padding(button, left=left_pad, right=right_pad)
         return button
 
@@ -36,12 +46,13 @@ class GBoxButton(WidgetDrawer):
     """
     Extended Button class with surrounding lines. Drawing by unicode chars.
     """
-    _top_left_char: str = u'┌'
-    _top_right_char: str = u'┐'
-    _vertical_border_char: str = u'│'
-    _horizontal_border_char: str = u'─'
-    _bottom_left_char: str = u'└'
-    _bottom_right_char: str = u'┘'
+
+    _top_left_char: str = "┌"
+    _top_right_char: str = "┐"
+    _vertical_border_char: str = "│"
+    _horizontal_border_char: str = "─"
+    _bottom_left_char: str = "└"
+    _bottom_right_char: str = "┘"
 
     def __init__(self, label, on_press=None, user_data=None):
         padding_size = 2
@@ -50,22 +61,26 @@ class GBoxButton(WidgetDrawer):
 
         self.top: str = f"{self._top_left_char}{border}{self._top_right_char}"
         self.middle: str = f"{self._vertical_border_char}  {label}  {self._vertical_border_char}"
-        self.bottom: str = f"{self._bottom_left_char}{border}{self._bottom_right_char}"
+        self.bottom: str = (
+            f"{self._bottom_left_char}{border}{self._bottom_right_char}"
+        )
 
-        self.widget = Pile([
-            Text(self.top),
-            Text(self.middle),
-            Text(self.bottom),
-        ])
+        self.widget = Pile(
+            [
+                Text(self.top),
+                Text(self.middle),
+                Text(self.bottom),
+            ]
+        )
         self._label = label
         self.label = label
-        self.widget = AttrMap(self.widget, 'buttn', 'buttnf')
+        self.widget = AttrMap(self.widget, "buttn", "buttnf")
         self._hidden_button: GButton = GButton(
-            'hidden %s' %
-            label, on_press, user_data)
+            "hidden %s" % label, on_press, user_data
+        )
         super(GBoxButton, self).__init__(self.widget)
-        register_signal(self.__class__, ['click'])
-        connect_signal(self, 'click', on_press)
+        register_signal(self.__class__, ["click"])
+        connect_signal(self, "click", on_press)
 
     def selectable(self):
         return True
@@ -77,10 +92,12 @@ class GBoxButton(WidgetDrawer):
         if self._hidden_button.application is not None:
             self._hidden_button.application.print(
                 f"GBoxButton({self._label}).mouse_event(size={size}, event={event}, "
-                f"button={button}, x={x}, y={y}, focus={focus})")
-            if event == 'mouse press':
+                f"button={button}, x={x}, y={y}, focus={focus})"
+            )
+            if event == "mouse press":
                 self._hidden_button.application.handle_event(
-                    f'button <{self._label}> enter')
+                    f"button <{self._label}> enter"
+                )
         rv = True
         # rv = self._hidden_button.mouse_event(size, event, button, x, y, focus)
         return rv

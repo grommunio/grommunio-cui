@@ -5,21 +5,25 @@ import urwid
 from urwid.widget import BOX, FIXED, FLOW
 
 # Scroll actions
-SCROLL_LINE_UP = 'line up'
-SCROLL_LINE_DOWN = 'line down'
-SCROLL_PAGE_UP = 'page up'
-SCROLL_PAGE_DOWN = 'page down'
-SCROLL_TO_TOP = 'to top'
-SCROLL_TO_END = 'to end'
+SCROLL_LINE_UP = "line up"
+SCROLL_LINE_DOWN = "line down"
+SCROLL_PAGE_UP = "page up"
+SCROLL_PAGE_DOWN = "page down"
+SCROLL_TO_TOP = "to top"
+SCROLL_TO_END = "to end"
 
 # Scrollbar positions
-SCROLLBAR_LEFT = 'left'
-SCROLLBAR_RIGHT = 'right'
+SCROLLBAR_LEFT = "left"
+SCROLLBAR_RIGHT = "right"
 
 
 class Scrollable(urwid.WidgetDecoration):
     def sizing(self):
-        return frozenset([BOX, ])
+        return frozenset(
+            [
+                BOX,
+            ]
+        )
 
     def selectable(self):
         return True
@@ -35,7 +39,7 @@ class Scrollable(urwid.WidgetDecoration):
         rows in the original canvas.
         """
         if not any(s in widget.sizing() for s in (FIXED, FLOW)):
-            raise ValueError('Not a fixed or flow widget: %r' % widget)
+            raise ValueError("Not a fixed or flow widget: %r" % widget)
         self._trim_top = 0
         self._scroll_action = None
         self._forward_keypress = None
@@ -124,7 +128,7 @@ class Scrollable(urwid.WidgetDecoration):
             ow_size = self._get_original_widget_size(size)
 
             # Remember previous cursor position if possible
-            if hasattr(ow, 'get_cursor_coords'):
+            if hasattr(ow, "get_cursor_coords"):
                 self._old_cursor_coords = ow.get_cursor_coords(ow_size)
 
             key = ow.keypress(ow_size, key)
@@ -155,7 +159,7 @@ class Scrollable(urwid.WidgetDecoration):
 
     def mouse_event(self, size, event, button, col, row, focus):
         ow = self._original_widget
-        if hasattr(ow, 'mouse_event'):
+        if hasattr(ow, "mouse_event"):
             ow_size = self._get_original_widget_size(size)
             row += self._trim_top
             return ow.mouse_event(ow_size, event, button, col, row, focus)
@@ -204,7 +208,10 @@ class Scrollable(urwid.WidgetDecoration):
         # so that the new cursor position is within the displayed canvas part.
         # But don't do this if the cursor is at the top/bottom edge so we can
         # still scroll out
-        if self._old_cursor_coords is not None and self._old_cursor_coords != canv.cursor:
+        if (
+            self._old_cursor_coords is not None
+            and self._old_cursor_coords != canv.cursor
+        ):
             self._old_cursor_coords = None
             curscol, cursrow = canv.cursor
             if cursrow < self._trim_top:
@@ -255,8 +262,8 @@ class Scrollable(urwid.WidgetDecoration):
                 self._rows_max_cached = ow.rows(ow_size, focus)
             else:
                 raise RuntimeError(
-                    'Not a flow/box widget: %r' %
-                    self._original_widget)
+                    "Not a flow/box widget: %r" % self._original_widget
+                )
         return self._rows_max_cached
 
 
@@ -267,8 +274,14 @@ class ScrollBar(urwid.WidgetDecoration):
     def selectable(self):
         return True
 
-    def __init__(self, widget, thumb_char=u'\u2588', trough_char=' ',
-                 side=SCROLLBAR_RIGHT, width=1):
+    def __init__(
+        self,
+        widget,
+        thumb_char="\u2588",
+        trough_char=" ",
+        side=SCROLLBAR_RIGHT,
+        width=1,
+    ):
         """Box widget that adds a scrollbar to `widget`
         `widget` must be a box widget with the following methods:
           - `get_scrollpos` takes the arguments `size` and `focus` and returns
@@ -283,7 +296,7 @@ class ScrollBar(urwid.WidgetDecoration):
         `width` specifies the number of columns the scrollbar uses.
         """
         if BOX not in widget.sizing():
-            raise ValueError('Not a box widget: %r' % widget)
+            raise ValueError("Not a box widget: %r" % widget)
         super(ScrollBar, self).__init__(widget)
         self._thumb_char = thumb_char
         self._trough_char = trough_char
@@ -337,13 +350,15 @@ class ScrollBar(urwid.WidgetDecoration):
         thumb = urwid.SolidCanvas(self._thumb_char, sb_width, 1)
         bottom = urwid.SolidCanvas(self._trough_char, sb_width, 1)
         sb_canv = urwid.CanvasCombine(
-            [(top, None, False)] * top_height +
-            [(thumb, None, False)] * thumb_height +
-            [(bottom, None, False)] * bottom_height,
+            [(top, None, False)] * top_height
+            + [(thumb, None, False)] * thumb_height
+            + [(bottom, None, False)] * bottom_height,
         )
 
-        combinelist = [(ow_canv, None, True, ow_size[0]),
-                       (sb_canv, None, False, sb_width)]
+        combinelist = [
+            (ow_canv, None, True, ow_size[0]),
+            (sb_canv, None, False, sb_width),
+        ]
         if self._scrollbar_side != SCROLLBAR_LEFT:
             return urwid.CanvasJoin(combinelist)
         else:
@@ -368,8 +383,8 @@ class ScrollBar(urwid.WidgetDecoration):
     def scrollbar_side(self, side):
         if side not in (SCROLLBAR_LEFT, SCROLLBAR_RIGHT):
             raise ValueError(
-                'scrollbar_side must be "left" or "right", not %r' %
-                side)
+                'scrollbar_side must be "left" or "right", not %r' % side
+            )
         self._scrollbar_side = side
         self._invalidate()
 
@@ -378,21 +393,21 @@ class ScrollBar(urwid.WidgetDecoration):
         """Nearest `original_widget` that is compatible with the scrolling API"""
 
         def orig_iter(w):
-            while hasattr(w, 'original_widget'):
+            while hasattr(w, "original_widget"):
                 w = w.original_widget
                 yield w
             yield w
 
         def is_scrolling_widget(w):
-            return hasattr(w, 'get_scrollpos') and hasattr(w, 'rows_max')
+            return hasattr(w, "get_scrollpos") and hasattr(w, "rows_max")
 
         widget = None
         for widget in orig_iter(self):
             if is_scrolling_widget(widget):
                 return widget
         raise ValueError(
-            'Not compatible to be wrapped by ScrollBar: %r' %
-            widget)
+            "Not compatible to be wrapped by ScrollBar: %r" % widget
+        )
 
     def keypress(self, _, key):
         return self._original_widget.keypress(self._original_widget_size, key)
@@ -401,10 +416,10 @@ class ScrollBar(urwid.WidgetDecoration):
         ow = self._original_widget
         ow_size = self._original_widget_size
         handled = False
-        if hasattr(ow, 'mouse_event'):
+        if hasattr(ow, "mouse_event"):
             handled = ow.mouse_event(ow_size, event, button, col, row, focus)
 
-        if not handled and hasattr(ow, 'set_scrollpos'):
+        if not handled and hasattr(ow, "set_scrollpos"):
             if button == 4:  # scroll wheel up
                 pos = ow.get_scrollpos(ow_size)
                 ow.set_scrollpos(pos - (1 if pos > 0 else 0))

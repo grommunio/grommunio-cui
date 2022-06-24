@@ -2,6 +2,6 @@
 """The console user interface (cui) is a console utility for configuring grommunio"""
 import cui
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app = cui.create_application()
     app.start()

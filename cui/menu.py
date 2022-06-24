@@ -2,8 +2,17 @@
 # SPDX-FileCopyrightText: 2021 grommunio GmbH
 
 from typing import Any, List, Dict
-from urwid import AttrMap, Columns, ListBox, RadioButton, Widget, connect_signal, emit_signal, \
-    register_signal, CompositeCanvas
+from urwid import (
+    AttrMap,
+    Columns,
+    ListBox,
+    RadioButton,
+    Widget,
+    connect_signal,
+    emit_signal,
+    register_signal,
+    CompositeCanvas,
+)
 from cui.interface import ApplicationHandler, WidgetDrawer
 from gwidgets import GText
 
@@ -12,26 +21,28 @@ class MenuItem(GText):
     """
     Standard MenuItem enhances Text Widget by signal 'activate'
     """
+
     application: ApplicationHandler = None
 
     def __init__(
-            self,
-            menu_id,
-            caption,
-            description: Any = None,
-            app: ApplicationHandler = None):
+        self,
+        menu_id,
+        caption,
+        description: Any = None,
+        app: ApplicationHandler = None,
+    ):
         GText.__init__(self, caption)
         self.id = menu_id
         self.description = description
-        register_signal(self.__class__, ['activate'])
+        register_signal(self.__class__, ["activate"])
         self.application = app
 
-    def keypress(self, _, key: str = '') -> str:
-        if key == 'enter':
-            emit_signal(self, 'activate', key)
+    def keypress(self, _, key: str = "") -> str:
+        if key == "enter":
+            emit_signal(self, "activate", key)
         else:
             if self.application is not None:
-                if key not in ['c', 'f1', 'f5', 'esc']:
+                if key not in ["c", "f1", "f5", "esc"]:
                     self.application.handle_event(key)
             return key
 
@@ -49,28 +60,25 @@ class MultiRadioButton(RadioButton):
     """
     Enhances RadioButton with content columns and ability to have a parent.
     """
+
     _parent: WidgetDrawer = None
 
     def __init__(
-            self,
-            group: List[Widget],
-            radio_id: int,
-            label: Any,
-            column_content: List[Widget],
-            state: bool = "first True",
-            on_state_change: Any = None,
-            user_data: Any = None):
+        self,
+        group: List[Widget],
+        radio_id: int,
+        label: Any,
+        column_content: List[Widget],
+        state: bool = "first True",
+        on_state_change: Any = None,
+        user_data: Any = None,
+    ):
         self.id = radio_id
         self.column_content = column_content
         # register_signal(self.__class__, ['activate'])
-        super(
-            MultiRadioButton,
-            self).__init__(
-            group,
-            label,
-            state,
-            on_state_change,
-            user_data)
+        super(MultiRadioButton, self).__init__(
+            group, label, state, on_state_change, user_data
+        )
 
     def selectable(self):
         return True
@@ -101,6 +109,7 @@ class MultiMenuItem(WidgetDrawer):
     """
     Enhanced MultiRadioButton with focus handling etc.
     """
+
     application: ApplicationHandler = None
     dirty: bool = True
     parent_listbox: ListBox = None
@@ -109,21 +118,22 @@ class MultiMenuItem(WidgetDrawer):
     _state: bool = False
 
     def __init__(
-            self,
-            group: List[MultiRadioButton],
-            menu_id: int,
-            label: Any,
-            column_content: List[Widget],
-            state: Any = "first True",
-            on_state_change: Any = None,
-            user_data: Any = None,
-            app: ApplicationHandler = None):
+        self,
+        group: List[MultiRadioButton],
+        menu_id: int,
+        label: Any,
+        column_content: List[Widget],
+        state: Any = "first True",
+        on_state_change: Any = None,
+        user_data: Any = None,
+        app: ApplicationHandler = None,
+    ):
         self._group = group
         self._id = menu_id
         self._label = label
         self._column_content = column_content
         if type(state) is str:
-            if str(state).lower() == 'first true':
+            if str(state).lower() == "first true":
                 if self._id == 1:
                     self._state = True
         else:
@@ -144,13 +154,14 @@ class MultiMenuItem(WidgetDrawer):
             self._column_content,
             self._state,
             self._on_state_change,
-            self._user_data)
+            self._user_data,
+        )
         self._hidden_widget.parent = self
-        connect_signal(self._hidden_widget, 'change', self.handle_changed)
+        connect_signal(self._hidden_widget, "change", self.handle_changed)
         self.display_widget = self._create_display_widget()
         super(MultiMenuItem, self).__init__(self.display_widget)
-        register_signal(self.__class__, ['change', 'postchange'])
-        connect_signal(self, 'change', self.mark_as_dirty)
+        register_signal(self.__class__, ["change", "postchange"])
+        connect_signal(self, "change", self.mark_as_dirty)
 
     def _create_display_widget(self, event: Any = None) -> Columns:
         """
@@ -164,11 +175,19 @@ class MultiMenuItem(WidgetDrawer):
             self._focus = True
         else:
             self._focus = False
-        color: str = 'MMI.focus' if self._focus else 'MMI.selectable'
-        self.display_widget: Columns = Columns([
-            ('weight', 1, AttrMap(self._hidden_widget, 'MMI.selectable', 'MMI.focus')),
-            ('weight', 4, AttrMap(self._column_content, color, color)),
-        ])
+        color: str = "MMI.focus" if self._focus else "MMI.selectable"
+        self.display_widget: Columns = Columns(
+            [
+                (
+                    "weight",
+                    1,
+                    AttrMap(
+                        self._hidden_widget, "MMI.selectable", "MMI.focus"
+                    ),
+                ),
+                ("weight", 4, AttrMap(self._column_content, color, color)),
+            ]
+        )
         return self.display_widget
 
     def get_focus_id(self, event: Any = None) -> int:
@@ -182,9 +201,10 @@ class MultiMenuItem(WidgetDrawer):
             focus_on = 1
         else:
             if event is None:
-                event = 'no event'
+                event = "no event"
             focus_on = self.application.get_focused_menu(
-                self.parent_listbox, event)
+                self.parent_listbox, event
+            )
         return focus_on
 
     def mark_as_dirty(self, event: Any = None):
@@ -208,22 +228,22 @@ class MultiMenuItem(WidgetDrawer):
     def selectable(self):
         return True
 
-    def keypress(self, size, key: str = '') -> str:
-        if key in ['enter', ' ', 'up', 'down']:
+    def keypress(self, size, key: str = "") -> str:
+        if key in ["enter", " ", "up", "down"]:
             if self.application is not None:
                 self._hidden_widget.keypress(size, key)
-                self.application.handle_event(f'multimenuitem {key}')
+                self.application.handle_event(f"multimenuitem {key}")
                 # self._hidden_widget.keypress(size, key)
                 # self.refresh_content(key)
                 self.redraw(key)
                 # emit_signal(self, 'activate', key)
         else:
             if self.application is not None:
-                if not key == 'esc':
+                if not key == "esc":
                     # self.refresh_content(key)
                     self.application.handle_event(key)
-            if key.endswith('tab'):
-                return f'second {key}'
+            if key.endswith("tab"):
+                return f"second {key}"
             return key
 
     def mouse_event(self, *args, **kwargs):
@@ -253,7 +273,11 @@ class MultiMenuItem(WidgetDrawer):
 
         :return: The selected id as int > 1.
         """
-        return None if self.get_selected() is None else self.get_selected().get_id()
+        return (
+            None
+            if self.get_selected() is None
+            else self.get_selected().get_id()
+        )
 
     def redraw(self, event: Any):
         """
@@ -264,8 +288,8 @@ class MultiMenuItem(WidgetDrawer):
         if self.parent_listbox is not None:
             self.current_focus = self.parent_listbox.focus_position
             offset = 0
-            if event in ['up', 'down']:
-                offset += -1 if event == 'up' else 1
+            if event in ["up", "down"]:
+                offset += -1 if event == "up" else 1
             new_pos: int = self.current_focus + offset
             if new_pos < 0:
                 new_pos = 0
@@ -298,15 +322,16 @@ class MultiMenuItem(WidgetDrawer):
         """
         self.parent_listbox = parent
         userdata: Dict = {
-            'parent_listbox_focus': (
-                lambda: self.parent_listbox.focus_position)}
+            "parent_listbox_focus": (
+                lambda: self.parent_listbox.focus_position
+            )
+        }
         connect_signal(
             self.parent_listbox.body,
-            'modified',
+            "modified",
             self.handle_modified,
-            user_args=[
-                self.parent_listbox.body,
-                userdata])
+            user_args=[self.parent_listbox.body, userdata],
+        )
 
     def render(self, size: Any, focus: bool = False) -> CompositeCanvas:
         """
@@ -324,11 +349,12 @@ class MultiMenuItem(WidgetDrawer):
         :param args: Optional user_args.
         :param kwargs: Optional keyword args
         """
-        focus: int = args[0]['parent_listbox_focus']()
+        focus: int = args[0]["parent_listbox_focus"]()
         if self.application is not None:
             self.application.print(
-                f"MultiMenuItem({self._id}).handle_modified() *args({args}) **kwargs({kwargs})")
-            self.redraw(f'modified multi menu item focus on {focus} enter')
+                f"MultiMenuItem({self._id}).handle_modified() *args({args}) **kwargs({kwargs})"
+            )
+            self.redraw(f"modified multi menu item focus on {focus} enter")
 
     def handle_changed(self, *args, **kwargs):
         """
@@ -341,7 +367,8 @@ class MultiMenuItem(WidgetDrawer):
         if self.application is not None:
             self.application.print(
                 f"Called MultiMenuItem({self._id}).handle_changed() with args({args}) und "
-                f"kwargs({kwargs})")
+                f"kwargs({kwargs})"
+            )
 
     def set_focus(self):
         """
@@ -360,11 +387,8 @@ class MultiMenuItem(WidgetDrawer):
 
     @classmethod
     def handle_menu_changed(
-            cls,
-            item: WidgetDrawer,
-            state: bool,
-            *args,
-            **kwargs):
+        cls, item: WidgetDrawer, state: bool, *args, **kwargs
+    ):
         """
         Is called additionally if item is changed (???).
         TODO Check what this does exactly.  or when it is called
@@ -378,7 +402,8 @@ class MultiMenuItem(WidgetDrawer):
         if cls.application is not None:
             cls.application.print(
                 f"Called item._id of MultiMenuItem({mrb.get_id()}).handle_menu_changed(item={item}, state={state}) with"
-                f" args({args}) und kwargs({kwargs})")
+                f" args({args}) und kwargs({kwargs})"
+            )
             if state:
                 cls.application.maybe_menu_state = mrb.get_id()
 
@@ -388,14 +413,15 @@ class MenuItemError(Exception):
 
 
 def multi_menu_item(
-        group,
-        menu_id,
-        label,
-        column_content,
-        state,
-        on_state_change,
-        user_data,
-        application) -> MultiMenuItem:
+    group,
+    menu_id,
+    label,
+    column_content,
+    state,
+    on_state_change,
+    user_data,
+    application,
+) -> MultiMenuItem:
     return MultiMenuItem(
         group,
         menu_id,
@@ -404,4 +430,5 @@ def multi_menu_item(
         state,
         on_state_change,
         user_data,
-        application)
+        application,
+    )

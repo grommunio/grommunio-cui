@@ -9,6 +9,7 @@ class ApplicationHandler(object):
     """
     Interface for accessing the Application object.
     """
+
     current_menu_focus: int = -1
     last_menu_focus: int = -2
     current_menu_state: int = -1
@@ -27,7 +28,8 @@ class ApplicationHandler(object):
         """
         raise NotImplementedError(
             f"{self.__class__}.handle_event() must not be called directly in {self.__name__} "
-            f"and has to be implemented in sub classes.")
+            f"and has to be implemented in sub classes."
+        )
 
     def get_focused_menu(self, menu: ListBox, event: Any) -> int:
         """
@@ -51,18 +53,23 @@ class ApplicationHandler(object):
         item_count: int = len(menu.body)
         if type(event) is str:
             key: str = str(event)
-            if key.endswith('enter') or key in [' ']:
+            if key.endswith("enter") or key in [" "]:
                 self.current_menu_focus = self.last_menu_focus
-            elif len(key) == 1 and ord('1') <= ord(key) <= ord('9'):
-                self.current_menu_focus = ord(str(key)) - ord('1')
-            elif key == 'up':
-                self.current_menu_focus = menu.focus_position if menu.focus_position > 0 else 1
-            elif key == 'down':
-                self.current_menu_focus = self.last_menu_focus + \
-                    1 if menu.focus_position < item_count - 1 else item_count
+            elif len(key) == 1 and ord("1") <= ord(key) <= ord("9"):
+                self.current_menu_focus = ord(str(key)) - ord("1")
+            elif key == "up":
+                self.current_menu_focus = (
+                    menu.focus_position if menu.focus_position > 0 else 1
+                )
+            elif key == "down":
+                self.current_menu_focus = (
+                    self.last_menu_focus + 1
+                    if menu.focus_position < item_count - 1
+                    else item_count
+                )
         return self.current_menu_focus
 
-    def print(self, string='', align='left'):
+    def print(self, string="", align="left"):
         """
         Prints a string to the console UI
 
@@ -72,13 +79,15 @@ class ApplicationHandler(object):
         """
         raise NotImplementedError(
             f"{self.__class__}.print(string, align) must'nt be called directly in {self.__name__}"
-            f"and has to be implemented in sub classes.")
+            f"and has to be implemented in sub classes."
+        )
 
 
 class WidgetDrawer(WidgetWrap):
     """
     Super class for custom wrapped widgets to simplify redraw issues.
     """
+
     _label: str
 
     @property
@@ -96,7 +105,8 @@ class WidgetDrawer(WidgetWrap):
         """
         raise NotImplementedError(
             f"{self.__class__}.mark_as_dirty() must not be called directly in {self.__name__} "
-            f"and has to be implemented in sub classes.")
+            f"and has to be implemented in sub classes."
+        )
 
     def refresh_content(self, event: Any = None):
         """
@@ -105,7 +115,8 @@ class WidgetDrawer(WidgetWrap):
         """
         raise NotImplementedError(
             f"{self.__class__}.refresh_content() must not be called directly in {self.__name__} "
-            f"and has to be implemented in sub classes.")
+            f"and has to be implemented in sub classes."
+        )
 
     def render(self, size, focus=False):
         return super(WidgetDrawer, self).render(size, focus)
