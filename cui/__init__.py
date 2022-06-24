@@ -345,7 +345,8 @@ class Application(ApplicationHandler):
                     GText("Password change", CENTER),
                     GText(""),
                     GText(
-                        f'Opens a dialog for changing the password of the Linux system user "{getuser()}".'
+                        f'Opens a dialog for changing the password of the '
+                        f'Linux system user "{getuser()}".'
                     ),
                 ]
             ),
@@ -354,7 +355,8 @@ class Application(ApplicationHandler):
                     GText("Configuration of network", CENTER),
                     GText(""),
                     GText(
-                        "Opens the yast2 configurator for setting up devices, interfaces, IP addresses, DNS and more."
+                        "Opens the yast2 configurator for setting up devices, "
+                        "interfaces, IP addresses, DNS and more."
                     ),
                 ]
             ),
@@ -363,7 +365,8 @@ class Application(ApplicationHandler):
                     GText("Timezone", CENTER),
                     GText(""),
                     GText(
-                        "Opens the yast2 configurator for setting country and timezone settings."
+                        "Opens the yast2 configurator for setting country and "
+                        "timezone settings."
                     ),
                 ]
             ),
@@ -372,7 +375,8 @@ class Application(ApplicationHandler):
                     GText("timesyncd", CENTER),
                     GText(""),
                     GText(
-                        "Opens a simple configurator for configuring systemd-timesyncd as a lightweight NTP client for "
+                        "Opens a simple configurator for configuring "
+                        "systemd-timesyncd as a lightweight NTP client for "
                         "time synchronization."
                     ),
                 ]
@@ -382,8 +386,10 @@ class Application(ApplicationHandler):
                     GText("Setup wizard", CENTER),
                     GText(""),
                     GText(
-                        "Executes the grommunio-setup script for the initial configuration of grommunio databases, TLS "
-                        "certificates, services and the administration web user interface."
+                        "Executes the grommunio-setup script for the initial "
+                        "configuration of grommunio databases, TLS "
+                        "certificates, services and the administration web "
+                        "user interface."
                     ),
                 ]
             ),
@@ -392,7 +398,8 @@ class Application(ApplicationHandler):
                     GText("Password change", CENTER),
                     GText(""),
                     GText(
-                        "Opens a dialog for changing the password used by the administration web interface."
+                        "Opens a dialog for changing the password used by the "
+                        "administration web interface."
                     ),
                 ]
             ),
@@ -532,9 +539,10 @@ class Application(ApplicationHandler):
         """
         Handles user input to the console UI.
 
-            :param event: A mouse or keyboard input sequence. While the mouse event has the form ('mouse press or
-                release', button, column, line), the key stroke is represented as is a single key or even the
-                represented value like 'enter', 'up', 'down', etc.
+            :param event: A mouse or keyboard input sequence. While the mouse
+                event has the form ('mouse press or release', button, column,
+                line), the key stroke is represented as is a single key or even
+                the represented value like 'enter', 'up', 'down', etc.
             :type: Any
         """
         self.current_event = event
@@ -659,7 +667,8 @@ class Application(ApplicationHandler):
                     res = self.reset_system_passwd(pw1)
                 else:
                     res = 2
-                    success_msg = "failed, because you gave two different password values"
+                    success_msg = "failed, because you gave two different " \
+                                  "password values"
                 if not res:
                     success_msg = "failed"
                 self.open_main_menu()
@@ -833,7 +842,8 @@ class Application(ApplicationHandler):
                     res = self.reset_aapi_passwd(pw1)
                 else:
                     res = 2
-                    success_msg = "failed, because you gave two different password values"
+                    success_msg = "failed, because you gave two different " \
+                                  "password values"
                 if not res:
                     success_msg = "failed"
                 self.open_main_menu()
@@ -1016,7 +1026,8 @@ class Application(ApplicationHandler):
         :param kwargs: Optional keyword args
         """
         self.print(
-            f"Called handle_menu_changed() with args({args}) und kwargs({kwargs})"
+            f"Called handle_menu_changed() with args({args}) und "
+            f"kwargs({kwargs})"
         )
 
     def handle_menu_activated(self, *args, **kwargs):
@@ -1028,7 +1039,8 @@ class Application(ApplicationHandler):
         :param kwargs: Optional keyword args
         """
         self.print(
-            f"Called handle_menu_activated() with args({args}) und kwargs({kwargs})"
+            f"Called handle_menu_activated() with args({args}) und "
+            f"kwargs({kwargs})"
         )
 
     def open_terminal(self):
@@ -1039,7 +1051,8 @@ class Application(ApplicationHandler):
         self.screen.tty_signal_keys(*self.old_termios)
         print("\x1b[K")
         print(
-            "\x1b[K \x1b[36m▼\x1b[0m To return to the CUI, issue the `exit` command."
+            "\x1b[K \x1b[36m▼\x1b[0m To return to the CUI, issue the `exit` "
+            "command."
         )
         print("\x1b[J")
         # We have no environment, and so need su instead of just bash to launch
@@ -1057,7 +1070,8 @@ class Application(ApplicationHandler):
         )
 
     def shutdown_confirm(self):
-        msg = "Are you sure?\nAfter pressing OK, the system will shut down and power off."
+        msg = "Are you sure?\nAfter pressing OK, the system will shut down " \
+              "and power off."
         title = "Shutdown"
         self.current_window = _SHUTDOWN
         self.message_box(
@@ -1229,8 +1243,9 @@ class Application(ApplicationHandler):
                 else:
                     post.append(src[:-8])
         header = (
-            "Use arrow keys to switch between the logfiles. <LEFT> and <RIGHT> changes the logfile, "
-            "while <+> and <-> changes the line count to view. ({})".format(
+            "Use arrow keys to switch between the logfiles. <LEFT> and "
+            "<RIGHT> changes the logfile, while <+> and <-> changes the "
+            "line count to view. ({})".format(
                 self.log_line_count
             )
         )
@@ -1314,7 +1329,8 @@ class Application(ApplicationHandler):
         self.screen.tty_signal_keys(*self.old_termios)
         print("\x1b[K")
         print(
-            "\x1b[K \x1b[36m▼\x1b[0m Please wait while `yast2 {}` is being run.".format(
+            "\x1b[K \x1b[36m▼\x1b[0m Please wait while `yast2 {}` is "
+            "being run.".format(
                 modulename
             )
         )
@@ -1429,7 +1445,8 @@ class Application(ApplicationHandler):
                     Pile(
                         [
                             GText(
-                                "Insert your NTP servers separated by <SPACE> char.",
+                                "Insert your NTP servers separated by "
+                                "<SPACE> char.",
                                 LEFT,
                                 wrap=SPACE,
                             ),
@@ -1492,7 +1509,8 @@ class Application(ApplicationHandler):
                 "You need root privileges to use another user.", height=10
             )
             return
-        msg = f"checking user {self.user_edit.get_edit_text()} with pass ***** ..."
+        msg = f"checking user {self.user_edit.get_edit_text()} with pass " \
+              f"***** ..."
         if self.current_window == _LOGIN:
             if util.authenticate_user(
                 self.user_edit.get_edit_text(), self.pass_edit.get_edit_text()
@@ -1522,7 +1540,8 @@ class Application(ApplicationHandler):
         self.last_pressed_button = label
         if self.current_window not in [_MAIN]:
             self.print(
-                f"{self.__class__}.press_button(button={button}, *args={args}, kwargs={kwargs})"
+                f"{self.__class__}.press_button(button={button}, "
+                f"*args={args}, kwargs={kwargs})"
             )
             self.handle_event(f"{label} enter")
 
@@ -1556,7 +1575,8 @@ class Application(ApplicationHandler):
         Prepares general radio list containing RadioButtons and content.
 
         :param items: A dictionary of widgets representing the menu items.
-        :return: Tuple of one ListBox containing menu items and one containing the content.
+        :return: Tuple of one ListBox containing menu items and one containing
+        the content.
         """
         radio_items: List[RadioButton]
         radio_content: List[Widget]
@@ -1580,7 +1600,8 @@ class Application(ApplicationHandler):
         title: str = None,
     ) -> LineBox:
         """
-        Wraps the two ListBoxes returned by ::self::.prepare_radio_list() as master (RadioButton) and slave (content)
+        Wraps the two ListBoxes returned by ::self::.prepare_radio_list() as
+        master (RadioButton) and slave (content)
         with menus header and an optional title.
 
         :param master: The leading RadioButtons.
@@ -1741,7 +1762,8 @@ class Application(ApplicationHandler):
 
     def create_menu_items(self, items: Dict[str, Widget]) -> List[MenuItem]:
         """
-        Takes a dictionary with menu labels as keys and widget(lists) as content and creates a list of menu items.
+        Takes a dictionary with menu labels as keys and widget(lists) as
+        content and creates a list of menu items.
 
         :param items: Dictionary in the form {'label': Widget}.
         :return: List of MenuItems.
@@ -1757,11 +1779,13 @@ class Application(ApplicationHandler):
         self, items: Dict[str, Widget]
     ) -> Tuple[List[RadioButton], List[Widget]]:
         """
-        Takes a dictionary with menu labels as keys and widget(lists) as content and creates a tuple of two lists.
-        One list of leading RadioButtons and the second list contains the following widget..
+        Takes a dictionary with menu labels as keys and widget(lists) as
+        content and creates a tuple of two lists. One list of leading
+        RadioButtons and the second list contains the following widget..
 
         :param items: Dictionary in the form {'label': Widget}.
-        :return: Tuple with two lists. One List of MenuItems representing the leading radio buttons and one the content
+        :return: Tuple with two lists. One List of MenuItems representing the
+                 leading radio buttons and one the content
                  widget.
         """
         menu_items: List[RadioButton] = []
@@ -1781,8 +1805,9 @@ class Application(ApplicationHandler):
         self, items: Dict[str, Widget], selected: str = None
     ) -> List[MultiMenuItem]:
         """
-        Takes a dictionary with menu labels as keys and widget(lists) as content and creates a list of multi menu items
-        with being one selected..
+        Takes a dictionary with menu labels as keys and widget(lists) as
+        content and creates a list of multi menu items with being one
+        selected..
 
         :param items: Dictionary in the form {'label': Widget}.
         :param selected: The label of the selected multi menu item.
@@ -1816,7 +1841,8 @@ class Application(ApplicationHandler):
         self, menu_list: List[MultiMenuItem]
     ) -> ListBox:
         """
-        Creates general listbox of multi menu items from list of multi menu items.
+        Creates general listbox of multi menu items from list of multi
+        menu items.
 
         :param menu_list: list of MultiMenuItems
         :return: The ListBox.
@@ -1921,10 +1947,12 @@ class Application(ApplicationHandler):
         view_cancel: bool = False,
     ):
         """
-        Creates a message box dialog with an optional title. The message also can be a list of urwid formatted tuples.
+        Creates a message box dialog with an optional title. The message also
+        can be a list of urwid formatted tuples.
 
-        To use the box as standard message box always returning to it's parent, then you have to implement something
-        like this in your event handler: (f.e. **self**.handle_event)
+        To use the box as standard message box always returning to it's parent,
+        then you have to implement something like this in your event handler:
+        (f.e. **self**.handle_event)
 
             elif self.current_window == _MESSAGE_BOX:
                 if key.endswith('enter') or key == 'esc':
@@ -1932,7 +1960,8 @@ class Application(ApplicationHandler):
                     self._body = self._message_box_caller_body
                     self.reset_layout()
 
-        :param msg: List or one element of urwid formatted tuple containing the message content.
+        :param msg: List or one element of urwid formatted tuple containing
+                    the message content.
         :type: Any
         :param title: Optional title as simple string.
         :param align: Horizontal align.
@@ -1975,11 +2004,14 @@ class Application(ApplicationHandler):
         view_ok: bool = True,
         view_cancel: bool = False,
     ):
-        """Creates an input box dialog with an optional title and a default value.
+        """Creates an input box dialog with an optional title and a default
+        value.
         The message also can be a list of urwid formatted tuples.
 
-        To use the box as standard input box always returning to it's parent, then you have to implement something like
-        this in your event handler: (f.e. **self**.handle_event) and you MUST set the self.current_window_input_box
+        To use the box as standard input box always returning to it's parent,
+        then you have to implement something like this in your event handler:
+        (f.e. **self**.handle_event) and you MUST set
+        the self.current_window_input_box
 
             self.current_window_input_box = _ANY_OF_YOUR_CURRENT_WINDOWS
             self.input_box('Y/n', 'Question', 'yes')
@@ -1987,9 +2019,11 @@ class Application(ApplicationHandler):
             # and later on event handling
             elif self.current_window == _ANY_OF_YOUR_CURRENT_WINDOWS:
                 if key.endswith('enter') or key == 'esc':
-                    self.current_window = self.input_box_caller  # here you have to set your current window
+                    self.current_window = self.input_box_caller  # here you
+                                         # have to set your current window
 
-        :param msg: List or one element of urwid formatted tuple containing the message content.
+        :param msg: List or one element of urwid formatted tuple containing
+                    the message content.
         :type: Any
         :param title: Optional title as simple string.
         :param input_text: Default text as input text.
@@ -1998,7 +2032,8 @@ class Application(ApplicationHandler):
         :param width: The width of the box.
         :param valign: Vertical align.
         :param height: The height of the box.
-        :param mask: hide text entered by this character. If None, mask will be disabled.
+        :param mask: hide text entered by this character. If None, mask will
+                     be disabled.
         :param view_ok: Should the OK button be visible?
         :param view_cancel: Should the Cancel button be visible?
         """
@@ -2071,7 +2106,8 @@ class Application(ApplicationHandler):
 
     def get_focused_menu(self, menu: ListBox, event: Any) -> int:
         """
-        Returns id of focused menu item. Returns current id on enter or 1-9 or click, and returns the next id if
+        Returns id of focused menu item. Returns current id on enter or 1-9 or
+        click, and returns the next id if
         key is up or down.
 
         :param menu: The menu from which you want to know the id.
@@ -2106,7 +2142,8 @@ class Application(ApplicationHandler):
 
         :param menu: The menu to be handled.
         :param event: The event to be handled.
-        :param description_box: The ListBox containing the menu content that may be refreshed with the next description.
+        :param description_box: The ListBox containing the menu content that
+        may be refreshed with the next description.
         :return: The id of the menu having the focus (1+)
         """
         if event == "esc":
@@ -2121,7 +2158,8 @@ class Application(ApplicationHandler):
 
     def handle_standard_tab_behaviour(self, key: str = "tab"):
         """
-        Handles standard tabulator behaviour in dialogs. Switching from body to footer and vice versa.
+        Handles standard tabulator behaviour in dialogs. Switching from body
+        to footer and vice versa.
 
         :param key: The key to be handled.
         """
@@ -2175,7 +2213,8 @@ class Application(ApplicationHandler):
             body (Widget): The center widget.
             header (Widget): The header widget.
             footer (Widget): The footer widget.
-            focus_part (str): The part getting the focus. ('header', 'body' or 'footer')
+            focus_part (str): The part getting the focus. ('header', 'body'
+                              or 'footer')
             align (str): Horizontal align.
             width (int): The width of the box.
             valign (str): Vertical align.
