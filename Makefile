@@ -7,6 +7,8 @@ libexecdir = ${prefix}/libexec
 pkglibexecdir = ${libexecdir}/${PACKAGE_NAME}
 unitdir = /usr/lib/systemd/system
 
+all:
+
 install:
 	${MKDIR_P} ${DESTDIR}${pkglibexecdir} ${DESTDIR}${sbindir} ${DESTDIR}${unitdir}
 	cp -afv getty *.py ${DESTDIR}${pkglibexecdir}/
