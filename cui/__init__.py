@@ -667,8 +667,7 @@ class Application(ApplicationHandler):
                     res = self.reset_system_passwd(pw1)
                 else:
                     res = 2
-                    success_msg = "failed, because you gave two different " \
-                                  "password values"
+                    success_msg = "failed due to mismatching password values"
                 if not res:
                     success_msg = "failed"
                 self.open_main_menu()
@@ -1087,8 +1086,8 @@ class Application(ApplicationHandler):
         self.open_change_system_pw_dialog()
 
     def open_change_system_pw_dialog(self):
-        title = "System-Password Reset"
-        msg = "Enter your new system password:"
+        title = "System Password Change"
+        msg = "Enter the new system password:"
         width = 60
         input_text = ""
         height = 12
@@ -1161,7 +1160,7 @@ class Application(ApplicationHandler):
 
     def prepare_log_viewer_old(self, logfile: str = "syslog", lines: int = 0):
         """
-        Prepares log file viewer widget and fills last lines of file content.
+        Prepares the log file viewer widget and fills the last lines of the file content.
 
         :param logfile: The logfile to be viewed.
         :param lines: The number of lines to be viewed. (0 = unlimited)
@@ -1195,7 +1194,7 @@ class Application(ApplicationHandler):
 
     def prepare_log_viewer(self, unit: str = "syslog", lines: int = 0):
         """
-        Prepares log file viewer widget and fills last lines of file content.
+        Prepares the log file viewer widget and fills the last lines of the file content.
 
         :param unit: The journal unit to be viewed.
         :param lines: The number of lines to be viewed. (0 = unlimited)
@@ -1243,8 +1242,8 @@ class Application(ApplicationHandler):
                 else:
                     post.append(src[:-8])
         header = (
-            "Use arrow keys to switch between the logfiles. <LEFT> and "
-            "<RIGHT> changes the logfile, while <+> and <-> changes the "
+            "Use the arrow keys to switch between logfiles. <LEFT> and "
+            "<RIGHT> switch the logfile, while <+> and <-> changes the "
             "line count to view. ({})".format(
                 self.log_line_count
             )
@@ -1340,8 +1339,8 @@ class Application(ApplicationHandler):
         self._loop.start()
 
     def open_reset_aapi_pw(self):
-        title = "Admin-Web-Password Reset"
-        msg = "Enter your new admin-web password:"
+        title = "admin-web Password Change"
+        msg = "Enter the new admin-web password:"
         width = 60
         input_text = ""
         height = 12
@@ -1445,7 +1444,7 @@ class Application(ApplicationHandler):
                     Pile(
                         [
                             GText(
-                                "Insert your NTP servers separated by "
+                                "Insert the NTP servers separated by "
                                 "<SPACE> char.",
                                 LEFT,
                                 wrap=SPACE,
@@ -1951,7 +1950,7 @@ class Application(ApplicationHandler):
         can be a list of urwid formatted tuples.
 
         To use the box as standard message box always returning to it's parent,
-        then you have to implement something like this in your event handler:
+        then you have to implement something like this in the event handler:
         (f.e. **self**.handle_event)
 
             elif self.current_window == _MESSAGE_BOX:
@@ -2009,7 +2008,7 @@ class Application(ApplicationHandler):
         The message also can be a list of urwid formatted tuples.
 
         To use the box as standard input box always returning to it's parent,
-        then you have to implement something like this in your event handler:
+        then you have to implement something like this in the event handler:
         (f.e. **self**.handle_event) and you MUST set
         the self.current_window_input_box
 
@@ -2020,7 +2019,7 @@ class Application(ApplicationHandler):
             elif self.current_window == _ANY_OF_YOUR_CURRENT_WINDOWS:
                 if key.endswith('enter') or key == 'esc':
                     self.current_window = self.input_box_caller  # here you
-                                         # have to set your current window
+                                         # have to set the current window
 
         :param msg: List or one element of urwid formatted tuple containing
                     the message content.
