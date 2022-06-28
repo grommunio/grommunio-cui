@@ -420,7 +420,7 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
         rv += [
             "Console User Interface",
             "\n",
-            "© 2021 ",
+            "© 2022 ",
             "grommunio GmbH",
             "\n",
         ]
