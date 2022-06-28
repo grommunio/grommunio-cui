@@ -1,2 +1,2 @@
 #!/bin/sh
-PYTHONPATH="@pkglibexecdir@" exec /usr/bin/python3 @pkglibexecdir@/__init__.py
+PYTHONPATH="@pkglibexecdir@:@pkglibexecdir@/cui" exec /usr/bin/python3 @pkglibexecdir@/__init__.py
