@@ -432,7 +432,7 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
         rv.append("\n")
         if cpufreq:
             rv.append(
-                f"{psutil.cpu_count(logical=False)} x {uname.processor} CPUs"
+                f"{psutil.cpu_count()} x {uname.processor} CPUs"
                 f" @ {get_hr(cpufreq.current * 1000 * 1000, 'Hz', 1000)}"
             )
         else:
