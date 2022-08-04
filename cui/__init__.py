@@ -947,18 +947,18 @@ class Application(ApplicationHandler):
             self.open_mainframe()
 
     def _load_journal_units(self):
-        exe = "/usr/sbin/grammm-admin"
-        if Path("/usr/sbin/grommunio-admin").exists():
-            exe = "/usr/sbin/grommunio-admin"
-        p = subprocess.Popen(
-            [exe, "config", "dump"],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-        out, err = p.communicate()
-        if type(out) is bytes:
-            out = out.decode()
+        exe = "/usr/sbin/grommunio-admin"
+        out = ""
+        if Path(exe).exists():
+            p = subprocess.Popen(
+                [exe, "config", "dump"],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            out, err = p.communicate()
+            if type(out) is bytes:
+                out = out.decode()
         if out == "":
             self.config = {
                 "logs": {"gromox-http": {"source": "gromox-http.service"}}
