@@ -7,7 +7,10 @@ libexecdir = ${prefix}/libexec
 pkglibexecdir = ${libexecdir}/${PACKAGE_NAME}
 unitdir = /usr/lib/systemd/system
 
-all:
+all: locale/de/LC_MESSAGES/cui.mo locale/en/LC_MESSAGES/cui.mo
+
+%.mo: %.po
+	msgfmt -o $@ $<
 
 install:
 	${MKDIR_P} ${DESTDIR}${pkglibexecdir}/cui ${DESTDIR}${sbindir} ${DESTDIR}${unitdir}

@@ -52,6 +52,7 @@ from urwid import (
 from systemd import journal
 import datetime
 import time
+import gettext
 
 
 try:
@@ -81,6 +82,18 @@ _ADMIN_WEB_PW: str = "ADMIN-WEB-PW"
 _TIMESYNCD: str = "TIMESYNCD"
 _KEYBOARD_SWITCH: str = "KEYBOARD_SWITCH"
 
+translation = gettext.translation('cui', localedir='locale', languages=['en'])
+translation.install()
+
+
+def T_(msg):
+    """
+    Function for tagging text for translations.
+    """
+    return msg
+
+
+T_ = translation.gettext
 
 class Application(ApplicationHandler):
     """
@@ -99,7 +112,7 @@ class Application(ApplicationHandler):
     log_file_caller: str = ""
     _log_file_caller_body: Widget = None
     current_event = ""
-    current_bottom_info = "Idle"
+    current_bottom_info = T_("Idle")
     menu_items: List[str] = []
     layout: Frame = None
     old_layout: Frame = None
@@ -147,13 +160,13 @@ class Application(ApplicationHandler):
 
         # Login Dialog
         self.login_header = AttrMap(
-            GText(("header", "Login"), align="center"), "header"
+            GText(("header", T_("Login")), align="center"), "header"
         )
         self.user_edit = GEdit(
-            ("Username: ",), edit_text=getuser(), edit_pos=0
+            (T_("Username: "),), edit_text=getuser(), edit_pos=0
         )
         self.pass_edit = GEdit(
-            "Password: ", edit_text="", edit_pos=0, mask="*"
+            T_("Password: "), edit_text="", edit_pos=0, mask="*"
         )
         self.login_body = Pile(
             [
@@ -161,7 +174,7 @@ class Application(ApplicationHandler):
                 self.pass_edit,
             ]
         )
-        login_button = GBoxButton("Login", self.check_login)
+        login_button = GBoxButton(T_("Login"), self.check_login)
         connect_signal(
             login_button,
             "click",
@@ -172,7 +185,7 @@ class Application(ApplicationHandler):
         )
 
         # Common OK Button
-        self.ok_button = GBoxButton("OK", self.press_button)
+        self.ok_button = GBoxButton(T_("OK"), self.press_button)
         connect_signal(
             self.ok_button,
             "click",
@@ -201,7 +214,7 @@ class Application(ApplicationHandler):
         )
 
         # Common Cancel Button
-        self.cancel_button = GBoxButton("Cancel", self.press_button)
+        self.cancel_button = GBoxButton(T_("Cancel"), self.press_button)
         connect_signal(
             self.cancel_button,
             "click",
@@ -213,7 +226,7 @@ class Application(ApplicationHandler):
         )
 
         # Common Close Button
-        self.close_button = GBoxButton("Close", self.press_button)
+        self.close_button = GBoxButton(T_("Close"), self.press_button)
         connect_signal(
             self.close_button,
             "click",
@@ -242,7 +255,7 @@ class Application(ApplicationHandler):
         )
 
         # Common Add Button
-        self.add_button = GBoxButton("Add", self.press_button)
+        self.add_button = GBoxButton(T_("Add"), self.press_button)
         connect_signal(
             self.add_button,
             "click",
@@ -254,7 +267,7 @@ class Application(ApplicationHandler):
         )
 
         # Common Edit Button
-        self.edit_button = GBoxButton("Edit", self.press_button)
+        self.edit_button = GBoxButton(T_("Edit"), self.press_button)
         connect_signal(
             self.edit_button,
             "click",
@@ -266,7 +279,7 @@ class Application(ApplicationHandler):
         )
 
         # Common Details Button
-        self.details_button = GBoxButton("Details", self.press_button)
+        self.details_button = GBoxButton(T_("Details"), self.press_button)
         connect_signal(
             self.details_button,
             "click",
@@ -278,7 +291,7 @@ class Application(ApplicationHandler):
         )
 
         # Common Toggle Button
-        self.toggle_button = GBoxButton("Space to toggle", self.press_button)
+        self.toggle_button = GBoxButton(T_("Space to toggle"), self.press_button)
         self.toggle_button._selectable = False
         self.toggle_button = (21, self.toggle_button)
         self.toggle_button_footer = GridFlow(
@@ -286,7 +299,7 @@ class Application(ApplicationHandler):
         )
 
         # Common Apply Button
-        self.apply_button = GBoxButton("Apply", self.press_button)
+        self.apply_button = GBoxButton(T_("Apply"), self.press_button)
         connect_signal(
             self.apply_button,
             "click",
@@ -298,7 +311,7 @@ class Application(ApplicationHandler):
         )
 
         # Common Save Button
-        self.save_button = GBoxButton("Save", self.press_button)
+        self.save_button = GBoxButton(T_("Save"), self.press_button)
         connect_signal(
             self.save_button,
             "click",
@@ -319,8 +332,7 @@ class Application(ApplicationHandler):
 
         # Log file viewer
         self.log_file_content: List[str] = [
-            "If this is not that what you expected to see,",
-            "You probably have insufficient permissions!?",
+            T_("If this is not that what you expected to see, you probably have insufficient permissions."),
         ]
         self.prepare_log_viewer("NetworkManager", self.log_line_count)
 
@@ -334,99 +346,91 @@ class Application(ApplicationHandler):
         # The common menu description column
         self.menu_description = Pile(
             [
-                GText("Main Menu", CENTER),
-                GText("Here you can do the main actions", LEFT),
+                GText(T_("Main Menu"), CENTER),
+                GText(T_("Here you can do the main actions"), LEFT),
             ]
         )
         # Main Menu
         items = {
-            "Change system password": Pile(
+            T_("Change system password"): Pile(
                 [
-                    GText("Password change", CENTER),
+                    GText(T_("Password change"), CENTER),
                     GText(""),
-                    GText("Opens a dialog for changing the password of the system root user. When a password is set, you can login via ssh and rerun grommunio-cui."),
+                    GText(T_("Opens a dialog for changing the password of the system root user. When a password is set, you can login via ssh and rerun grommunio-cui.")),
                 ]
             ),
-            "Network interface configuration": Pile(
+            T_("Network interface configuration"): Pile(
                 [
-                    GText("Configuration of network", CENTER),
+                    GText(T_("Configuration of network"), CENTER),
                     GText(""),
                     GText(
-                        "Opens the yast2 configurator for setting up devices, "
-                        "interfaces, IP addresses, DNS and more."
+                        T_("Opens the yast2 configurator for setting up devices, interfaces, IP addresses, DNS and more.")
                     ),
                 ]
             ),
-            "Timezone configuration": Pile(
+            T_("Timezone configuration"): Pile(
                 [
-                    GText("Timezone", CENTER),
+                    GText(T_("Timezone"), CENTER),
                     GText(""),
                     GText(
-                        "Opens the yast2 configurator for setting country and "
-                        "timezone settings."
+                        T_("Opens the yast2 configurator for setting country and timezone settings.")
                     ),
                 ]
             ),
-            "timesyncd configuration": Pile(
+            T_("timesyncd configuration"): Pile(
                 [
-                    GText("timesyncd", CENTER),
+                    GText(T_("timesyncd"), CENTER),
                     GText(""),
                     GText(
-                        "Opens a simple configurator for configuring "
-                        "systemd-timesyncd as a lightweight NTP client for "
-                        "time synchronization."
+                        T_("Opens a simple configurator for configuring systemd-timesyncd as a lightweight NTP client for time synchronization.")
                     ),
                 ]
             ),
             "Update the system": Pile([
-                GText("System update", CENTER),
+                GText(_("System update"), CENTER),
                 GText(""),
-                GText("Executes the system package manager for the installation of newer component versions."),
+                GText(_("Executes the system package manager for the installation of newer component versions.")),
             ]),
-            "grommunio setup wizard": Pile(
+            T_("grommunio setup wizard"): Pile(
                 [
-                    GText("Setup wizard", CENTER),
+                    GText(T_("Setup wizard"), CENTER),
                     GText(""),
                     GText(
-                        "Executes the grommunio-setup script for the initial "
-                        "configuration of grommunio databases, TLS "
-                        "certificates, services and the administration web "
-                        "user interface."
+                        T_("Executes the grommunio-setup script for the initial configuration of grommunio databases, TLS certificates, services and the administration web user interface.")
                     ),
                 ]
             ),
-            "Change admin-web password": Pile(
+            T_("Change admin-web password"): Pile(
                 [
-                    GText("Password change", CENTER),
+                    GText(T_("Password change"), CENTER),
                     GText(""),
                     GText(
-                        "Opens a dialog for changing the password used by the "
-                        "administration web interface."
+                        T_("Opens a dialog for changing the password used by the administration web interface.")
                     ),
                 ]
             ),
-            "Terminal": Pile(
+            T_("Terminal"): Pile(
                 [
-                    GText("Terminal", CENTER),
+                    GText(T_("Terminal"), CENTER),
                     GText(""),
                     GText(
-                        "Starts terminal for advanced system configuration."
+                        T_("Starts terminal for advanced system configuration.")
                     ),
                 ]
             ),
-            "Reboot": Pile(
-                [GText("Reboot system.", CENTER), GText(""), GText("")]
+            T_("Reboot"): Pile(
+                [GText(T_("Reboot system."), CENTER), GText(""), GText("")]
             ),
-            "Shutdown": Pile(
+            T_("Shutdown"): Pile(
                 [
-                    GText("Shutdown system.", CENTER),
+                    GText(T_("Shutdown system."), CENTER),
                     GText(""),
-                    GText("Shuts down the system and powers off."),
+                    GText(T_("Shuts down the system and powers off.")),
                 ]
             ),
         }
         if os.getppid() != 1:
-            items["Exit"] = Pile([GText("Exit CUI", CENTER)])
+            items["Exit"] = Pile([GText(T_("Exit CUI"), CENTER)])
         self.main_menu_list = self.prepare_menu_list(items)
         if self.current_window == _MAIN_MENU and self.current_menu_focus > 0:
             off: int = 1
@@ -451,15 +455,15 @@ class Application(ApplicationHandler):
 
     def prepare_mainscreen(self):
         colormode: str = self._current_colormode
-        self.text_header = ["grommunio console user interface"]
+        self.text_header = [T_("grommunio console user interface")]
         self.text_header += ["\n"]
         self.text_header += [
-            "Active keyboard layout: {kbd}; color set: {colormode}."
+            T_("Active keyboard layout: {kbd}; color set: {colormode}.")
         ]
         self.authorized_options = ""
         text_intro = [
             "\n",
-            "If you need help, press the 'L' key to view logs.",
+            T_("If you need help, press the 'L' key to view logs."),
             "\n",
         ]
         self.tb_intro = GText(text_intro, align=CENTER, wrap=SPACE)
@@ -525,7 +529,7 @@ class Application(ApplicationHandler):
         )
         self.mainframe = frame
         self._body = self.mainframe
-        self.print("Idle")
+        self.print(T_("Idle"))
 
     def refresh_header(self, colormode, kbd, auth_options):
         self.refresh_head_text(colormode, kbd, auth_options)
@@ -543,7 +547,7 @@ class Application(ApplicationHandler):
         )
 
     def listen_unsupported(self, what: str, key: Any):
-        self.print(f"What is {what}.")
+        self.print(T_("What is {%s}." % what))
         if key in ["ctrl a", "A"]:
             return key
 
@@ -661,14 +665,14 @@ class Application(ApplicationHandler):
             self.open_main_menu()
 
     def key_ev_pass(self, key):
-        success_msg = "NOTHING"
+        success_msg = T_("NOTHING")
         if key.lower().endswith("enter"):
             if key.lower().startswith("hidden"):
                 button_type = key.lower().split(" ")[1]
             else:
                 button_type = "ok"
             if button_type == "ok":
-                success_msg = "was successful"
+                success_msg = T_("was successful")
                 pw1 = self._loop.widget.top_w.base_widget.body.base_widget[
                     1
                 ].edit_text
@@ -679,15 +683,15 @@ class Application(ApplicationHandler):
                     res = self.reset_system_passwd(pw1)
                 else:
                     res = 2
-                    success_msg = "failed due to mismatching password values"
+                    success_msg = T_("failed due to mismatching password values")
                 if not res:
-                    success_msg = "failed"
+                    success_msg = T_("failed")
                 self.open_main_menu()
             else:
-                success_msg = "aborted"
+                success_msg = T_("aborted")
                 self.open_main_menu()
         elif key.lower().find("cancel") >= 0 or key.lower() in ["esc"]:
-            success_msg = "aborted"
+            success_msg = T_("aborted")
             self.open_main_menu()
         elif key.lower().endswith("tab"):
             f: urwid.Frame = self._loop.widget.top_w.base_widget
@@ -704,8 +708,8 @@ class Application(ApplicationHandler):
         if key.lower().endswith("enter") or key in ["esc", "enter"]:
             self.current_window = self.input_box_caller
             self.message_box(
-                f"System password reset {success_msg}!",
-                "System password reset",
+                T_(f"System password reset {success_msg}!"),
+                T_("System password reset"),
                 height=10,
             )
 
@@ -840,14 +844,14 @@ class Application(ApplicationHandler):
             self.open_log_viewer("gromox-http", self.log_line_count)
 
     def key_ev_aapi(self, key):
-        success_msg = "NOTHING"
+        success_msg = T_("NOTHING")
         if key.lower().endswith("enter"):
             if key.lower().startswith("hidden"):
                 button_type = key.lower().split(" ")[1]
             else:
                 button_type = "ok"
             if button_type == "ok":
-                success_msg = "was successful"
+                success_msg = T_("was successful")
                 pw1 = self._loop.widget.top_w.base_widget.body.base_widget[
                     1
                 ].edit_text
@@ -858,16 +862,15 @@ class Application(ApplicationHandler):
                     res = self.reset_aapi_passwd(pw1)
                 else:
                     res = 2
-                    success_msg = "failed, because you gave two different " \
-                                  "password values"
+                    success_msg = T_("failed due to mismatching password values")
                 if not res:
-                    success_msg = "failed"
+                    success_msg = T_("failed")
                 self.open_main_menu()
             else:
-                success_msg = "aborted"
+                success_msg = T_("aborted")
                 self.open_main_menu()
         elif key.lower().find("cancel") >= 0 or key.lower() in ["esc"]:
-            success_msg = "aborted"
+            success_msg = T_("aborted")
             self.open_main_menu()
         elif key.lower().endswith("tab"):
             f: urwid.Frame = self._loop.widget.top_w.base_widget
@@ -884,14 +887,14 @@ class Application(ApplicationHandler):
         if key.lower().endswith("enter") or key in ["esc", "enter"]:
             self.current_window = self.input_box_caller
             self.message_box(
-                f"Admin password reset {success_msg}!",
-                "Admin password reset",
+                T_(f"Admin password reset {success_msg}!"),
+                T_("Admin password reset"),
                 height=10,
             )
 
     def key_ev_timesyncd(self, key):
         self.handle_standard_tab_behaviour(key)
-        success_msg = "NOTHING"
+        success_msg = T_("NOTHING")
         if key.lower().endswith("enter"):
             if key.lower().startswith("hidden"):
                 button_type = key.lower().split(" ")[1]
@@ -914,20 +917,20 @@ class Application(ApplicationHandler):
                     stdout=subprocess.DEVNULL,
                 )
                 res = rc.wait() == 0
-                success_msg = "was successful"
+                success_msg = T_("was successful")
                 if not res:
-                    success_msg = "failed"
+                    success_msg = T_("failed")
                 self.open_main_menu()
             else:
-                success_msg = "aborted"
+                success_msg = T_("aborted")
                 self.open_main_menu()
         elif key.lower().find("cancel") >= 0 or key.lower() in ["esc"]:
-            success_msg = "aborted"
+            success_msg = T_("aborted")
             self.open_main_menu()
         if key.lower().endswith("enter") or key in ["esc", "enter"]:
             self.message_box(
-                f"Timesyncd configuration change {success_msg}!",
-                "Timesyncd Configuration",
+                T_(f"Timesyncd configuration change {success_msg}!"),
+                T_("Timesyncd Configuration"),
                 height=10,
             )
 
@@ -1029,9 +1032,9 @@ class Application(ApplicationHandler):
         Handles RadioButton clicks.
 
         :param creator: The widget creating calling the function.
-        :param option: On if True, of otherwise.
+        :param option: On if True, off otherwise.
         """
-        self.print(f"Creator ({creator}) clicked {option}.")
+        self.print(T_("Creator (%s) clicked %b.") % creator, option)
 
     def handle_menu_changed(self, *args, **kwargs):
         """
@@ -1042,8 +1045,8 @@ class Application(ApplicationHandler):
         :param kwargs: Optional keyword args
         """
         self.print(
-            f"Called handle_menu_changed() with args({args}) und "
-            f"kwargs({kwargs})"
+            T_("Called handle_menu_changed() with args(%s) and ") % args
+            + "kwargs(%s)" % kwargs
         )
 
     def handle_menu_activated(self, *args, **kwargs):
@@ -1055,8 +1058,8 @@ class Application(ApplicationHandler):
         :param kwargs: Optional keyword args
         """
         self.print(
-            f"Called handle_menu_activated() with args({args}) und "
-            f"kwargs({kwargs})"
+            T_("Called handle_menu_activated() with args(%s) and ") % args
+            + "kwargs(%s)" % kwargs
         )
 
     def open_terminal(self):
@@ -1067,8 +1070,8 @@ class Application(ApplicationHandler):
         self.screen.tty_signal_keys(*self.old_termios)
         print("\x1b[K")
         print(
-            "\x1b[K \x1b[36m▼\x1b[0m To return to the CUI, issue the `exit` "
-            "command."
+            "\x1b[K \x1b[36m▼\x1b[0m", 
+            T_("To return to the CUI, issue the `exit` command.")
         )
         print("\x1b[J")
         # We have no environment, and so need su instead of just bash to launch
@@ -1078,17 +1081,20 @@ class Application(ApplicationHandler):
         self._loop.start()
 
     def reboot_confirm(self):
-        msg = "Are you sure?\nAfter pressing OK, the system will reboot."
-        title = "Reboot"
+        msg = T_("Are you sure?\n")
+        msg += T_("After pressing OK, ")
+        msg += T_("the system will reboot.")
+        title = T_("Reboot")
         self.current_window = _REBOOT
         self.message_box(
             msg, title, width=80, height=10, view_ok=True, view_cancel=True
         )
 
     def shutdown_confirm(self):
-        msg = "Are you sure?\nAfter pressing OK, the system will shut down " \
-              "and power off."
-        title = "Shutdown"
+        msg = T_("Are you sure?\n")
+        msg += T_("After pressing OK, ")
+        msg += T_("the system will shut down and power off.")
+        title = T_("Shutdown")
         self.current_window = _SHUTDOWN
         self.message_box(
             msg, title, width=80, height=10, view_ok=True, view_cancel=True
@@ -1099,12 +1105,12 @@ class Application(ApplicationHandler):
         Opens password changing dialog.
         """
         self.reset_layout()
-        self.print("Changing system password")
+        self.print(T_("Changing system password"))
         self.open_change_system_pw_dialog()
 
     def open_change_system_pw_dialog(self):
-        title = "System Password Change"
-        msg = "Enter the new system password:"
+        title = T_("System Password Change")
+        msg = T_("Enter the new system password:")
         width = 60
         input_text = ""
         height = 12
@@ -1259,11 +1265,7 @@ class Application(ApplicationHandler):
                 else:
                     post.append(src[:-8])
         header = (
-            "Use the arrow keys to switch between logfiles. <LEFT> and "
-            "<RIGHT> switch the logfile, while <+> and <-> changes the "
-            "line count to view. ({})".format(
-                self.log_line_count
-            )
+            T_("Use the arrow keys to switch between logfiles. <LEFT> and <RIGHT> switch the logfile, while <+> and <-> changes the line count to view. (%s)") % self.log_line_count
         )
         self.log_viewer = LineBox(
             AttrMap(
@@ -1335,7 +1337,7 @@ class Application(ApplicationHandler):
             self.log_file_caller = self.current_window
             self._log_file_caller_body = self._body
             self.current_window = _LOG_VIEWER
-        self.print(f"Log file viewer has to open file {unit} ...")
+        self.print(T_("Log file viewer has to open file {%s} ...") % unit)
         self.prepare_log_viewer(unit, lines)
         self._body = self.log_viewer
         self._loop.widget = self._body
@@ -1345,10 +1347,8 @@ class Application(ApplicationHandler):
         self.screen.tty_signal_keys(*self.old_termios)
         print("\x1b[K")
         print(
-            "\x1b[K \x1b[36m▼\x1b[0m Please wait while `yast2 {}` is "
-            "being run.".format(
-                modulename
-            )
+            "\x1b[K \x1b[36m▼\x1b[0m",
+            T_("Please wait while `yast2 %s` is being run.") % modulename
         )
         print("\x1b[J")
         os.system("yast2 {}".format(modulename))
@@ -1367,8 +1367,8 @@ class Application(ApplicationHandler):
         self._loop.start()
 
     def open_reset_aapi_pw(self):
-        title = "admin-web Password Change"
-        msg = "Enter the new admin-web password:"
+        title = T_("admin-web Password Change")
+        msg = T_("Enter the new admin-web password:")
         width = 60
         input_text = ""
         height = 12
@@ -1426,9 +1426,9 @@ class Application(ApplicationHandler):
 
     def open_timesyncd_conf(self):
         self.reset_layout()
-        self.print("Opening timesyncd configuration")
+        self.print(T_("Opening timesyncd configuration"))
         self.current_window = _TIMESYNCD
-        header = AttrMap(GText("Timesyncd Configuration", CENTER), "header")
+        header = AttrMap(GText(T_("Timesyncd Configuration"), CENTER), "header")
         self.prepare_timesyncd_config()
         footer = AttrMap(
             Columns([self.ok_button, self.cancel_button]), "buttonbar"
@@ -1466,17 +1466,13 @@ class Application(ApplicationHandler):
         )
         ntp_server = ntp_from_file.split(" ")
         fallback_server = fallback_from_file.split(" ")
+        text = T_("Insert the NTP servers separated by <SPACE> char.")
         self.timesyncd_body = LineBox(
             Padding(
                 Filler(
                     Pile(
                         [
-                            GText(
-                                "Insert the NTP servers separated by "
-                                "<SPACE> char.",
-                                LEFT,
-                                wrap=SPACE,
-                            ),
+                            GText(text, LEFT, wrap=SPACE),
                             GEdit(
                                 (15, "NTP: "), " ".join(ntp_server), wrap=SPACE
                             ),
@@ -1507,9 +1503,9 @@ class Application(ApplicationHandler):
         Opens amin menu,
         """
         self.reset_layout()
-        self.print("Login successful")
+        self.print(T_("Login successful"))
         self.current_window = _MAIN_MENU
-        self.authorized_options = ", <F4> for Main-Menu"
+        self.authorized_options = T_(", <F4> for Main-Menu")
         self.prepare_mainscreen()
         self._body = self.main_menu
         self._loop.widget = self._body
@@ -1519,7 +1515,7 @@ class Application(ApplicationHandler):
         Opens main window. (Welcome screen)
         """
         self.reset_layout()
-        self.print("Returning to main screen.")
+        self.print(T_("Returning to main screen."))
         self.current_window = _MAIN
         self.prepare_mainscreen()
         self._loop.widget = self._body
@@ -1530,11 +1526,10 @@ class Application(ApplicationHandler):
         """
         if self.user_edit.get_edit_text() != getuser() and os.getegid() != 0:
             self.message_box(
-                "You need root privileges to use another user.", height=10
+                T_("You need root privileges to use another user."), height=10
             )
             return
-        msg = f"checking user {self.user_edit.get_edit_text()} with pass " \
-              f"***** ..."
+        msg = T_("checking user %s with pass ") % self.user_edit.get_edit_text()
         if self.current_window == _LOGIN:
             if util.authenticate_user(
                 self.user_edit.get_edit_text(), self.pass_edit.get_edit_text()
@@ -1543,10 +1538,10 @@ class Application(ApplicationHandler):
                 self.open_main_menu()
             else:
                 self.message_box(
-                    "Incorrect credentials. Access denied!",
-                    "Password verification",
+                    T_("Incorrect credentials. Access denied!"),
+                    T_("Password verification"),
                 )
-                self.print(f"Login wrong! ({msg})")
+                self.print(T_("Login wrong! (%s)") % msg)
 
     def press_button(self, button: Widget, *args, **kwargs):
         """
@@ -1554,7 +1549,7 @@ class Application(ApplicationHandler):
 
         :param button: The button been clicked.
         """
-        label: str = "UNKNOWN LABEL"
+        label: str = T_("UNKNOWN LABEL")
         if (
             isinstance(button, RadioButton)
             or isinstance(button, WidgetDrawer)
@@ -1708,7 +1703,7 @@ class Application(ApplicationHandler):
 
     def open_keyboard_selection_menu(self):
         self.reset_layout()
-        self.print("Opening keyboard configuration")
+        self.print(T_("Opening keyboard configuration"))
         self.last_current_window = self.current_window
         self.current_window = _KEYBOARD_SWITCH
         header = None
@@ -2078,7 +2073,7 @@ class Application(ApplicationHandler):
         footer = self.create_footer(view_ok, view_cancel)
 
         if title is None:
-            title = "Input expected"
+            title = T_("Input expected")
         self.dialog(
             body=body,
             header=GText(title, CENTER),
@@ -2277,20 +2272,20 @@ class Application(ApplicationHandler):
         self._loop.widget = w
 
     def check_config_write(self, di) -> bool:
-        title: str = "Write succeeded"
+        title: str = T_("Write succeeded")
         height: int = 9
-        msg: List[str] = ["The configuration was"]
+        msg: List[str] = [T_("The configuration was")]
         rv: bool = True
         if di.write_config():
-            msg += [" updated."]
+            msg += [T_(" updated.")]
         else:
-            title = "Write failed"
+            title = T_("Write failed")
             height += 1
             msg += [
-                ("important", " not"),
-                " updated.",
+                ("important", T_(" not")),
+                T_(" updated."),
                 "\n",
-                "Perhaps you have insufficient rights.",
+                T_("Perhaps you have insufficient rights."),
             ]
             rv = False
         self.message_box(msg, title=title, height=height)
@@ -2302,10 +2297,10 @@ def create_application():
     set_encoding("utf-8")
     _PRODUCTIVE = True
     if "--help" in sys.argv:
-        print(f"Usage: {sys.argv[0]} [OPTIONS]")
-        print(f"\tOPTIONS:")
-        print(f"\t\t--help: Show this message.")
-        print(f"\t\t-v/--debug: Verbose/Debugging mode.")
+        print(T_("Usage: {%s} [OPTIONS]") % sys.argv[0])
+        print(T_("\tOPTIONS:"))
+        print(T_("\t\t--help: Show this message."))
+        print(T_("\t\t-v/--debug: Verbose/Debugging mode."))
     else:
         app = Application()
         if "-v" in sys.argv:

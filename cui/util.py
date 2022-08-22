@@ -8,18 +8,31 @@ from pamela import authenticate, PAMError
 from typing import Any, Dict, List, Tuple, Union
 from datetime import datetime
 import ipaddress
+import gettext
 import platform
 import psutil
 import socket
 import shlex
 
 
+translation = gettext.translation('cui', localedir='locale', languages=['en'])
+translation.install()
+
+def T_(msg):
+    """
+    Function for tagging text for translations.
+    """
+    return msg
+
+
+T_ = translation.gettext
+
 STATES = {
-    1: "System password is not set.",
-    2: "Network configuration is missing.",
-    4: "grommunio-setup has not been run yet.",
-    8: "timesyncd configuration is missing.",
-    16: "nginx is not running.",
+    1: T_("System password is not set."),
+    2: T_("Network configuration is missing."),
+    4: T_("grommunio-setup has not been run yet."),
+    8: T_("timesyncd configuration is missing."),
+    16: T_("nginx is not running."),
 }
 
 _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
