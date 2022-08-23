@@ -8,3 +8,4 @@ bla.*
 *.swp
 get-pip.py
 *.mo
+*~
