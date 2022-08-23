@@ -191,7 +191,7 @@ class Application(ApplicationHandler):
             "click",
             lambda button: self.handle_event("ok enter"),
         )
-        self.ok_button = (8, self.ok_button)
+        self.ok_button = (len(self.ok_button.label) + 6, self.ok_button)
         self.ok_button_footer = AttrMap(
             Columns(
                 [
@@ -220,7 +220,7 @@ class Application(ApplicationHandler):
             "click",
             lambda button: self.handle_event("cancel enter"),
         )
-        self.cancel_button = (12, self.cancel_button)
+        self.cancel_button = (len(self.cancel_button.label) + 6, self.cancel_button)
         self.cancel_button_footer = GridFlow(
             [self.cancel_button[1]], 10, 1, 1, "center"
         )
@@ -232,7 +232,7 @@ class Application(ApplicationHandler):
             "click",
             lambda button: self.handle_event("close enter"),
         )
-        self.close_button = (11, self.close_button)
+        self.close_button = (len(self.close_button.label) + 6, self.close_button)
         self.close_button_footer = AttrMap(
             Columns(
                 [
@@ -261,7 +261,7 @@ class Application(ApplicationHandler):
             "click",
             lambda button: self.handle_event("add enter"),
         )
-        self.add_button = (9, self.add_button)
+        self.add_button = (len(self.add_button.label) + 6, self.add_button)
         self.add_button_footer = GridFlow(
             [self.add_button[1]], 10, 1, 1, "center"
         )
@@ -273,7 +273,7 @@ class Application(ApplicationHandler):
             "click",
             lambda button: self.handle_event("edit enter"),
         )
-        self.edit_button = (10, self.edit_button)
+        self.edit_button = (len(self.edit_button.label) + 6, self.edit_button)
         self.edit_button_footer = GridFlow(
             [self.edit_button[1]], 10, 1, 1, "center"
         )
@@ -285,7 +285,7 @@ class Application(ApplicationHandler):
             "click",
             lambda button: self.handle_event("details enter"),
         )
-        self.details_button = (13, self.details_button)
+        self.details_button = (len(self.details_button.label) + 6, self.details_button)
         self.details_button_footer = GridFlow(
             [self.details_button[1]], 10, 1, 1, "center"
         )
@@ -293,7 +293,7 @@ class Application(ApplicationHandler):
         # Common Toggle Button
         self.toggle_button = GBoxButton(T_("Space to toggle"), self.press_button)
         self.toggle_button._selectable = False
-        self.toggle_button = (21, self.toggle_button)
+        self.toggle_button = (len(self.toggle_button.label) + 6, self.toggle_button)
         self.toggle_button_footer = GridFlow(
             [self.toggle_button[1]], 10, 1, 1, "center"
         )
@@ -305,7 +305,7 @@ class Application(ApplicationHandler):
             "click",
             lambda button: self.handle_event("apply enter"),
         )
-        self.apply_button = (12, self.apply_button)
+        self.apply_button = (len(self.apply_button.label) + 6, self.apply_button)
         self.apply_button_footer = GridFlow(
             [self.apply_button[1]], 10, 1, 1, "center"
         )
@@ -317,7 +317,7 @@ class Application(ApplicationHandler):
             "click",
             lambda button: self.handle_event("save enter"),
         )
-        self.save_button = (10, self.save_button)
+        self.save_button = (len(self.save_button.label) + 6, self.save_button)
         self.save_button_footer = GridFlow(
             [self.save_button[1]], 10, 1, 1, "center"
         )

@@ -345,8 +345,8 @@ def authenticate_user(
 
 def get_os_release() -> Tuple[str, str]:
     osr: Path = Path("/etc/os-release")
-    name: str = "No name found"
-    version: str = "No version detectable"
+    name: str = T_("No name found")
+    version: str = T_("No version detectable")
     with osr.open("r") as f:
         for line in f:
             if line.startswith("NAME"):
@@ -408,7 +408,7 @@ def get_load():
 
 def get_load_avg_format_list():
     load_avg = get_load()
-    load_format = [("footer", " Average load: ")]
+    load_format = [("footer", T_(" Average load: "))]
     _ = [
         load_format.append(("footer", f"{t} min:"))
         or load_format.append(("footer", f" {load_avg[i]:0.2f}"))
@@ -455,7 +455,11 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
             )
         rv.append("\n")
         rv.append(
-            f"Memory {get_hr(svmem.used)} used of {get_hr(svmem.total)} ({get_hr(svmem.available)} free)"
+            T_("Memory {used} used of {total} ({available} free)").format(
+                used=get_hr(svmem.used),
+                total=get_hr(svmem.total),
+                available=get_hr(svmem.available)
+            )
         )
         rv.append("\n")
         rv.append("\n")
@@ -468,7 +472,7 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
         if check_setup_state() == 0:
             rv += [
                 "\n",
-                "For further configuration, these URLs can be used:",
+                T_("For further configuration, these URLs can be used:"),
                 "\n",
             ]
             rv.append("\n")
@@ -476,7 +480,7 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
                 rv.append(
                     (
                         "important",
-                        "It is generally NOT recommended to use localhost as hostname.",
+                        T_("It is generally NOT recommended to use localhost as hostname."),
                     )
                 )
                 rv.append("\n")
@@ -502,7 +506,7 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
         else:
             rv.append("\n")
             rv.append(
-                "There are still some tasks missing to run/use grommunio."
+                T_("There are still some tasks missing to run/use grommunio.")
             )
             rv.append("\n")
             statelist = extract_bits(check_setup_state())
@@ -511,16 +515,16 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
                 rv.append(("important", STATES.get(state)))
             rv.append("\n")
         rv.append("\n")
-        rv.append(f"Boot Time: ")
+        rv.append(T_("Boot Time: "))
         rv.append(("reverse", f"{bt.isoformat()}"))
         rv.append("\n")
         last_login = get_last_login_time()
         if last_login != "":
-            rv.append(f"Last login time: {last_login}")
+            rv.append(T_("Last login time: {%s}") % last_login)
         rv.append("\n")
     else:
-        rv.append("Oops!")
-        rv.append("There should be nothing.")
+        rv.append(T_("Oops!"))
+        rv.append(T_("There should be nothing."))
     return rv
 
 
@@ -583,10 +587,10 @@ def get_clockstring() -> str:
 def get_footerbar(key_size=2, name_size=10):
     """Return footerbar description"""
     rv = []
-    menu = {"F1": "Color", "F2": "Login", "F5": "Keyboard"}
+    menu = {"F1": T_("Color"), "F2": T_("Login"), "F5": T_("Keyboard")}
     if os.getppid() != 1:
-        menu["F10"] = "Exit"
-    menu["L"] = "Logs"
+        menu["F10"] = T_("Exit")
+    menu["L"] = T_("Logs")
     spacebar = "".join(" " for _ in range(name_size))
     for item in menu.items():
         nr = ("footerbar.short", f"  {item[0]}"[-key_size:])

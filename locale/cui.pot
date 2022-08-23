@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-08-22 20:08+0200\n"
+"POT-Creation-Date: 2022-08-23 15:04+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -25,7 +25,7 @@ msgstr ""
 msgid "light"
 msgstr ""
 
-#: cui/__init__.py:163 cui/__init__.py:177
+#: cui/__init__.py:163 cui/__init__.py:177 cui/util.py:591
 msgid "Login"
 msgstr ""
 
@@ -490,4 +490,62 @@ msgstr ""
 
 #: cui/util.py:152
 msgid "orange dark"
+msgstr ""
+
+#: cui/util.py:347
+msgid "No name found"
+msgstr ""
+
+#: cui/util.py:348
+msgid "No version detectable"
+msgstr ""
+
+#: cui/util.py:410
+msgid " Average load: "
+msgstr ""
+
+#: cui/util.py:457
+#, python-brace-format
+msgid "Memory {used} used of {total} ({available} free)"
+msgstr ""
+
+#: cui/util.py:474
+msgid "For further configuration, these URLs can be used:"
+msgstr ""
+
+#: cui/util.py:482
+msgid "It is generally NOT recommended to use localhost as hostname."
+msgstr ""
+
+#: cui/util.py:508
+msgid "There are still some tasks missing to run/use grommunio."
+msgstr ""
+
+#: cui/util.py:517
+msgid "Boot Time: "
+msgstr ""
+
+#: cui/util.py:522
+#, python-format
+msgid "Last login time: {%s}"
+msgstr ""
+
+#: cui/util.py:525
+msgid "Oops!"
+msgstr ""
+
+#: cui/util.py:526
+msgid "There should be nothing."
+msgstr ""
+
+#: cui/util.py:590
+msgid "Color"
+msgstr ""
+
+#: cui/util.py:592
+msgid "Keyboard"
+msgstr ""
+
+#: cui/util.py:593
+msgid "Logs"
 msgstr ""
