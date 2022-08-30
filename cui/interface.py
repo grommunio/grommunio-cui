@@ -3,6 +3,7 @@
 
 from typing import Any
 from urwid import ListBox, WidgetWrap
+import cui
 
 
 class ApplicationHandler(object):
@@ -48,9 +49,15 @@ class ApplicationHandler(object):
             :rtype: int
 
         """
-        self.last_menu_focus: int = menu.focus_position + 1
+        item_count: int
+        if isinstance(menu, cui.ScrollBar):
+            tmp_menu = menu.base_widget
+            item_count = len(tmp_menu.contents)
+        else:
+            tmp_menu = menu
+            item_count = len(tmp_menu.body)
+        self.last_menu_focus: int = tmp_menu.focus_position + 1
         self.current_menu_focus: int = self.last_menu_focus
-        item_count: int = len(menu.body)
         if type(event) is str:
             key: str = str(event)
             if key.endswith("enter") or key in [" "]:
@@ -59,12 +66,12 @@ class ApplicationHandler(object):
                 self.current_menu_focus = ord(str(key)) - ord("1")
             elif key == "up":
                 self.current_menu_focus = (
-                    menu.focus_position if menu.focus_position > 0 else 1
+                    tmp_menu.focus_position if tmp_menu.focus_position > 0 else 1
                 )
             elif key == "down":
                 self.current_menu_focus = (
                     self.last_menu_focus + 1
-                    if menu.focus_position < item_count - 1
+                    if tmp_menu.focus_position < item_count - 1
                     else item_count
                 )
         return self.current_menu_focus
