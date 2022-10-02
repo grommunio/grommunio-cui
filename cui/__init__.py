@@ -425,6 +425,8 @@ class Application(ApplicationHandler):
                 ]
             ),
         }
+        if os.getppid() != 1:
+            items["Exit"] = Pile([GText("Exit CUI", CENTER)])
         self.main_menu_list = self.prepare_menu_list(items)
         self.main_menu = self.menu_to_frame(self.main_menu_list)
 
@@ -760,6 +762,9 @@ class Application(ApplicationHandler):
                 self.reboot_confirm()
             elif menu_selected == 10:
                 self.shutdown_confirm()
+            elif menu_selected == 11:
+                # Exit, not always visible
+                raise ExitMainLoop()
         elif key == "esc":
             self.open_mainframe()
 

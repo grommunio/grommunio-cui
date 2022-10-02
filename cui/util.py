@@ -570,7 +570,10 @@ def get_clockstring() -> str:
 def get_footerbar(key_size=2, name_size=10):
     """Return footerbar description"""
     rv = []
-    menu = {"F1": "Color", "F2": "Login", "F5": "Keyboard", "L": "Logs"}
+    menu = {"F1": "Color", "F2": "Login", "F5": "Keyboard"}
+    if os.getppid() != 1:
+        menu["F10"] = "Exit"
+    menu["L"] = "Logs"
     spacebar = "".join(" " for _ in range(name_size))
     for item in menu.items():
         nr = ("footerbar.short", f"  {item[0]}"[-key_size:])
