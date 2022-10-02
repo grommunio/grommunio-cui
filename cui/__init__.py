@@ -344,10 +344,7 @@ class Application(ApplicationHandler):
                 [
                     GText("Password change", CENTER),
                     GText(""),
-                    GText(
-                        f'Opens a dialog for changing the password of the '
-                        f'Linux system user "{getuser()}".'
-                    ),
+                    GText("Opens a dialog for changing the password of the system root user. When a password is set, you can login via ssh and rerun grommunio-cui."),
                 ]
             ),
             "Network interface configuration": Pile(
