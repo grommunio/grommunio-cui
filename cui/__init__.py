@@ -892,7 +892,7 @@ class Application(ApplicationHandler):
                 self.timesyncd_vars[
                     "FallbackNTP"
                 ] = self.timesyncd_body.base_widget[2].edit_text
-                util.minishell_write(
+                util.lineconfig_write(
                     "/etc/systemd/timesyncd.conf", self.timesyncd_vars
                 )
                 rc = subprocess.Popen(
@@ -1444,7 +1444,7 @@ class Application(ApplicationHandler):
             "2.opensuse.pool.ntp.org",
             "3.opensuse.pool.ntp.org",
         ]
-        self.timesyncd_vars = util.minishell_read(
+        self.timesyncd_vars = util.lineconfig_read(
             "/etc/systemd/timesyncd.conf"
         )
         ntp_from_file = self.timesyncd_vars.get("NTP", " ".join(ntp_server))

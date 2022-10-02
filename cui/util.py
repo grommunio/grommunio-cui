@@ -11,6 +11,7 @@ import ipaddress
 import platform
 import psutil
 import socket
+import shlex
 
 
 STATES = {
@@ -619,8 +620,7 @@ def fast_tail(file: str, n: int = 0) -> List[str]:
     return [line.strip() for line in lines[-n:]]
 
 
-def minishell_read(file):
-    # should use shlex, but it's not included
+def lineconfig_read(file):
     items = {}
     try:
         with open(file) as fh:
@@ -636,13 +636,45 @@ def minishell_read(file):
     return items
 
 
-def minishell_write(file, items):
+def lineconfig_write(file, items):
     with open(file, "w") as fh:
         for key in items:
             fh.write(key)
             if items[key] is not None:
                 fh.write("=")
                 fh.write(items[key])
+            fh.write("\n")
+
+
+'''
+minishell is like lineconfig, but must recognize quotes and backslashes.
+'''
+def minishell_read(file):
+    items = {}
+    try:
+        with open(file) as fh:
+            for line in fh:
+                if line.strip()[0:1] == "#":
+                    continue
+                r = shlex.split(line.rstrip('\n'))
+                if len(r) < 1:
+                    continue
+                r = r[0].partition("=")
+                if len(r) != 3:
+                    continue
+                items[r[0]] = r[2]
+    except IOError:
+        pass
+    return items
+
+
+def minishell_write(file, items):
+    with open(file, "w") as fh:
+        for key in items:
+            fh.write(key)
+            if items[key] is not None:
+                fh.write("=")
+                fh.write(shlex.quote(items[key]))
             fh.write("\n")
 
 
