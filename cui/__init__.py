@@ -378,6 +378,11 @@ class Application(ApplicationHandler):
                     ),
                 ]
             ),
+            "Update the system": Pile([
+                GText("System update", CENTER),
+                GText(""),
+                GText("Executes the system package manager for the installation of newer component versions."),
+            ]),
             "grommunio setup wizard": Pile(
                 [
                     GText("Setup wizard", CENTER),
@@ -744,14 +749,16 @@ class Application(ApplicationHandler):
             elif menu_selected == 4:
                 self.open_timesyncd_conf()
             elif menu_selected == 5:
-                self.open_setup_wizard()
+                self.run_zypper("up")
             elif menu_selected == 6:
-                self.open_reset_aapi_pw()
+                self.open_setup_wizard()
             elif menu_selected == 7:
-                self.open_terminal()
+                self.open_reset_aapi_pw()
             elif menu_selected == 8:
-                self.reboot_confirm()
+                self.open_terminal()
             elif menu_selected == 9:
+                self.reboot_confirm()
+            elif menu_selected == 10:
                 self.shutdown_confirm()
         elif key == "esc":
             self.open_mainframe()
@@ -1332,6 +1339,17 @@ class Application(ApplicationHandler):
         )
         print("\x1b[J")
         os.system("yast2 {}".format(modulename))
+        self.screen.tty_signal_keys(*self.blank_termios)
+        self._loop.start()
+
+    def run_zypper(self, subcmd: str):
+        self._loop.stop()
+        self.screen.tty_signal_keys(*self.old_termios)
+        print("\x1b[K")
+        print("\x1b[K \x1b[36m▼\x1b[0m Please wait while zypper is invoked.")
+        print("\x1b[J")
+        os.system("zypper {}".format(subcmd))
+        input("\n \x1b[36m▼\x1b[0m Press ENTER to return to the CUI.")
         self.screen.tty_signal_keys(*self.blank_termios)
         self._loop.start()
 
