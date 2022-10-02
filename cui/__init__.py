@@ -2323,3 +2323,4 @@ def create_application():
 if __name__ == "__main__":
     application = create_application()
     application.start()
+    print("\n\x1b[J")
