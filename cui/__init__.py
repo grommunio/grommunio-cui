@@ -428,7 +428,15 @@ class Application(ApplicationHandler):
         if os.getppid() != 1:
             items["Exit"] = Pile([GText("Exit CUI", CENTER)])
         self.main_menu_list = self.prepare_menu_list(items)
+        if self.current_window == _MAIN_MENU and self.current_menu_focus > 0:
+            off: int = 1
+            if self.last_current_window == _MAIN_MENU:
+                off = 1
+            self.main_menu_list.focus_position = self.current_menu_focus - off
         self.main_menu = self.menu_to_frame(self.main_menu_list)
+        if self.current_window == _MAIN_MENU:
+            self._loop.widget = self.main_menu
+            self._body = self.main_menu
 
     def recreate_text_header(self):
         self.tb_header = GText(
@@ -1505,9 +1513,6 @@ class Application(ApplicationHandler):
         self.prepare_mainscreen()
         self._body = self.main_menu
         self._loop.widget = self._body
-        self.handle_standard_menu_behaviour(
-            self.main_menu_list, "up", self.main_menu.base_widget.body[1]
-        )
 
     def open_mainframe(self):
         """
@@ -1575,21 +1580,17 @@ class Application(ApplicationHandler):
         return ListBox(SimpleFocusListWalker(menu_items))
 
     def menu_to_frame(self, listbox: ListBox):
-        menu = Columns(
-            [
-                AttrMap(listbox, "body"),
-                AttrMap(
-                    ListBox(SimpleListWalker([self.menu_description])),
-                    "reverse",
-                ),
-            ]
-        )
+        fopos: int = listbox.focus_position
+        menu = Columns([
+            AttrMap(listbox, "body"), AttrMap(ListBox(SimpleListWalker([
+                listbox.body[fopos].original_widget.get_description()
+            ])), "reverse",),
+        ])
         menu[1]._selectable = False
         return Frame(menu, header=self.header, footer=self.footer)
 
-    def prepare_radio_list(
-        self, items: Dict[str, Widget]
-    ) -> Tuple[ListBox, ListBox]:
+    def prepare_radio_list(self, items: Dict[str, Widget]) \
+            -> Tuple[ListBox, ListBox]:
         """
         Prepares general radio list containing RadioButtons and content.
 
