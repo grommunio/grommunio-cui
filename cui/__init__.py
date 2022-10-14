@@ -52,7 +52,7 @@ from urwid import (
 from systemd import journal
 import datetime
 import time
-import gettext
+import locale
 
 
 try:
@@ -82,18 +82,19 @@ _ADMIN_WEB_PW: str = "ADMIN-WEB-PW"
 _TIMESYNCD: str = "TIMESYNCD"
 _KEYBOARD_SWITCH: str = "KEYBOARD_SWITCH"
 
-translation = gettext.translation('cui', localedir='locale', languages=['en'])
-translation.install()
+locale.setlocale(locale.LC_ALL, '')
 
+try:
+    locale.bindtextdomain('cui', 'locale' if os.path.exists("locale/de/LC_MESSAGES/cui.mo") else None)
+    locale.textdomain('cui')
+    T_ = locale.gettext
+except OSError as e:
+    def T_(msg):
+        """
+        Function for tagging text for translations.
+        """
+        return msg
 
-def T_(msg):
-    """
-    Function for tagging text for translations.
-    """
-    return msg
-
-
-T_ = translation.gettext
 
 class Application(ApplicationHandler):
     """
@@ -387,9 +388,9 @@ class Application(ApplicationHandler):
                 ]
             ),
             "Update the system": Pile([
-                GText(_("System update"), CENTER),
+                GText(T_("System update"), CENTER),
                 GText(""),
-                GText(_("Executes the system package manager for the installation of newer component versions.")),
+                GText(T_("Executes the system package manager for the installation of newer component versions.")),
             ]),
             T_("grommunio setup wizard"): Pile(
                 [

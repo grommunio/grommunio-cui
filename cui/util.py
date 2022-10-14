@@ -8,24 +8,25 @@ from pamela import authenticate, PAMError
 from typing import Any, Dict, List, Tuple, Union
 from datetime import datetime
 import ipaddress
-import gettext
+import locale
 import platform
 import psutil
 import socket
 import shlex
 
 
-translation = gettext.translation('cui', localedir='locale', languages=['en'])
-translation.install()
+locale.setlocale(locale.LC_ALL, '')
 
-def T_(msg):
-    """
-    Function for tagging text for translations.
-    """
-    return msg
-
-
-T_ = translation.gettext
+try:
+    locale.bindtextdomain('cui', 'locale' if os.path.exists("locale/de/LC_MESSAGES/cui.mo") else None)
+    locale.textdomain('cui')
+    T_ = locale.gettext
+except OSError as e:
+    def T_(msg):
+        """
+        Function for tagging text for translations.
+        """
+        return msg
 
 STATES = {
     1: T_("System password is not set."),
