@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # SPDX-FileCopyrightText: 2021 grommunio GmbH
+import cui.parser
 import re
 import subprocess
 import sys
@@ -375,6 +376,15 @@ class Application(ApplicationHandler):
                     GText(""),
                     GText(
                         T_("Opens the yast2 configurator for setting country and timezone settings.")
+                    ),
+                ]
+            ),
+            T_("Language configuration"): Pile(
+                [
+                    GText(T_("Language"), CENTER),
+                    GText(""),
+                    GText(
+                        T_("Opens the yast2 configurator for setting language settings.")
                     ),
                 ]
             ),
@@ -762,20 +772,26 @@ class Application(ApplicationHandler):
             elif menu_selected == 3:
                 self.run_yast_module("timezone")
             elif menu_selected == 4:
-                self.open_timesyncd_conf()
+                self.run_yast_module("language")
+                try:
+                    self.restart_gui()
+                except Exception as err:
+                    self.message_box(f'An error occurred while restarting CUI: {err}')
             elif menu_selected == 5:
-                self.run_zypper("up")
+                self.open_timesyncd_conf()
             elif menu_selected == 6:
-                self.open_setup_wizard()
+                self.run_zypper("up")
             elif menu_selected == 7:
-                self.open_reset_aapi_pw()
+                self.open_setup_wizard()
             elif menu_selected == 8:
-                self.open_terminal()
+                self.open_reset_aapi_pw()
             elif menu_selected == 9:
-                self.reboot_confirm()
+                self.open_terminal()
             elif menu_selected == 10:
-                self.shutdown_confirm()
+                self.reboot_confirm()
             elif menu_selected == 11:
+                self.shutdown_confirm()
+            elif menu_selected == 12:
                 # Exit, not always visible
                 raise ExitMainLoop()
         elif key == "esc":
@@ -1366,6 +1382,32 @@ class Application(ApplicationHandler):
         input("\n \x1b[36m▼\x1b[0m Press ENTER to return to the CUI.")
         self.screen.tty_signal_keys(*self.blank_termios)
         self._loop.start()
+
+    def restart_gui(self):
+        langfile = '/etc/sysconfig/language'
+        config = cui.parser.ConfigParser(infile=langfile)
+        root_uses_lang = config.get('ROOT_USES_LANG', None)
+        config['ROOT_USES_LANG'] = '"yes"'
+        config.write()
+        # assert os.getenv('PPID') == 1, 'Gugg mal rein da!'
+        if os.getenv('PPID') == 1:
+            # restart
+            os.execv(sys.executable, sys.argv)
+        else:
+            height = 11
+            if os.getppid() == 1:
+                # Avoid restart, maybe show dialog
+                self.message_box(T_(
+                    "Please note that language change will take effect"
+                    " as soon as you restart the grommunio-cui."
+                    " (%s)" % os.getppid()
+                ), height=height)
+            else:
+                self.message_box(T_(
+                    "Please note that language change will take effect"
+                    " as soon as you restart the grommunio-cui."
+                    " (%s)" % os.getppid()
+                ), height=height)
 
     def open_reset_aapi_pw(self):
         title = T_("admin-web Password Change")
