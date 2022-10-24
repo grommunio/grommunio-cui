@@ -354,6 +354,15 @@ class Application(ApplicationHandler):
         )
         # Main Menu
         items = {
+            T_("Language configuration"): Pile(
+                [
+                    GText(T_("Language"), CENTER),
+                    GText(""),
+                    GText(
+                        T_("Opens the yast2 configurator for setting language settings.")
+                    ),
+                ]
+            ),
             T_("Change system password"): Pile(
                 [
                     GText(T_("Password change"), CENTER),
@@ -376,15 +385,6 @@ class Application(ApplicationHandler):
                     GText(""),
                     GText(
                         T_("Opens the yast2 configurator for setting country and timezone settings.")
-                    ),
-                ]
-            ),
-            T_("Language configuration"): Pile(
-                [
-                    GText(T_("Language"), CENTER),
-                    GText(""),
-                    GText(
-                        T_("Opens the yast2 configurator for setting language settings.")
                     ),
                 ]
             ),
@@ -766,17 +766,17 @@ class Application(ApplicationHandler):
         )
         if key.endswith("enter") or key in range(ord("1"), ord("9") + 1):
             if menu_selected == 1:
-                self.open_change_password()
-            elif menu_selected == 2:
-                self.run_yast_module("lan")
-            elif menu_selected == 3:
-                self.run_yast_module("timezone")
-            elif menu_selected == 4:
                 self.run_yast_module("language")
                 try:
                     self.restart_gui()
                 except Exception as err:
                     self.message_box(f'An error occurred while restarting CUI: {err}')
+            elif menu_selected == 2:
+                self.open_change_password()
+            elif menu_selected == 3:
+                self.run_yast_module("lan")
+            elif menu_selected == 4:
+                self.run_yast_module("timezone")
             elif menu_selected == 5:
                 self.open_timesyncd_conf()
             elif menu_selected == 6:
