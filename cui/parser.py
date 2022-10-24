@@ -1,6 +1,7 @@
 import configparser
+import configobj
 import io
-from typing import Iterable
+from typing import Iterable, Tuple, List
 
 
 class SectionlessConfigParser(configparser.RawConfigParser):
@@ -73,6 +74,7 @@ class SectionlessConfigParser(configparser.RawConfigParser):
     def write(self, fp, space_around_delimiters=True):
         # Write the items from the default section manually and then remove them
         # from the data. They'll be re-added later.
+        default_section_items: List[Tuple[str, str]] = []
         try:
             default_section_items = self.items(self._default_section)
             self.remove_section(self._default_section)
@@ -91,11 +93,57 @@ class SectionlessConfigParser(configparser.RawConfigParser):
             self.set(self._default_section, key, value)
 
 
+class ConfigParser(configobj.ConfigObj):
+    space_around_delimiters = None
+    _delimiters = "=:"
+
+    def __init__(self, delimiters='=:', space_around_delimiter=None, *args, **kwargs):
+        infile = kwargs.pop('infile', None)
+        # configobj.ConfigObj(self, *args, **kwargs)
+        super().__init__(infile=infile, *args, **kwargs)
+        self.space_around_delimiters = space_around_delimiter
+        self._delimiters = delimiters
+
+    def _write_line(self, indent_string, entry, this_entry, comment):
+        """Write an individual line, for the write method"""
+        # NOTE: the calls to self._quote here handles non-StringType values.
+        if not self.unrepr:
+            val = self._decode_element(self._quote(this_entry))
+        else:
+            val = repr(this_entry)
+        if self.space_around_delimiters:
+            d = " {} ".format(self._delimiters[0])
+        else:
+            d = self._delimiters[0]
+        return '%s%s%s%s%s' % (indent_string,
+                               self._decode_element(self._quote(entry, multiline=False)),
+                               self._a_to_u(d),
+                               val,
+                               self._decode_element(comment))
+
+    def _unquote(self, value):
+        """Disable unquoting of " chars"""
+        return value
+
+    def _quote(self, value, multiline=True):
+        """Disable super classes quote method for our case, but destroying multiline support here :("""
+        return value
+
+
 if __name__ == '__main__':
     testfile = '/etc/sysconfig/language'
-    c = SectionlessConfigParser(allow_no_value=True)
-    c.read(testfile)
-    v = c.get(c.get_default_section(), 'ROOT_USES_LANG')
+    testfile_out = f'{testfile}.out'
+    c_old = SectionlessConfigParser(allow_no_value=True)
+    c_old.read(testfile)
+    v_old = c_old.get(c_old.get_default_section(), 'ROOT_USES_LANG')
+    print(f"v_old = {v_old}")
+    c_old.set(c_old.get_default_section(), 'ROOT_USES_LANG', '"yes"')
+    c_old.write(open(testfile_out, 'w'))
+    print('now use ConfigParser instead of config')
+    c = ConfigParser(infile=testfile)
+    v = c.get('ROOT_USES_LANG')
     print(f"v = {v}")
-    c.set(c.get_default_section(), 'ROOT_USES_LANG', '"yes"')
-    c.write(open(testfile, 'w'))
+    c['ROOT_USES_LANG'] = '"yes"'
+    # c.walk()
+    c.write()
+    # c.write(open(testfile_out, 'w'))
