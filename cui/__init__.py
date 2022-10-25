@@ -767,10 +767,7 @@ class Application(ApplicationHandler):
         if key.endswith("enter") or key in range(ord("1"), ord("9") + 1):
             if menu_selected == 1:
                 self.run_yast_module("language")
-                try:
-                    self.restart_gui()
-                except Exception as err:
-                    self.message_box(f'An error occurred while restarting CUI: {err}')
+                self.restart_gui()
             elif menu_selected == 2:
                 self.open_change_password()
             elif menu_selected == 3:
@@ -1390,24 +1387,17 @@ class Application(ApplicationHandler):
         config['ROOT_USES_LANG'] = '"yes"'
         config.write()
         # assert os.getenv('PPID') == 1, 'Gugg mal rein da!'
-        if os.getenv('PPID') == 1:
-            # restart
-            os.execv(sys.executable, sys.argv)
+        height = 12
+        if os.getppid() == 1:
+            raise ExitMainLoop()
         else:
-            height = 11
-            if os.getppid() == 1:
-                # Avoid restart, maybe show dialog
-                self.message_box(T_(
-                    "Please note that language change will take effect"
-                    " as soon as you restart the grommunio-cui."
-                    " (%s)" % os.getppid()
-                ), height=height)
-            else:
-                self.message_box(T_(
-                    "Please note that language change will take effect"
-                    " as soon as you restart the grommunio-cui."
-                    " (%s)" % os.getppid()
-                ), height=height)
+            locale_conf = util.minishell_read('/etc/locale.conf')
+            env = {}
+            for k in os.environ:
+                env[k] = os.environ.get(k)
+            for k in locale_conf:
+                env[k] = locale_conf.get(k)
+            os.execve(sys.executable, [sys.executable] + sys.argv, env)
 
     def open_reset_aapi_pw(self):
         title = T_("admin-web Password Change")
