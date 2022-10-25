@@ -82,6 +82,7 @@ _LOG_VIEWER: str = "LOG-VIEWER"
 _ADMIN_WEB_PW: str = "ADMIN-WEB-PW"
 _TIMESYNCD: str = "TIMESYNCD"
 _KEYBOARD_SWITCH: str = "KEYBOARD_SWITCH"
+_REPO_SELECTION: str = "REPOSITORY-SELECTION"
 
 locale.setlocale(locale.LC_ALL, '')
 
@@ -397,7 +398,12 @@ class Application(ApplicationHandler):
                     ),
                 ]
             ),
-            "Update the system": Pile([
+            T_("Select software repositories"): Pile([
+                GText(T_("Software repositories selection"), CENTER),
+                GText(""),
+                GText(T_("Opens dialog for choosing software repositories.")),
+            ]),
+            T_("Update the system"): Pile([
                 GText(T_("System update"), CENTER),
                 GText(""),
                 GText(T_("Executes the system package manager for the installation of newer component versions.")),
@@ -610,6 +616,8 @@ class Application(ApplicationHandler):
             self.key_ev_aapi(key)
         elif self.current_window == _TIMESYNCD:
             self.key_ev_timesyncd(key)
+        elif self.current_window == _REPO_SELECTION:
+            self.key_ev_repo_selection(key)
         elif self.current_window == _KEYBOARD_SWITCH:
             self.key_ev_kbd_switch(key)
         self.key_ev_anytime(key)
@@ -777,18 +785,20 @@ class Application(ApplicationHandler):
             elif menu_selected == 5:
                 self.open_timesyncd_conf()
             elif menu_selected == 6:
-                self.run_zypper("up")
+                self.open_repo_conf()
             elif menu_selected == 7:
-                self.open_setup_wizard()
+                self.run_zypper("up")
             elif menu_selected == 8:
-                self.open_reset_aapi_pw()
+                self.open_setup_wizard()
             elif menu_selected == 9:
-                self.open_terminal()
+                self.open_reset_aapi_pw()
             elif menu_selected == 10:
-                self.reboot_confirm()
+                self.open_terminal()
             elif menu_selected == 11:
-                self.shutdown_confirm()
+                self.reboot_confirm()
             elif menu_selected == 12:
+                self.shutdown_confirm()
+            elif menu_selected == 13:
                 # Exit, not always visible
                 raise ExitMainLoop()
         elif key == "esc":
@@ -905,6 +915,29 @@ class Application(ApplicationHandler):
                 T_("Admin password reset"),
                 height=10,
             )
+
+    def key_ev_repo_selection(self, key):
+        self.handle_standard_tab_behaviour(key)
+        success_msg = T_("NOTHING")
+        height = 10
+        if key.lower().endswith("enter"):
+            if key.lower().startswith("hidden"):
+                button_type = T_(key.split(" ")[1]).lower()
+            else:
+                button_type = T_("Cancel").lower()
+            self.open_main_menu()
+            if button_type == T_("Cancel").lower():
+                self.message_box(
+                    T_('Software repository selection has been canceled!'),
+                    height=height
+                )
+            else:
+                # TODO: Save config
+                self.message_box(
+                    T_('Software repository selection has been updated!'),
+                    height=height
+                )
+            # self.open_main_menu()
 
     def key_ev_timesyncd(self, key):
         self.handle_standard_tab_behaviour(key)
@@ -1520,6 +1553,40 @@ class Application(ApplicationHandler):
                 )
             )
         )
+
+    def open_repo_conf(self):
+        self.reset_layout()
+        self.print(T_("Opening repository selection"))
+        self.current_window = _REPO_SELECTION
+        header = AttrMap(GText(T_("Software repository selection"), CENTER), "header")
+        self.prepare_repo_config()
+        footer = AttrMap(
+            Columns([self.save_button, self.cancel_button]), "buttonbar"
+        )
+        self.dialog(
+            body=AttrMap(self.repo_selection_body, "body"),
+            header=header,
+            footer=footer,
+            focus_part="body",
+            align=CENTER,
+            width=60,
+            valign=MIDDLE,
+            height=15,
+        )
+
+    def prepare_repo_config(self):
+        blank = urwid.Divider('-')
+        vblank = (2, GText(' '))
+        rbg = []
+        body_content = [
+            blank,
+            urwid.RadioButton(rbg, 'Use "community" repository'),
+            blank,
+            urwid.RadioButton(rbg, 'Use "supported" repository'),
+            urwid.Columns([vblank, GEdit(T_('Username: ')), vblank], ),
+            urwid.Columns([vblank, GEdit(T_('Password: ')), vblank])
+        ]
+        self.repo_selection_body = LineBox(Padding(Filler(Pile(body_content), TOP)))
 
     def open_setup_wizard(self):
         self._loop.stop()
