@@ -92,12 +92,12 @@ msgstr "Timezone configuration"
 
 #: cui/__init__.py:360
 msgid "Language"
-msgstr ""
+msgstr "Language"
 
 #: cui/__init__.py:363
 #, fuzzy
 msgid "Opens the yast2 configurator for setting language settings."
-msgstr "Opens the yast2 configurator for setting up devices, "
+msgstr "Opens the yast2 configurator for setting language settings."
 
 #: cui/__init__.py:367
 msgid "Change system password"
