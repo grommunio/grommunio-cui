@@ -919,6 +919,14 @@ class Application(ApplicationHandler):
     def key_ev_repo_selection(self, key):
         self.handle_standard_tab_behaviour(key)
         success_msg = T_("NOTHING")
+        repofile = '/etc/zypp/repos.d/grommunio.repo'
+        config = cui.parser.ConfigParser(infile=repofile)
+        # config.filename = repofile
+        if not config['grommunio']:
+            config['grommunio'] = {}
+            config['grommunio']['enabled'] = 1
+            config['grommunio']['auorefresh'] = 1
+            config['grommunio']['type'] = 'rpm-md'
         height = 10
         if key.lower().endswith("enter"):
             if key.lower().startswith("hidden"):
@@ -933,6 +941,16 @@ class Application(ApplicationHandler):
                 )
             else:
                 # TODO: Save config
+                if self.repo_selection_body.base_widget[3].state:
+                    # supported selected
+                    user = self.repo_selection_body.base_widget[4][1].edit_text
+                    pw = self.repo_selection_body.base_widget[5][1].edit_text
+                    url = '%s:%s@download.grommunio.com/supported/openSUSE_Leap_15.3/?ssl_verify=no' % (user, pw)
+                else:
+                    # community selected
+                    url = 'download.grommunio.com/community/openSUSE_Leap_15.3/?ssl_verify=no'
+                config['grommunio']['baseurl'] = 'https://%s' % url
+                config.write()
                 self.message_box(
                     T_('Software repository selection has been updated!'),
                     height=height
