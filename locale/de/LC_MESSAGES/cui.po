@@ -70,7 +70,6 @@ msgid "Save"
 msgstr "Speichern"
 
 #: cui/__init__.py:338
-#, fuzzy
 msgid ""
 "If this is not that what you expected to see, you probably have insufficient "
 "permissions."
@@ -87,7 +86,6 @@ msgid "Here you can do the main actions"
 msgstr "Hier werden die Hauptaufgaben erledigt"
 
 #: cui/__init__.py:358
-#, fuzzy
 msgid "Language configuration"
 msgstr "Spracheinstellung"
 
@@ -96,9 +94,8 @@ msgid "Language"
 msgstr "Sprache"
 
 #: cui/__init__.py:363
-#, fuzzy
 msgid "Opens the yast2 configurator for setting language settings."
-msgstr "Öffnet den yast2 Konfigurator zum Einrichten der Sprachen, "
+msgstr "Öffnet den yast2 Konfigurator zum Einrichten der Sprachen."
 
 #: cui/__init__.py:367
 msgid "Change system password"
@@ -126,7 +123,6 @@ msgid "Configuration of network"
 msgstr "Konfiguration des Netzwerks"
 
 #: cui/__init__.py:379
-#, fuzzy
 msgid ""
 "Opens the yast2 configurator for setting up devices, interfaces, IP "
 "addresses, DNS and more."
@@ -143,7 +139,6 @@ msgid "Timezone"
 msgstr "Zeitzone"
 
 #: cui/__init__.py:388
-#, fuzzy
 msgid "Opens the yast2 configurator for setting country and timezone settings."
 msgstr "Öffnet den yast2 Konfigurator zum Einrichten der Länder und "
 "Zeitzoneneinstellungen."
@@ -157,7 +152,6 @@ msgid "timesyncd"
 msgstr "Zeitsynchronisationsdienst"
 
 #: cui/__init__.py:397
-#, fuzzy
 msgid ""
 "Opens a simple configurator for configuring systemd-timesyncd as a "
 "lightweight NTP client for time synchronization."
@@ -174,7 +168,6 @@ msgid "Software repositories selection"
 msgstr "Software Repositories Auswahl"
 
 #: cui/__init__.py:404
-#, fuzzy
 msgid "Opens dialog for choosing software repositories."
 msgstr "Öffnet einen Dialog zum Auswählen des Software Repositories."
 
@@ -183,7 +176,6 @@ msgid "Update the system"
 msgstr "Aktualisiere das System"
 
 #: cui/__init__.py:407
-#, fuzzy
 msgid "System update"
 msgstr "Systemupdate"
 
@@ -217,7 +209,6 @@ msgid "Change admin-web password"
 msgstr "Ändern des Admin-Web Passworts"
 
 #: cui/__init__.py:425
-#, fuzzy
 msgid ""
 "Opens a dialog for changing the password used by the administration web "
 "interface."
