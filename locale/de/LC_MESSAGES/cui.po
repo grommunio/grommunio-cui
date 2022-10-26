@@ -89,7 +89,7 @@ msgstr "Hier werden die Hauptaufgaben erledigt"
 #: cui/__init__.py:358
 #, fuzzy
 msgid "Language configuration"
-msgstr "Zeitzonenkonfiguration"
+msgstr "Spracheinstellung"
 
 #: cui/__init__.py:360
 msgid "Language"
@@ -98,7 +98,7 @@ msgstr "Sprache"
 #: cui/__init__.py:363
 #, fuzzy
 msgid "Opens the yast2 configurator for setting language settings."
-msgstr "Öffnet den yast2 Konfigurator zum Einrichten der Geräte, "
+msgstr "Öffnet den yast2 Konfigurator zum Einrichten der Sprachen, "
 
 #: cui/__init__.py:367
 msgid "Change system password"
@@ -146,6 +146,7 @@ msgstr "Zeitzone"
 #, fuzzy
 msgid "Opens the yast2 configurator for setting country and timezone settings."
 msgstr "Öffnet den yast2 Konfigurator zum Einrichten der Länder und "
+"Zeitzoneneinstellungen."
 
 #: cui/__init__.py:392
 msgid "timesyncd configuration"
