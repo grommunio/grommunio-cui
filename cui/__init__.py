@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # SPDX-FileCopyrightText: 2021 grommunio GmbH
+import requests
+from requests import Response
+
 import cui.parser
 import re
 import subprocess
@@ -918,16 +921,17 @@ class Application(ApplicationHandler):
 
     def key_ev_repo_selection(self, key):
         self.handle_standard_tab_behaviour(key)
+        updateable = False
         success_msg = T_("NOTHING")
         repofile = '/etc/zypp/repos.d/grommunio.repo'
         config = cui.parser.ConfigParser(infile=repofile)
         # config.filename = repofile
-        if not config['grommunio']:
+        if not config.get('grommunio'):
             config['grommunio'] = {}
             config['grommunio']['enabled'] = 1
             config['grommunio']['auorefresh'] = 1
             config['grommunio']['type'] = 'rpm-md'
-        height = 10
+        height = 11
         if key.lower().endswith("enter"):
             if key.lower().startswith("hidden"):
                 button_type = T_(key.split(" ")[1]).lower()
@@ -940,22 +944,31 @@ class Application(ApplicationHandler):
                     height=height
                 )
             else:
-                # TODO: Save config
+                url = 'download.grommunio.com/community/openSUSE_Leap_15.3/?ssl_verify=no'
                 if self.repo_selection_body.base_widget[3].state:
                     # supported selected
                     user = self.repo_selection_body.base_widget[4][1].edit_text
                     pw = self.repo_selection_body.base_widget[5][1].edit_text
-                    url = '%s:%s@download.grommunio.com/supported/openSUSE_Leap_15.3/?ssl_verify=no' % (user, pw)
+                    testurl="https://download.grommunio.com/supported/openSUSE_Leap_15.3/repodata/repomd.xml"
+                    req: Response = requests.get(testurl, auth=(user, pw))
+                    if req.status_code == 200:
+                        url = '%s:%s@download.grommunio.com/supported/openSUSE_Leap_15.3/?ssl_verify=no' % (user, pw)
+                        updateable = True
+                    else:
+                        self.message_box(
+                            T_('Please check the credentials for "supported"-version or use "community"-version.'),
+                            height=height
+                        )
                 else:
                     # community selected
-                    url = 'download.grommunio.com/community/openSUSE_Leap_15.3/?ssl_verify=no'
-                config['grommunio']['baseurl'] = 'https://%s' % url
-                config.write()
-                self.message_box(
-                    T_('Software repository selection has been updated!'),
-                    height=height
-                )
-            # self.open_main_menu()
+                    updateable = True
+                if updateable:
+                    config['grommunio']['baseurl'] = 'https://%s' % url
+                    config.write()
+                    self.message_box(
+                        T_('Software repository selection has been updated!'),
+                        height=height
+                    )
 
     def key_ev_timesyncd(self, key):
         self.handle_standard_tab_behaviour(key)
