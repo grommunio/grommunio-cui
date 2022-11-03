@@ -786,8 +786,11 @@ class Application(ApplicationHandler):
         )
         if key.endswith("enter") or key in range(ord("1"), ord("9") + 1):
             if menu_selected == 1:
+                pre = cui.parser.ConfigParser(infile='/etc/locale.conf')
                 self.run_yast_module("language")
-                self.restart_gui()
+                post = cui.parser.ConfigParser(infile='/etc/locale.conf')
+                if pre != post:
+                    self.restart_gui()
             elif menu_selected == 2:
                 self.open_change_password()
             elif menu_selected == 3:
@@ -953,19 +956,23 @@ class Application(ApplicationHandler):
                     height=height
                 )
             else:
-                url = 'download.grommunio.com/community/openSUSE_Leap_15.3/?ssl_verify=no'
+                url = 'download.grommunio.com/community/openSUSE_Leap_15.3/' \
+                      '?ssl_verify=no'
                 if self.repo_selection_body.base_widget[3].state:
                     # supported selected
                     user = self.repo_selection_body.base_widget[4][1].edit_text
                     pw = self.repo_selection_body.base_widget[5][1].edit_text
-                    testurl="https://download.grommunio.com/supported/openSUSE_Leap_15.3/repodata/repomd.xml"
+                    testurl="https://download.grommunio.com/supported/open" \
+                            "SUSE_Leap_15.3/repodata/repomd.xml"
                     req: Response = requests.get(testurl, auth=(user, pw))
                     if req.status_code == 200:
-                        url = '%s:%s@download.grommunio.com/supported/openSUSE_Leap_15.3/?ssl_verify=no' % (user, pw)
+                        url = '%s:%s@download.grommunio.com/supported/open' \
+                              'SUSE_Leap_15.3/?ssl_verify=no' % (user, pw)
                         updateable = True
                     else:
                         self.message_box(
-                            T_('Please check the credentials for "supported"-version or use "community"-version.'),
+                            T_('Please check the credentials for "supported"'
+                               '-version or use "community"-version.'),
                             height=height+1
                         )
                 else:
@@ -985,7 +992,7 @@ class Application(ApplicationHandler):
                         self.message_box(
                             T_('Fetching GPG-KEY file and refreshing '
                                'repositories. This may take a while ...'),
-                            height=height
+                            height=height, modal=False
                         )
                         res: Response = requests.get(keyurl)
                         got_keyfile: bool = False
@@ -2174,7 +2181,7 @@ class Application(ApplicationHandler):
         height: int = 9,
         view_ok: bool = True,
         view_cancel: bool = False,
-        modal: bool = False,
+        modal: bool = True,
     ):
         """
         Creates a message box dialog with an optional title. The message also
