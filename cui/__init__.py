@@ -135,6 +135,7 @@ class Application(ApplicationHandler):
     log_line_count: int = 200
     log_finished: bool = False
     footer_content = []
+    key_counter: Dict[str, int] = {}
 
     _current_kbdlayout = util.get_current_kbdlayout()
 
@@ -653,13 +654,21 @@ class Application(ApplicationHandler):
 
     def key_ev_mbox(self, key):
         if key.endswith("enter") or key == "esc":
-            self.current_window = self.message_box_caller
-            self._body = self._message_box_caller_body
+            if self.current_window != self.message_box_caller \
+                    and self.message_box_caller != _MESSAGE_BOX:
+                self.current_window = self.message_box_caller
+                self._body = self._message_box_caller_body
             if self.old_layout:
                 self.layout = self.old_layout
             self.reset_layout()
-            if self.current_window not in [_LOGIN, _MAIN_MENU, _TIMESYNCD]:
-                self.handle_event(key)
+            if self.current_window not in [
+                _LOGIN, _MAIN_MENU, _TIMESYNCD, _REPO_SELECTION
+            ]:
+                if self.key_counter.get(key, 0) < 10:
+                    self.key_counter[key] = self.key_counter.get(key, 0) + 1
+                    self.handle_event(key)
+                else:
+                    self.key_counter[key] = 0
 
     def key_ev_ibox(self, key):
         self.handle_standard_tab_behaviour(key)
@@ -922,7 +931,8 @@ class Application(ApplicationHandler):
     def key_ev_repo_selection(self, key):
         self.handle_standard_tab_behaviour(key)
         updateable = False
-        success_msg = T_("NOTHING")
+        keyurl = 'https://download.grommunio.com/RPM-GPG-KEY-grommunio'
+        keyfile = '/tmp/RPM-GPG-KEY-grommunio'
         repofile = '/etc/zypp/repos.d/grommunio.repo'
         config = cui.parser.ConfigParser(infile=repofile)
         # config.filename = repofile
@@ -930,8 +940,7 @@ class Application(ApplicationHandler):
             config['grommunio'] = {}
             config['grommunio']['enabled'] = 1
             config['grommunio']['auorefresh'] = 1
-            config['grommunio']['type'] = 'rpm-md'
-        height = 11
+        height = 10
         if key.lower().endswith("enter"):
             if key.lower().startswith("hidden"):
                 button_type = T_(key.split(" ")[1]).lower()
@@ -940,7 +949,7 @@ class Application(ApplicationHandler):
             self.open_main_menu()
             if button_type == T_("Cancel").lower():
                 self.message_box(
-                    T_('Software repository selection has been canceled!'),
+                    T_('Software repository selection has been canceled.'),
                     height=height
                 )
             else:
@@ -957,18 +966,65 @@ class Application(ApplicationHandler):
                     else:
                         self.message_box(
                             T_('Please check the credentials for "supported"-version or use "community"-version.'),
-                            height=height
+                            height=height+1
                         )
                 else:
                     # community selected
                     updateable = True
                 if updateable:
                     config['grommunio']['baseurl'] = 'https://%s' % url
+                    config['grommunio']['type'] = 'rpm-md'
+                    config2 = cui.parser.ConfigParser(infile=repofile)
                     config.write()
-                    self.message_box(
-                        T_('Software repository selection has been updated!'),
-                        height=height
-                    )
+                    if config == config2:
+                        self.message_box(
+                            T_('The repo file has not been changed.'),
+                            height=height-1
+                        )
+                    else:
+                        self.message_box(
+                            T_('Fetching GPG-KEY file and refreshing '
+                               'repositories. This may take a while ...'),
+                            height=height
+                        )
+                        res: Response = requests.get(keyurl)
+                        got_keyfile: bool = False
+                        if res.status_code == 200:
+                            tmp = Path(keyfile)
+                            with tmp.open('w') as f:
+                                f.write(res.content.decode())
+                            rc = subprocess.Popen(
+                                ["rpm", "--import", keyfile],
+                                stderr=subprocess.DEVNULL,
+                                stdout=subprocess.DEVNULL,
+                            )
+                            if rc.wait() == 0:
+                                rc = subprocess.Popen(
+                                    ["zypper", "--non-interactive", "refresh"],
+                                    stderr=subprocess.DEVNULL,
+                                    stdout=subprocess.DEVNULL,
+                                )
+                                if rc.wait() == 0:
+                                    rc = subprocess.Popen(
+                                        ["zypper", "--non-interactive", "update"],
+                                        stderr=subprocess.DEVNULL,
+                                        stdout=subprocess.DEVNULL,
+                                    )
+                                    if rc.wait() == 0:
+                                        got_keyfile = True
+                        if got_keyfile:
+                            self.message_box(
+                                T_('Software repository selection has been '
+                                   'updated.'),
+                                height=height
+                            )
+                        else:
+                            self.message_box(
+                                T_('Software repository selection has not been '
+                                   'updated. Something went wrong while importing '
+                                   'key file.'),
+                                height=height+1
+                            )
 
     def key_ev_timesyncd(self, key):
         self.handle_standard_tab_behaviour(key)
@@ -1606,16 +1662,43 @@ class Application(ApplicationHandler):
         )
 
     def prepare_repo_config(self):
+        baseurl = 'https://download.grommunio.com/community/openSUSE_Leap_' \
+                  '15.3/?ssl_verify=no'
+        repofile = '/etc/zypp/repos.d/grommunio.repo'
+        config = cui.parser.ConfigParser(infile=repofile)
+        default_type = 'community'
+        default_user = ''
+        default_pw = ''
+        is_community: bool = True
+        is_supported: bool = False
+        if config.get('grommunio', None):
+            match = re.match(
+                'https://([^:]*):?([^@]*)@?download.grommunio.com/(.+)/open.+',
+                config['grommunio'].get('baseurl', baseurl)
+            )
+            if match:
+                (default_user, default_pw, default_type) = match.groups()
+        if default_type == 'supported':
+            is_community = False
+            is_supported = True
         blank = urwid.Divider('-')
         vblank = (2, GText(' '))
         rbg = []
         body_content = [
             blank,
-            urwid.RadioButton(rbg, 'Use "community" repository'),
+            urwid.RadioButton(
+                rbg, 'Use "community" repository', state=is_community
+            ),
             blank,
-            urwid.RadioButton(rbg, 'Use "supported" repository'),
-            urwid.Columns([vblank, GEdit(T_('Username: ')), vblank], ),
-            urwid.Columns([vblank, GEdit(T_('Password: ')), vblank])
+            urwid.RadioButton(
+                rbg, 'Use "supported" repository', state=is_supported
+            ),
+            urwid.Columns([
+                vblank, GEdit(T_('Username: '), edit_text=default_user), vblank
+            ]),
+            urwid.Columns([
+                vblank, GEdit(T_('Password: '), edit_text=default_pw), vblank
+            ])
         ]
         self.repo_selection_body = LineBox(Padding(Filler(Pile(body_content), TOP)))
 
@@ -2091,6 +2174,7 @@ class Application(ApplicationHandler):
         height: int = 9,
         view_ok: bool = True,
         view_cancel: bool = False,
+        modal: bool = False,
     ):
         """
         Creates a message box dialog with an optional title. The message also
@@ -2116,10 +2200,12 @@ class Application(ApplicationHandler):
         :param height: The height of the box.
         :param view_ok: Should the OK button be visible?
         :param view_cancel: Should the Cancel button be visible?
+        :param modal: Shold the dialog be modal or not?
         """
-        self.message_box_caller = self.current_window
-        self._message_box_caller_body = self._loop.widget
-        self.current_window = _MESSAGE_BOX
+        if self.current_window != _MESSAGE_BOX:
+            self.message_box_caller = self.current_window
+            self._message_box_caller_body = self._loop.widget
+            self.current_window = _MESSAGE_BOX
         body = LineBox(Padding(Filler(Pile([GText(msg, CENTER)]), TOP)))
         footer = self.create_footer(view_ok, view_cancel)
 
@@ -2134,6 +2220,7 @@ class Application(ApplicationHandler):
             width=width,
             valign=valign,
             height=height,
+            modal=modal,
         )
 
     def input_box(
@@ -2149,6 +2236,7 @@ class Application(ApplicationHandler):
         mask: Union[bytes, str] = None,
         view_ok: bool = True,
         view_cancel: bool = False,
+        modal: bool = False,
     ):
         """Creates an input box dialog with an optional title and a default
         value.
@@ -2214,6 +2302,7 @@ class Application(ApplicationHandler):
             width=width,
             valign=valign,
             height=height,
+            modal=modal,
         )
 
     def create_footer(self, view_ok: bool = True, view_cancel: bool = False):
@@ -2351,6 +2440,7 @@ class Application(ApplicationHandler):
         width: int = 40,
         valign: str = MIDDLE,
         height: int = 10,
+        modal: bool = False,
     ):
         """
         Overlays a dialog box on top of the console UI
@@ -2400,7 +2490,10 @@ class Application(ApplicationHandler):
             height=height,
         )
 
-        self._loop.widget = w
+        if getattr(self, "_loop", None):
+            self._loop.widget = w
+            if not modal:
+                self._loop.draw_screen()
 
     def check_config_write(self, di) -> bool:
         title: str = T_("Write succeeded")
