@@ -11,6 +11,11 @@ for lang in $(cd locale && echo */); do
     msgmerge --update locale/$lang/LC_MESSAGES/cui.po locale/cui.pot
 done
 
+echo "The po files has been generated in $(cd locale && echo */) languages."
+echo "Please translate them and run 'make'"
+
+# old stuff, better use make
+exit 0
 for lang in $(cd locale && echo */); do
     msgfmt -o locale/$lang/LC_MESSAGES/cui.mo locale/$lang/LC_MESSAGES/cui.po 
 done

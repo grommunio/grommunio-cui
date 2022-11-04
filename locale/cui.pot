@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-25 21:45+0200\n"
+"POT-Creation-Date: 2022-11-04 01:19+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,467 +17,487 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: cui/__init__.py:118 cui/__init__.py:549
+#: cui/__init__.py:121 cui/__init__.py:553
 msgid "Idle"
 msgstr ""
 
-#: cui/__init__.py:166 cui/__init__.py:180 cui/util.py:591
+#: cui/__init__.py:170 cui/__init__.py:184 cui/util.py:591
 msgid "Login"
 msgstr ""
 
-#: cui/__init__.py:169 cui/__init__.py:1586
+#: cui/__init__.py:173 cui/__init__.py:1704
 msgid "Username: "
 msgstr ""
 
-#: cui/__init__.py:172 cui/__init__.py:1587
+#: cui/__init__.py:176 cui/__init__.py:1707
 msgid "Password: "
 msgstr ""
 
-#: cui/__init__.py:191
+#: cui/__init__.py:195
 msgid "OK"
 msgstr ""
 
-#: cui/__init__.py:220 cui/__init__.py:927 cui/__init__.py:929
+#: cui/__init__.py:224 cui/__init__.py:951 cui/__init__.py:953
 msgid "Cancel"
 msgstr ""
 
-#: cui/__init__.py:232
+#: cui/__init__.py:236
 msgid "Close"
 msgstr ""
 
-#: cui/__init__.py:261
+#: cui/__init__.py:265
 msgid "Add"
 msgstr ""
 
-#: cui/__init__.py:273
+#: cui/__init__.py:277
 msgid "Edit"
 msgstr ""
 
-#: cui/__init__.py:285
+#: cui/__init__.py:289
 msgid "Details"
 msgstr ""
 
-#: cui/__init__.py:297
+#: cui/__init__.py:301
 msgid "Space to toggle"
 msgstr ""
 
-#: cui/__init__.py:305
+#: cui/__init__.py:309
 msgid "Apply"
 msgstr ""
 
-#: cui/__init__.py:317
+#: cui/__init__.py:321
 msgid "Save"
 msgstr ""
 
-#: cui/__init__.py:338
+#: cui/__init__.py:342
 msgid ""
 "If this is not that what you expected to see, you probably have insufficient "
 "permissions."
 msgstr ""
 
-#: cui/__init__.py:352
+#: cui/__init__.py:356
 msgid "Main Menu"
 msgstr ""
 
-#: cui/__init__.py:353
+#: cui/__init__.py:357
 msgid "Here you can do the main actions"
 msgstr ""
 
-#: cui/__init__.py:358
+#: cui/__init__.py:362
 msgid "Language configuration"
 msgstr ""
 
-#: cui/__init__.py:360
+#: cui/__init__.py:364
 msgid "Language"
 msgstr ""
 
-#: cui/__init__.py:363
+#: cui/__init__.py:367
 msgid "Opens the yast2 configurator for setting language settings."
 msgstr ""
 
-#: cui/__init__.py:367
+#: cui/__init__.py:371
 msgid "Change system password"
 msgstr ""
 
-#: cui/__init__.py:369 cui/__init__.py:422
+#: cui/__init__.py:373 cui/__init__.py:426
 msgid "Password change"
 msgstr ""
 
-#: cui/__init__.py:371
+#: cui/__init__.py:375
 msgid ""
 "Opens a dialog for changing the password of the system root user. When a "
 "password is set, you can login via ssh and rerun grommunio-cui."
 msgstr ""
 
-#: cui/__init__.py:374
+#: cui/__init__.py:378
 msgid "Network interface configuration"
 msgstr ""
 
-#: cui/__init__.py:376
+#: cui/__init__.py:380
 msgid "Configuration of network"
 msgstr ""
 
-#: cui/__init__.py:379
+#: cui/__init__.py:383
 msgid ""
 "Opens the yast2 configurator for setting up devices, interfaces, IP "
 "addresses, DNS and more."
 msgstr ""
 
-#: cui/__init__.py:383
+#: cui/__init__.py:387
 msgid "Timezone configuration"
 msgstr ""
 
-#: cui/__init__.py:385
+#: cui/__init__.py:389
 msgid "Timezone"
 msgstr ""
 
-#: cui/__init__.py:388
+#: cui/__init__.py:392
 msgid "Opens the yast2 configurator for setting country and timezone settings."
 msgstr ""
 
-#: cui/__init__.py:392
+#: cui/__init__.py:396
 msgid "timesyncd configuration"
 msgstr ""
 
-#: cui/__init__.py:394
+#: cui/__init__.py:398
 msgid "timesyncd"
 msgstr ""
 
-#: cui/__init__.py:397
+#: cui/__init__.py:401
 msgid ""
 "Opens a simple configurator for configuring systemd-timesyncd as a "
 "lightweight NTP client for time synchronization."
 msgstr ""
 
-#: cui/__init__.py:401
+#: cui/__init__.py:405
 msgid "Select software repositories"
 msgstr ""
 
-#: cui/__init__.py:402
+#: cui/__init__.py:406
 msgid "Software repositories selection"
 msgstr ""
 
-#: cui/__init__.py:404
+#: cui/__init__.py:408
 msgid "Opens dialog for choosing software repositories."
 msgstr ""
 
-#: cui/__init__.py:406
+#: cui/__init__.py:410
 msgid "Update the system"
 msgstr ""
 
-#: cui/__init__.py:407
+#: cui/__init__.py:411
 msgid "System update"
 msgstr ""
 
-#: cui/__init__.py:409
+#: cui/__init__.py:413
 msgid ""
 "Executes the system package manager for the installation of newer component "
 "versions."
 msgstr ""
 
-#: cui/__init__.py:411
+#: cui/__init__.py:415
 msgid "grommunio setup wizard"
 msgstr ""
 
-#: cui/__init__.py:413
+#: cui/__init__.py:417
 msgid "Setup wizard"
 msgstr ""
 
-#: cui/__init__.py:416
+#: cui/__init__.py:420
 msgid ""
 "Executes the grommunio-setup script for the initial configuration of "
 "grommunio databases, TLS certificates, services and the administration web "
 "user interface."
 msgstr ""
 
-#: cui/__init__.py:420
+#: cui/__init__.py:424
 msgid "Change admin-web password"
 msgstr ""
 
-#: cui/__init__.py:425
+#: cui/__init__.py:429
 msgid ""
 "Opens a dialog for changing the password used by the administration web "
 "interface."
 msgstr ""
 
-#: cui/__init__.py:429 cui/__init__.py:431
+#: cui/__init__.py:433 cui/__init__.py:435
 msgid "Terminal"
 msgstr ""
 
-#: cui/__init__.py:434
+#: cui/__init__.py:438
 msgid "Starts terminal for advanced system configuration."
 msgstr ""
 
-#: cui/__init__.py:438 cui/__init__.py:1134
+#: cui/__init__.py:442 cui/__init__.py:1228
 msgid "Reboot"
 msgstr ""
 
-#: cui/__init__.py:439
+#: cui/__init__.py:443
 msgid "Reboot system."
 msgstr ""
 
-#: cui/__init__.py:441 cui/__init__.py:1144
+#: cui/__init__.py:445 cui/__init__.py:1238
 msgid "Shutdown"
 msgstr ""
 
-#: cui/__init__.py:443
+#: cui/__init__.py:447
 msgid "Shutdown system."
 msgstr ""
 
-#: cui/__init__.py:445
+#: cui/__init__.py:449
 msgid "Shuts down the system and powers off."
 msgstr ""
 
-#: cui/__init__.py:450
+#: cui/__init__.py:454
 msgid "Exit CUI"
 msgstr ""
 
-#: cui/__init__.py:475
+#: cui/__init__.py:479
 msgid "grommunio console user interface"
 msgstr ""
 
-#: cui/__init__.py:478
+#: cui/__init__.py:482
 #, python-brace-format
 msgid "Active keyboard layout: {kbd}; color set: {colormode}."
 msgstr ""
 
-#: cui/__init__.py:483
+#: cui/__init__.py:487
 msgid "If you need help, press the 'L' key to view logs."
 msgstr ""
 
-#: cui/__init__.py:567
+#: cui/__init__.py:571
 #, python-format
 msgid "What is {%s}."
 msgstr ""
 
-#: cui/__init__.py:687 cui/__init__.py:871 cui/__init__.py:921
-#: cui/__init__.py:944
+#: cui/__init__.py:699 cui/__init__.py:886 cui/__init__.py:1038
 msgid "NOTHING"
 msgstr ""
 
-#: cui/__init__.py:694 cui/__init__.py:878 cui/__init__.py:967
+#: cui/__init__.py:706 cui/__init__.py:893 cui/__init__.py:1061
 msgid "was successful"
 msgstr ""
 
-#: cui/__init__.py:705 cui/__init__.py:889
+#: cui/__init__.py:717 cui/__init__.py:904
 msgid "failed due to mismatching password values"
 msgstr ""
 
-#: cui/__init__.py:707 cui/__init__.py:891 cui/__init__.py:969
+#: cui/__init__.py:719 cui/__init__.py:906 cui/__init__.py:1063
 msgid "failed"
 msgstr ""
 
-#: cui/__init__.py:710 cui/__init__.py:713 cui/__init__.py:894
-#: cui/__init__.py:897 cui/__init__.py:972 cui/__init__.py:975
+#: cui/__init__.py:722 cui/__init__.py:725 cui/__init__.py:909
+#: cui/__init__.py:912 cui/__init__.py:1066 cui/__init__.py:1069
 msgid "aborted"
 msgstr ""
 
-#: cui/__init__.py:730
+#: cui/__init__.py:742
 #, python-brace-format
 msgid "System password reset {success_msg}!"
 msgstr ""
 
-#: cui/__init__.py:731
+#: cui/__init__.py:743
 msgid "System password reset"
 msgstr ""
 
-#: cui/__init__.py:914
+#: cui/__init__.py:929
 #, python-brace-format
 msgid "Admin password reset {success_msg}!"
 msgstr ""
 
-#: cui/__init__.py:915
+#: cui/__init__.py:930
 msgid "Admin password reset"
 msgstr ""
 
-#: cui/__init__.py:931
-msgid "Software repository selection has been canceled!"
+#: cui/__init__.py:955
+msgid "Software repository selection has been canceled."
 msgstr ""
 
-#: cui/__init__.py:937
-msgid "Software repository selection has been updated!"
+#: cui/__init__.py:974
+msgid ""
+"Please check the credentials for \"supported\"-version or use \"community\"-"
+"version."
 msgstr ""
 
-#: cui/__init__.py:979
+#: cui/__init__.py:988
+msgid "The repo file has not been changed."
+msgstr ""
+
+#: cui/__init__.py:993
+msgid ""
+"Fetching GPG-KEY file and refreshing repositories. This may take a while ..."
+msgstr ""
+
+#: cui/__init__.py:1024
+msgid "Software repository selection has been updated."
+msgstr ""
+
+#: cui/__init__.py:1030
+msgid ""
+"Software repository selection has not been updated. Something went wrong "
+"while importing key file."
+msgstr ""
+
+#: cui/__init__.py:1073
 #, python-brace-format
 msgid "Timesyncd configuration change {success_msg}!"
 msgstr ""
 
-#: cui/__init__.py:980 cui/__init__.py:1497
+#: cui/__init__.py:1074 cui/__init__.py:1591
 msgid "Timesyncd Configuration"
 msgstr ""
 
-#: cui/__init__.py:1084
+#: cui/__init__.py:1178
 msgid "Creator (%s) clicked %b."
 msgstr ""
 
-#: cui/__init__.py:1095
+#: cui/__init__.py:1189
 #, python-format
 msgid "Called handle_menu_changed() with args(%s) and "
 msgstr ""
 
-#: cui/__init__.py:1108
+#: cui/__init__.py:1202
 #, python-format
 msgid "Called handle_menu_activated() with args(%s) and "
 msgstr ""
 
-#: cui/__init__.py:1121
+#: cui/__init__.py:1215
 msgid "To return to the CUI, issue the `exit` command."
 msgstr ""
 
-#: cui/__init__.py:1131 cui/__init__.py:1141
+#: cui/__init__.py:1225 cui/__init__.py:1235
 msgid "Are you sure?\n"
 msgstr ""
 
-#: cui/__init__.py:1132 cui/__init__.py:1142
+#: cui/__init__.py:1226 cui/__init__.py:1236
 msgid "After pressing OK, "
 msgstr ""
 
-#: cui/__init__.py:1133
+#: cui/__init__.py:1227
 msgid "the system will reboot."
 msgstr ""
 
-#: cui/__init__.py:1143
+#: cui/__init__.py:1237
 msgid "the system will shut down and power off."
 msgstr ""
 
-#: cui/__init__.py:1155
+#: cui/__init__.py:1249
 msgid "Changing system password"
 msgstr ""
 
-#: cui/__init__.py:1159
+#: cui/__init__.py:1253
 msgid "System Password Change"
 msgstr ""
 
-#: cui/__init__.py:1160
+#: cui/__init__.py:1254
 msgid "Enter the new system password:"
 msgstr ""
 
-#: cui/__init__.py:1315
+#: cui/__init__.py:1409
 #, python-format
 msgid ""
 "Use the arrow keys to switch between logfiles. <LEFT> and <RIGHT> switch the "
 "logfile, while <+> and <-> changes the line count to view. (%s)"
 msgstr ""
 
-#: cui/__init__.py:1387
+#: cui/__init__.py:1481
 #, python-format
 msgid "Log file viewer has to open file {%s} ..."
 msgstr ""
 
-#: cui/__init__.py:1398
+#: cui/__init__.py:1492
 #, python-format
 msgid "Please wait while `yast2 %s` is being run."
 msgstr ""
 
-#: cui/__init__.py:1436
+#: cui/__init__.py:1530
 msgid "admin-web Password Change"
 msgstr ""
 
-#: cui/__init__.py:1437
+#: cui/__init__.py:1531
 msgid "Enter the new admin-web password:"
 msgstr ""
 
-#: cui/__init__.py:1495
+#: cui/__init__.py:1589
 msgid "Opening timesyncd configuration"
 msgstr ""
 
-#: cui/__init__.py:1535
+#: cui/__init__.py:1629
 msgid "Insert the NTP servers separated by <SPACE> char."
 msgstr ""
 
-#: cui/__init__.py:1559
+#: cui/__init__.py:1653
 msgid "Opening repository selection"
 msgstr ""
 
-#: cui/__init__.py:1561
+#: cui/__init__.py:1655
 msgid "Software repository selection"
 msgstr ""
 
-#: cui/__init__.py:1606
+#: cui/__init__.py:1727
 msgid "Login successful"
 msgstr ""
 
-#: cui/__init__.py:1608
+#: cui/__init__.py:1729
 msgid ", <F4> for Main-Menu"
 msgstr ""
 
-#: cui/__init__.py:1618
+#: cui/__init__.py:1739
 msgid "Returning to main screen."
 msgstr ""
 
-#: cui/__init__.py:1629
+#: cui/__init__.py:1750
 msgid "You need root privileges to use another user."
 msgstr ""
 
-#: cui/__init__.py:1632
+#: cui/__init__.py:1753
 #, python-format
 msgid "checking user %s with pass "
 msgstr ""
 
-#: cui/__init__.py:1641
+#: cui/__init__.py:1762
 msgid "Incorrect credentials. Access denied!"
 msgstr ""
 
-#: cui/__init__.py:1642
+#: cui/__init__.py:1763
 msgid "Password verification"
 msgstr ""
 
-#: cui/__init__.py:1644
+#: cui/__init__.py:1765
 #, python-format
 msgid "Login wrong! (%s)"
 msgstr ""
 
-#: cui/__init__.py:1652
+#: cui/__init__.py:1773
 msgid "UNKNOWN LABEL"
 msgstr ""
 
-#: cui/__init__.py:1806
+#: cui/__init__.py:1927
 msgid "Opening keyboard configuration"
 msgstr ""
 
-#: cui/__init__.py:2176
+#: cui/__init__.py:2302
 msgid "Input expected"
 msgstr ""
 
-#: cui/__init__.py:2375
+#: cui/__init__.py:2506
 msgid "Write succeeded"
 msgstr ""
 
-#: cui/__init__.py:2377
+#: cui/__init__.py:2508
 msgid "The configuration was"
 msgstr ""
 
-#: cui/__init__.py:2380 cui/__init__.py:2386
+#: cui/__init__.py:2511 cui/__init__.py:2517
 msgid " updated."
 msgstr ""
 
-#: cui/__init__.py:2382
+#: cui/__init__.py:2513
 msgid "Write failed"
 msgstr ""
 
-#: cui/__init__.py:2385
+#: cui/__init__.py:2516
 msgid " not"
 msgstr ""
 
-#: cui/__init__.py:2388
+#: cui/__init__.py:2519
 msgid "Perhaps you have insufficient rights."
 msgstr ""
 
-#: cui/__init__.py:2400
+#: cui/__init__.py:2531
 #, python-format
 msgid "Usage: {%s} [OPTIONS]"
 msgstr ""
 
-#: cui/__init__.py:2401
+#: cui/__init__.py:2532
 msgid "\tOPTIONS:"
 msgstr ""
 
-#: cui/__init__.py:2402
+#: cui/__init__.py:2533
 msgid "\t\t--help: Show this message."
 msgstr ""
 
-#: cui/__init__.py:2403
+#: cui/__init__.py:2534
 msgid "\t\t-v/--debug: Verbose/Debugging mode."
 msgstr ""
 
