@@ -307,7 +307,6 @@ msgid "Admin password reset"
 msgstr "Zurücksetzen des Admin Passworts"
 
 #: cui/__init__.py:955
-#, fuzzy
 msgid "Software repository selection has been canceled."
 msgstr "Die Auswahl des Software Repositories wurde abgebrochen."
 
@@ -331,16 +330,16 @@ msgstr ""
 "Zeit in Anspruch nehmen ..."
 
 #: cui/__init__.py:1024
-#, fuzzy
 msgid "Software repository selection has been updated."
-msgstr "Die Auswahl des Software Repositories wurde aktualisiert!"
+msgstr "Die Auswahl des Software Repositories wurde aktualisiert."
 
 #: cui/__init__.py:1030
-#, fuzzy
 msgid ""
 "Software repository selection has not been updated. Something went wrong "
 "while importing key file."
-msgstr "Die Auswahl des Software Repositories wurde aktualisiert!"
+msgstr ""
+"Die Auswahl des Software Repositories wurde nicht aktualisiert. Irgendwas "
+"ist während dem Import des Schlüssel-Files schief gelaufen."
 
 #: cui/__init__.py:1073
 #, python-brace-format

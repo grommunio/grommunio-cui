@@ -306,9 +306,8 @@ msgid "Admin password reset"
 msgstr "Admin password reset"
 
 #: cui/__init__.py:955
-#, fuzzy
 msgid "Software repository selection has been canceled."
-msgstr "Software repository selection has been canceled!"
+msgstr "Software repository selection has been canceled."
 
 #: cui/__init__.py:974
 msgid ""
@@ -329,16 +328,14 @@ msgstr ""
 "Fetching GPG-KEY file and refreshing repositories. This may take a while ..."
 
 #: cui/__init__.py:1024
-#, fuzzy
 msgid "Software repository selection has been updated."
-msgstr "Software repository selection has been updated!"
+msgstr "Software repository selection has been updated."
 
 #: cui/__init__.py:1030
-#, fuzzy
 msgid ""
 "Software repository selection has not been updated. Something went wrong "
 "while importing key file."
-msgstr "Software repository selection has been updated!"
+msgstr "Software repository selection has been updated."
 
 #: cui/__init__.py:1073
 #, python-brace-format
