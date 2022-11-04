@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-04 01:19+0100\n"
+"POT-Creation-Date: 2022-11-04 19:11+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -412,6 +412,14 @@ msgstr ""
 
 #: cui/__init__.py:1655
 msgid "Software repository selection"
+msgstr ""
+
+#: cui/__init__.py:1697
+msgid "Use \"community\" repository"
+msgstr ""
+
+#: cui/__init__.py:1701
+msgid "Use \"supported\" repository"
 msgstr ""
 
 #: cui/__init__.py:1727

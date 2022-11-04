@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: grommunio CUI English\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-04 01:19+0100\n"
+"POT-Creation-Date: 2022-11-04 19:11+0100\n"
 "PO-Revision-Date: 2022-10-25 22:45+0200\n"
 "Last-Translator: Noah Schmidt <noah.schmidt@grommunio.com>\n"
 "Language-Team: English <https://hosted.weblate.org/projects/>\n"
@@ -434,6 +434,14 @@ msgstr "Opening repository selection"
 #: cui/__init__.py:1655
 msgid "Software repository selection"
 msgstr "Software repository selection"
+
+#: cui/__init__.py:1697
+msgid "Use \"community\" repository"
+msgstr "Use \"community\" repository"
+
+#: cui/__init__.py:1701
+msgid "Use \"supported\" repository"
+msgstr "Use \"supported\" repository"
 
 #: cui/__init__.py:1727
 msgid "Login successful"
