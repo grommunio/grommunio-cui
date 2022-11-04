@@ -1694,11 +1694,11 @@ class Application(ApplicationHandler):
         body_content = [
             blank,
             urwid.RadioButton(
-                rbg, 'Use "community" repository', state=is_community
+                rbg, T_('Use "community" repository'), state=is_community
             ),
             blank,
             urwid.RadioButton(
-                rbg, 'Use "supported" repository', state=is_supported
+                rbg, T_('Use "supported" repository'), state=is_supported
             ),
             urwid.Columns([
                 vblank, GEdit(T_('Username: '), edit_text=default_user), vblank
