@@ -87,18 +87,8 @@ _TIMESYNCD: str = "TIMESYNCD"
 _KEYBOARD_SWITCH: str = "KEYBOARD_SWITCH"
 _REPO_SELECTION: str = "REPOSITORY-SELECTION"
 
-locale.setlocale(locale.LC_ALL, '')
 
-try:
-    locale.bindtextdomain('cui', 'locale' if os.path.exists("locale/de/LC_MESSAGES/cui.mo") else None)
-    locale.textdomain('cui')
-    T_ = locale.gettext
-except OSError as e:
-    def T_(msg):
-        """
-        Function for tagging text for translations.
-        """
-        return msg
+T_ = util.init_localization()
 
 
 class Application(ApplicationHandler):
@@ -1508,6 +1498,7 @@ class Application(ApplicationHandler):
         self._loop.start()
 
     def restart_gui(self):
+        global T_
         langfile = '/etc/sysconfig/language'
         config = cui.parser.ConfigParser(infile=langfile)
         root_uses_lang = config.get('ROOT_USES_LANG', None)
@@ -1515,10 +1506,14 @@ class Application(ApplicationHandler):
         config.write()
         # assert os.getenv('PPID') == 1, 'Gugg mal rein da!'
         height = 12
+        locale_conf = util.minishell_read('/etc/locale.conf')
+        # T_ = util.init_localization()
+        # mainapp()
         if os.getppid() == 1:
-            raise ExitMainLoop()
+            T_ = util.init_localization(language=locale_conf.get('LANG', ''))
+            mainapp()
+            # raise ExitMainLoop()
         else:
-            locale_conf = util.minishell_read('/etc/locale.conf')
             env = {}
             for k in os.environ:
                 env[k] = os.environ.get(k)
@@ -2547,7 +2542,11 @@ def create_application():
         return app
 
 
-if __name__ == "__main__":
+def mainapp():
     application = create_application()
     application.start()
     print("\n\x1b[J")
+
+
+if __name__ == "__main__":
+    mainapp()

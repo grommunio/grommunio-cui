@@ -5,7 +5,7 @@ import subprocess
 from pathlib import Path
 
 from pamela import authenticate, PAMError
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Tuple, Union, Iterable
 from datetime import datetime
 import ipaddress
 import locale
@@ -15,18 +15,37 @@ import socket
 import shlex
 
 
-locale.setlocale(locale.LC_ALL, '')
+def T_(msg):
+    """Dummy func"""
+    return msg
 
-try:
-    locale.bindtextdomain('cui', 'locale' if os.path.exists("locale/de/LC_MESSAGES/cui.mo") else None)
-    locale.textdomain('cui')
-    T_ = locale.gettext
-except OSError as e:
-    def T_(msg):
-        """
-        Function for tagging text for translations.
-        """
-        return msg
+
+def reset_states():
+    global STATES, T_
+    new_states = {}
+    for k in STATES.keys():
+        new_states[k] = T_(STATES[k])
+    STATES = new_states
+    return STATES
+
+
+def init_localization(language: Union[str, str, Iterable[Union[str, str]], None] = ''):
+    locale.setlocale(locale.LC_ALL, language)
+    try:
+        locale.bindtextdomain('cui', 'locale' if os.path.exists("locale/de/LC_MESSAGES/cui.mo") else None)
+        locale.textdomain('cui')
+        T_ = locale.gettext
+        reset_states()
+        return T_
+    except OSError as e:
+        def T_(msg):
+            """
+            Function for tagging text for translations.
+            """
+            return msg
+        reset_states()
+        return T_
+
 
 STATES = {
     1: T_("System password is not set."),
@@ -35,6 +54,8 @@ STATES = {
     8: T_("timesyncd configuration is missing."),
     16: T_("nginx is not running."),
 }
+
+T_ = init_localization()
 
 _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
     "light": [
@@ -522,6 +543,9 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
         last_login = get_last_login_time()
         if last_login != "":
             rv.append(T_("Last login time: {%s}") % last_login)
+        rv.append("\n")
+        rv.append("\n")
+        rv.append(T_(f"Current language / PPID: {locale.getlocale()[0]} / {os.getppid()}"))
         rv.append("\n")
     else:
         rv.append(T_("Oops!"))
