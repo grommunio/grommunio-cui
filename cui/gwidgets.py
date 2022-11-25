@@ -54,6 +54,9 @@ class GEdit(urwid.WidgetWrap):
         edit_pos: int = None,
         layout: Any = None,
         mask: Union[bytes, str] = None,
+        attr_map: Any = "GEdit.selectable",
+        focus_map: Any = "GEdit.focus",
+        margin: int = 2,
     ):
         caption_object: Tuple[Any, ...]
         if len(caption) == 0:
@@ -82,10 +85,10 @@ class GEdit(urwid.WidgetWrap):
             layout,
             mask,
         )
-        a = urwid.AttrMap(e, "selectable", "focus")
+        a = urwid.AttrMap(e, attr_map, focus_map)
         s = urwid.Text("")
-        p_t = urwid.Padding(t, left=2)
-        p_a = urwid.Padding(a, right=2)
+        p_t = urwid.Padding(t, left=margin - 1)
+        p_a = urwid.Padding(a, right=margin)
         c: urwid.Columns
         if isinstance(caption_object, tuple):
             if len(caption_object) == 3:
