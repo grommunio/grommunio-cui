@@ -95,6 +95,8 @@ _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
         ("MMI.focus", "black", "light gray", "", "#111", "#ccc"),
         ("footerbar.short", "white", "black", "", "#fff", "#111"),
         ("footerbar.long", "white", "dark blue", "", "#111", "#00a"),
+        ("GEdit.selectable", "black", "light gray", "", "", ""),
+        ("GEdit.focus", "black", "white", "", "", ""),
     ],
     "dark": [
         ("body", "black", "dark cyan", "standout", "#111", "#0aa"),
@@ -133,6 +135,8 @@ _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
         ("MMI.focus", "white", "dark gray", "", "#fff", "#888"),
         ("footerbar.short", "black", "white", "", "#111", "#fff"),
         ("footerbar.long", "black", "dark cyan", "", "#fff", "#111"),
+        ("GEdit.selectable", "light gray", "black", "", "", ""),
+        ("GEdit.focus", "light gray", "dark gray", "", "", ""),
     ],
     "orange light": [
         ("body", "white", "brown", "standout", "#fff", "#880"),
@@ -171,6 +175,8 @@ _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
         ("MMI.focus", "black", "light gray", "", "#111", "#ccc"),
         ("footerbar.short", "white", "black", "", "#fff", "#111"),
         ("footerbar.long", "white", "brown", "", "#111", "#ccc"),
+        ("GEdit.selectable", "black", "light gray", "", "", ""),
+        ("GEdit.focus", "black", "white", "", "", ""),
     ],
     "orange dark": [
         ("body", "black", "yellow", "standout", "#111", "#ff0"),
@@ -209,6 +215,8 @@ _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
         ("MMI.focus", "white", "dark gray", "", "#fff", "#888"),
         ("footerbar.short", "black", "white", "", "#111", "#fff"),
         ("footerbar.long", "black", "yellow", "", "#fff", "#888"),
+        ("GEdit.selectable", "light gray", "black", "", "", ""),
+        ("GEdit.focus", "light gray", "dark gray", "", "", ""),
     ],
 }
 
