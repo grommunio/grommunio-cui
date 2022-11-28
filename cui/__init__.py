@@ -1001,13 +1001,7 @@ class Application(ApplicationHandler):
                                     stdout=subprocess.DEVNULL,
                                 )
                                 if rc.wait() == 0:
-                                    rc = subprocess.Popen(
-                                        ["zypper", "--non-interactive", "update"],
-                                        stderr=subprocess.DEVNULL,
-                                        stdout=subprocess.DEVNULL,
-                                    )
-                                    if rc.wait() == 0:
-                                        got_keyfile = True
+                                    got_keyfile = True
                         if got_keyfile:
                             self.message_box(
                                 T_('Software repository selection has been '
