@@ -125,6 +125,7 @@ class Application(ApplicationHandler):
     log_finished: bool = False
     footer_content = []
     key_counter: Dict[str, int] = {}
+    progressbar: urwid.ProgressBar
 
     _current_kbdlayout = util.get_current_kbdlayout()
 
@@ -978,29 +979,42 @@ class Application(ApplicationHandler):
                             height=height-1
                         )
                     else:
-                        self.message_box(
-                            T_('Fetching GPG-KEY file and refreshing '
-                               'repositories. This may take a while ...'),
-                            height=height, modal=False
-                        )
+                        # self.message_box(
+                        #     T_('Fetching GPG-KEY file and refreshing '
+                        #        'repositories. This may take a while ...'),
+                        #     height=height, modal=False
+                        # )
+                        header = GText(T_("One moment, please ..."))
+                        footer = GText(T_('Fetching GPG-KEY file and refreshing '
+                                          'repositories. This may take a while ...'))
+                        pg = self.create_progress_bar()
+                        pd = urwid.Padding(self.progressbar)  # do not use pg! use self.progressbar.
+                        fil = urwid.Filler(pd)
+                        lb = urwid.LineBox(fil)
+                        self.dialog(lb, header, footer)
+                        self.draw_progress(20)
                         res: Response = requests.get(keyurl)
                         got_keyfile: bool = False
                         if res.status_code == 200:
+                            self.draw_progress(30)
                             tmp = Path(keyfile)
                             with tmp.open('w') as f:
                                 f.write(res.content.decode())
+                            self.draw_progress(40)
                             rc = subprocess.Popen(
                                 ["rpm", "--import", keyfile],
                                 stderr=subprocess.DEVNULL,
                                 stdout=subprocess.DEVNULL,
                             )
                             if rc.wait() == 0:
+                                self.draw_progress(60)
                                 rc = subprocess.Popen(
                                     ["zypper", "--non-interactive", "refresh"],
                                     stderr=subprocess.DEVNULL,
                                     stdout=subprocess.DEVNULL,
                                 )
                                 if rc.wait() == 0:
+                                    self.draw_progress(100)
                                     got_keyfile = True
                         if got_keyfile:
                             self.message_box(
@@ -2162,6 +2176,20 @@ class Application(ApplicationHandler):
             if self._loop:
                 self._loop.widget.footer = self.footer
         self.current_bottom_info = string
+
+    def create_progress_bar(self, max_progress=100):
+        self.progressbar = urwid.ProgressBar('PB.normal', 'PB.complete', 0, max_progress, 'PB.satt')
+        return self.progressbar
+
+    def draw_progress(self, progress, max_progress=100):
+        # completion = float(float(progress)/float(max_progress))
+        # self.progressbar.set_completion(completion)
+        time.sleep(0.1)
+        self.progressbar.done = max_progress
+        self.progressbar.current = progress
+        if progress == max_progress:
+            self.reset_layout()
+        self._loop.draw_screen()
 
     def message_box(
         self,
