@@ -97,6 +97,9 @@ _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
         ("footerbar.long", "white", "dark blue", "", "#111", "#00a"),
         ("GEdit.selectable", "black", "light gray", "", "", ""),
         ("GEdit.focus", "black", "white", "", "", ""),
+        ("PB.normal", "black", "white", "", "", ""),
+        ("PB.complete", "white", "black", "", "", ""),
+        ("PB.satt", "dark gray", "light gray", "", "", ""),
     ],
     "dark": [
         ("body", "black", "dark cyan", "standout", "#111", "#0aa"),
@@ -137,6 +140,9 @@ _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
         ("footerbar.long", "black", "dark cyan", "", "#fff", "#111"),
         ("GEdit.selectable", "light gray", "black", "", "", ""),
         ("GEdit.focus", "light gray", "dark gray", "", "", ""),
+        ("PB.normal", "white", "black", "", "", ""),
+        ("PB.complete", "black", "white", "", "", ""),
+        ("PB.satt", "light gray", "dark gray", "", "", ""),
     ],
     "orange light": [
         ("body", "white", "brown", "standout", "#fff", "#880"),
@@ -177,6 +183,9 @@ _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
         ("footerbar.long", "white", "brown", "", "#111", "#ccc"),
         ("GEdit.selectable", "black", "light gray", "", "", ""),
         ("GEdit.focus", "black", "white", "", "", ""),
+        ("PB.normal", "black", "white", "", "", ""),
+        ("PB.complete", "white", "black", "", "", ""),
+        ("PB.satt", "dark gray", "light gray", "", "", ""),
     ],
     "orange dark": [
         ("body", "black", "yellow", "standout", "#111", "#ff0"),
@@ -217,6 +226,9 @@ _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
         ("footerbar.long", "black", "yellow", "", "#fff", "#888"),
         ("GEdit.selectable", "light gray", "black", "", "", ""),
         ("GEdit.focus", "light gray", "dark gray", "", "", ""),
+        ("PB.normal", "white", "black", "", "", ""),
+        ("PB.complete", "black", "white", "", "", ""),
+        ("PB.satt", "light gray", "dark gray", "", "", ""),
     ],
 }
 
