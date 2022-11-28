@@ -56,7 +56,6 @@ from urwid import (
 from systemd import journal
 import datetime
 import time
-import locale
 
 
 try:
@@ -695,10 +694,10 @@ class Application(ApplicationHandler):
             if button_type == "ok":
                 success_msg = T_("was successful")
                 pw1 = self._loop.widget.top_w.base_widget.body.base_widget[
-                    1
+                    2
                 ].edit_text
                 pw2 = self._loop.widget.top_w.base_widget.body.base_widget[
-                    2
+                    4
                 ].edit_text
                 if pw1 == pw2:
                     res = self.reset_system_passwd(pw1)
@@ -882,10 +881,10 @@ class Application(ApplicationHandler):
             if button_type == "ok":
                 success_msg = T_("was successful")
                 pw1 = self._loop.widget.top_w.base_widget.body.base_widget[
-                    1
+                    2
                 ].edit_text
                 pw2 = self._loop.widget.top_w.base_widget.body.base_widget[
-                    2
+                    4
                 ].edit_text
                 if pw1 == pw2:
                     res = self.reset_aapi_passwd(pw1)
@@ -1244,7 +1243,7 @@ class Application(ApplicationHandler):
         msg = T_("Enter the new system password:")
         width = 60
         input_text = ""
-        height = 12
+        height = 14
         mask = "*"
         view_ok = True
         view_cancel = True
@@ -1259,7 +1258,9 @@ class Application(ApplicationHandler):
                     Pile(
                         [
                             GText(msg, CENTER),
+                            urwid.Divider(),
                             GEdit("", input_text, False, CENTER, mask=mask),
+                            urwid.Divider(),
                             GEdit("", input_text, False, CENTER, mask=mask),
                         ]
                     ),
@@ -1526,7 +1527,7 @@ class Application(ApplicationHandler):
         msg = T_("Enter the new admin-web password:")
         width = 60
         input_text = ""
-        height = 12
+        height = 14
         mask = "*"
         view_ok = True
         view_cancel = True
@@ -1541,7 +1542,9 @@ class Application(ApplicationHandler):
                     Pile(
                         [
                             GText(msg, CENTER),
+                            urwid.Divider(),
                             GEdit("", input_text, False, CENTER, mask=mask),
+                            urwid.Divider(),
                             GEdit("", input_text, False, CENTER, mask=mask),
                         ]
                     ),
