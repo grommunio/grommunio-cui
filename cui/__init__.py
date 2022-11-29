@@ -15,6 +15,7 @@ import os
 
 import urwid
 import yaml
+# from pudb.remote import set_trace
 from yaml import SafeLoader
 from getpass import getuser
 from cui.scroll import ScrollBar, Scrollable
@@ -686,6 +687,7 @@ class Application(ApplicationHandler):
             self.open_main_menu()
 
     def key_ev_pass(self, key):
+        self.handle_standard_tab_behaviour(key)
         success_msg = T_("NOTHING")
         if key.lower().endswith("enter"):
             if key.lower().startswith("hidden"):
@@ -714,18 +716,6 @@ class Application(ApplicationHandler):
         elif key.lower().find("cancel") >= 0 or key.lower() in ["esc"]:
             success_msg = T_("aborted")
             self.open_main_menu()
-        elif key.lower().endswith("tab"):
-            f: urwid.Frame = self._loop.widget.top_w.base_widget
-            if f.focus_position == "body":
-                try:
-                    f.body.base_widget.focus_position = (
-                        f.body.base_widget.focus_position + 1
-                    )
-                except IndexError as e:
-                    f.focus_position = "footer"
-            else:
-                f.body.base_widget.focus_position = 1
-                f.focus_position = "body"
         if key.lower().endswith("enter") or key in ["esc", "enter"]:
             self.current_window = self.input_box_caller
             self.message_box(
@@ -873,6 +863,7 @@ class Application(ApplicationHandler):
             self.open_log_viewer("gromox-http", self.log_line_count)
 
     def key_ev_aapi(self, key):
+        self.handle_standard_tab_behaviour(key)
         success_msg = T_("NOTHING")
         if key.lower().endswith("enter"):
             if key.lower().startswith("hidden"):
@@ -901,18 +892,6 @@ class Application(ApplicationHandler):
         elif key.lower().find("cancel") >= 0 or key.lower() in ["esc"]:
             success_msg = T_("aborted")
             self.open_main_menu()
-        elif key.lower().endswith("tab"):
-            f: urwid.Frame = self._loop.widget.top_w.base_widget
-            if f.focus_position == "body":
-                try:
-                    f.body.base_widget.focus_position = (
-                        f.body.base_widget.focus_position + 1
-                    )
-                except IndexError as e:
-                    f.focus_position = "footer"
-            else:
-                f.body.base_widget.focus_position = 1
-                f.focus_position = "body"
         if key.lower().endswith("enter") or key in ["esc", "enter"]:
             self.current_window = self.input_box_caller
             self.message_box(
@@ -935,11 +914,11 @@ class Application(ApplicationHandler):
             config['grommunio']['auorefresh'] = 1
         height = 10
         if key.lower().endswith("enter"):
+            self.open_main_menu()
             if key.lower().startswith("hidden"):
                 button_type = T_(key.split(" ")[1]).lower()
             else:
                 button_type = T_("Cancel").lower()
-            self.open_main_menu()
             if button_type == T_("Cancel").lower():
                 self.message_box(
                     T_('Software repository selection has been canceled.'),
@@ -1029,6 +1008,12 @@ class Application(ApplicationHandler):
                                    'key file.'),
                                 height=height+1
                             )
+        elif key == 'esc':
+            self.open_main_menu()
+            self.message_box(
+                T_('Software repository selection has been canceled.'),
+                height=height
+            )
 
     def key_ev_timesyncd(self, key):
         self.handle_standard_tab_behaviour(key)
@@ -1208,7 +1193,7 @@ class Application(ApplicationHandler):
         self.screen.tty_signal_keys(*self.old_termios)
         print("\x1b[K")
         print(
-            "\x1b[K \x1b[36m▼\x1b[0m", 
+            "\x1b[K \x1b[36m▼\x1b[0m",
             T_("To return to the CUI, issue the `exit` command.")
         )
         print("\x1b[J")
@@ -1713,6 +1698,12 @@ class Application(ApplicationHandler):
                 vblank, GEdit(T_('Password: '), edit_text=default_pw), vblank
             ])
         ]
+        body_content[0]._selectable = False
+        body_content[1]._selectable = True
+        body_content[2]._selectable = False
+        body_content[3]._selectable = True
+        body_content[4]._selectable = True
+        body_content[5]._selectable = True
         self.repo_selection_body = LineBox(Padding(Filler(Pile(body_content), TOP)))
 
     def open_setup_wizard(self):
@@ -2363,6 +2354,8 @@ class Application(ApplicationHandler):
                 )
             ]
         cols += [("weight", 1, GText(""))]
+        for col in cols[1:-1]:
+            col[2]._selectable = True
         footer = AttrMap(Columns(cols), "buttonbar")
         return footer
 
@@ -2425,11 +2418,69 @@ class Application(ApplicationHandler):
 
         :param key: The key to be handled.
         """
-        if key.endswith("tab"):
+        TOP_KEYS = ['shift tab', 'up', 'left']
+        BOTTOM_KEYS = ['tab', 'down', 'right']
+
+        def switch_body_footer():
             if self.layout.focus_position == "body":
                 self.layout.focus_position = "footer"
             elif self.layout.focus_position == "footer":
                 self.layout.focus_position = "body"
+
+        def count_selectables(widget_list, up_to: int = None):
+            if up_to is None:
+                up_to = len(widget_list) - 1
+            limit = up_to + 1
+            non_sels = 0
+            sels = 0
+            for w in widget_list:
+                if w._selectable:
+                    sels = sels + 1
+                else:
+                    non_sels = non_sels + 1
+                if non_sels + sels == limit:
+                    break
+            return sels
+
+        def jump_part(part):
+            """Within this function we ignore all not _selectables."""
+            first = 0
+            try:
+                last = len(part.base_widget.widget_list) - 1
+            except BaseException as e:
+                last = 0
+            current = part.base_widget.focus_position
+            # Reduce last and current by non selectables
+            non_sels_current = current + 1 - count_selectables(part.base_widget.widget_list, current)
+            non_sels_last = last + 1 - count_selectables(part.base_widget.widget_list, last)
+            last = last - non_sels_last
+            current = current - non_sels_current
+            if current <= first and key in TOP_KEYS:
+                if self.layout.focus_part == 'footer':
+                    switch_body_footer()
+            if current >= last and key in BOTTOM_KEYS:
+                if self.layout.focus_part == 'body':
+                    switch_body_footer()
+            else:
+                move: int = 0
+                if first <= current < last and key in BOTTOM_KEYS:
+                    move = 1
+                elif first < current <= last and key in TOP_KEYS:
+                    move = -1
+                new_focus = part.base_widget.focus_position + move
+                while 0 <= new_focus < len(part.base_widget.widget_list):
+                    if part.base_widget.widget_list[new_focus]._selectable:
+                        part.base_widget.focus_position = new_focus
+                        break
+                    else:
+                        new_focus += move
+
+        if key.endswith("tab") or key.endswith("down") or key.endswith('up'):
+            current_part = self.layout.focus_part
+            if current_part == 'body':
+                jump_part(self.layout.body)
+            elif current_part == 'footer':
+                jump_part(self.layout.footer)
 
     def set_debug(self, on: bool):
         """
@@ -2453,6 +2504,8 @@ class Application(ApplicationHandler):
         """
         Starts the console UI
         """
+        # set_trace(term_size=(129, 18))
+        # set_trace()
         self._loop.run()
         if self.old_termios is not None:
             self.screen.tty_signal_keys(*self.old_termios)
