@@ -2227,7 +2227,7 @@ class Application(ApplicationHandler):
         :param height: The height of the box.
         :param view_ok: Should the OK button be visible?
         :param view_cancel: Should the Cancel button be visible?
-        :param modal: Shold the dialog be modal or not?
+        :param modal: Should the dialog be modal or not?
         """
         if self.current_window != _MESSAGE_BOX:
             self.message_box_caller = self.current_window
