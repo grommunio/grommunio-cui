@@ -541,7 +541,7 @@ class Application(ApplicationHandler):
         )
         self.mainframe = frame
         self._body = self.mainframe
-        self.print(T_("Idle"))
+        # self.print(T_("Idle"))
 
     def refresh_header(self, colormode, kbd, auth_options):
         self.refresh_head_text(colormode, kbd, auth_options)
@@ -1982,7 +1982,9 @@ class Application(ApplicationHandler):
         """
         Redraws screen.
         """
-        self._loop.draw_screen()
+        if getattr(self, "_loop", None):
+            if self._loop:
+                self._loop.draw_screen()
 
     def reset_layout(self):
         """
@@ -2160,12 +2162,13 @@ class Application(ApplicationHandler):
         if len(rest) > 0:
             col_list += [Columns([(len(elem), elem) for elem in rest])]
         if self.debug:
-            col_list += Columns([gdebug])
+            col_list += [Columns([gdebug])]
         self.footer_content = col_list
         self.footer = AttrMap(Pile(self.footer_content), "footer")
-        if getattr(self, "_loop", None):
-            if self._loop:
-                self._loop.widget.footer = self.footer
+        swap_widget = getattr(self, "_body", None)
+        if swap_widget:
+            swap_widget.footer = self.footer
+            self.redraw()
         self.current_bottom_info = string
 
     def create_progress_bar(self, max_progress=100):
@@ -2418,7 +2421,7 @@ class Application(ApplicationHandler):
 
         :param key: The key to be handled.
         """
-        TOP_KEYS = ['shift tab', 'up', 'left']
+        TOP_KEYS = ['shift tab', 'up', 'left', 'meta tab']
         BOTTOM_KEYS = ['tab', 'down', 'right']
 
         def switch_body_footer():
@@ -2474,7 +2477,7 @@ class Application(ApplicationHandler):
                         break
                     else:
                         new_focus += move
-
+        # self.print(f"key is {key}")
         if key.endswith("tab") or key.endswith("down") or key.endswith('up'):
             current_part = self.layout.focus_part
             if current_part == 'body':
@@ -2622,6 +2625,9 @@ def create_application():
 
 def mainapp():
     application = create_application()
+    # application.set_debug(True)
+    # application.quiet = False
+    # # _PRODUCTIVE = False
     application.start()
     print("\n\x1b[J")
 
