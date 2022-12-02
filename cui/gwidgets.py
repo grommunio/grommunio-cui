@@ -43,6 +43,8 @@ class GText(urwid.WidgetWrap):
 
 
 class GEdit(urwid.WidgetWrap):
+    _selectable = True
+
     def __init__(
         self,
         caption: Any = "",

@@ -19,6 +19,7 @@ class GButton(Button):
     Extended Button class with custom left and right sign.
     """
 
+    _selectable = True
     application: ApplicationHandler = None
 
     def __init__(
@@ -46,6 +47,8 @@ class GBoxButton(WidgetDrawer):
     """
     Extended Button class with surrounding lines. Drawing by unicode chars.
     """
+
+    _selectable = True
 
     _top_left_char: str = "┌"
     _top_right_char: str = "┐"
