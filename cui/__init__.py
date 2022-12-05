@@ -136,6 +136,18 @@ class Application(ApplicationHandler):
     # The hidden input string
     _hidden_input: str = ""
     _hidden_pos: int = 0
+    _body: Widget
+    tb_header: GText
+    authorized_options: str
+    footer: Pile
+    header: AttrMap
+    log_viewer: LineBox
+    repo_selection_body: LineBox
+    loaded_kbd: str
+    keyboard_rb: List
+    keyboard_content: List
+    keyboard_list: ScrollBar
+    keyboard_switch_body: ScrollBar
 
     def __init__(self):
         # MAIN Page
