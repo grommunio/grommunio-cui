@@ -576,11 +576,12 @@ class Application(ApplicationHandler):
             )
         )
 
-    def listen_unsupported(self, what: str, key: Any):
+    def listen_unsupported(self, what: str, key: Any) -> Any:
         """Listen for unsupperted."""
         self.print(T_("What is {%s}." % what))
         if key in ["ctrl a", "A"]:
             return key
+        return None
 
     def handle_event(self, event: Any):
         """
@@ -1185,10 +1186,8 @@ class Application(ApplicationHandler):
             parts = label.split(") ")
             if len(parts) < 2:
                 return label
-            else:
-                return parts[1]
-        else:
-            return label
+            return parts[1]
+        return label
 
     def handle_click(self, creator: Widget, option: bool = False):
         """
@@ -2185,7 +2184,7 @@ class Application(ApplicationHandler):
             wl = widlist
             rv = 0
             if not wl:
-                return 0
+                rv = 0
             elif isinstance(wl, list):
                 for elem in wl:
                     if elem:
@@ -2665,7 +2664,7 @@ class Application(ApplicationHandler):
         return rv
 
 
-def create_application() -> ApplicationHandler:
+def create_application() -> Union[ApplicationHandler, None]:
     """Creates and returns the main application"""
     global _PRODUCTIVE
     set_encoding("utf-8")
@@ -2675,19 +2674,19 @@ def create_application() -> ApplicationHandler:
         print(T_("\tOPTIONS:"))
         print(T_("\t\t--help: Show this message."))
         print(T_("\t\t-v/--debug: Verbose/Debugging mode."))
+        return None
+    app = Application()
+    if "-v" in sys.argv:
+        app.set_debug(True)
     else:
-        app = Application()
-        if "-v" in sys.argv:
-            app.set_debug(True)
-        else:
-            app.set_debug(False)
+        app.set_debug(False)
 
-        app.quiet = True
+    app.quiet = True
 
-        if "--hidden-login" in sys.argv:
-            _PRODUCTIVE = False
+    if "--hidden-login" in sys.argv:
+        _PRODUCTIVE = False
 
-        return app
+    return app
 
 
 def mainapp():
