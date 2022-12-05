@@ -47,7 +47,6 @@ from urwid import (
     MIDDLE,
     TOP,
     RadioButton,
-    ListWalker,
     raw_display,
     RELATIVE_100,
 )
@@ -468,18 +467,6 @@ class Application(ApplicationHandler):
             self._loop.widget = self.main_menu
             self._body = self.main_menu
 
-    def recreate_text_header(self):
-        """Recreate text header."""
-        self.tb_header = GText(
-            "".join(self.text_header).format(
-                colormode=self._current_colormode,
-                kbd=self._current_kbdlayout,
-                authorized_options=self.authorized_options,
-            ),
-            align=CENTER,
-            wrap=SPACE,
-        )
-
     def prepare_mainscreen(self):
         """Prepare main screen."""
         colormode: str = self._current_colormode
@@ -575,13 +562,6 @@ class Application(ApplicationHandler):
                 authorized_options=authorized_options,
             )
         )
-
-    def listen_unsupported(self, what: str, key: Any) -> Any:
-        """Listen for unsupperted."""
-        self.print(T_("What is {%s}." % what))
-        if key in ["ctrl a", "A"]:
-            return key
-        return None
 
     def handle_event(self, event: Any):
         """
@@ -749,12 +729,6 @@ class Application(ApplicationHandler):
                 T_("System password reset"),
                 height=10,
             )
-
-    def key_ev_pass_old(self, key):
-        """Handle event on password dialog."""
-        self.handle_standard_tab_behaviour(key)
-        if key.lower().endswith("enter") or key == "esc":
-            self.open_main_menu()
 
     def key_ev_login(self, key):
         """Handle event on login menu."""
@@ -1196,33 +1170,7 @@ class Application(ApplicationHandler):
         :param creator: The widget creating calling the function.
         :param option: On if True, off otherwise.
         """
-        self.print(T_("Creator (%s) clicked %b.") % creator, option)
-
-    def handle_menu_changed(self, *args, **kwargs):
-        """
-        Is called additionally if item is changed (???).
-        TODO Check what this does exactly.  or when it is called
-
-        :param args: Optional user_args.
-        :param kwargs: Optional keyword args
-        """
-        self.print(
-            T_("Called handle_menu_changed() with args(%s) and ") % args
-            + "kwargs(%s)" % kwargs
-        )
-
-    def handle_menu_activated(self, *args, **kwargs):
-        """
-        Is called additionally if menu is activated.
-        (Maybe obsolete!)
-
-        :param args: Optional user_args.
-        :param kwargs: Optional keyword args
-        """
-        self.print(
-            T_("Called handle_menu_activated() with args(%s) and ") % args
-            + "kwargs(%s)" % kwargs
-        )
+        self.print(T_("Creator (%s) clicked %r." % creator, option))
 
     def open_terminal(self):
         """
@@ -1348,40 +1296,6 @@ class Application(ApplicationHandler):
                     ("weight", 70, self.password),
                 ]
             ),
-        )
-
-    def prepare_log_viewer_old(self, logfile: str = "syslog", lines: int = 0):
-        """
-        Prepares the log file viewer widget and fills the last lines of the file content.
-
-        :param logfile: The logfile to be viewed.
-        :param lines: The number of lines to be viewed. (0 = unlimited)
-        """
-        filename: str = "/var/log/messages"
-        if logfile == "syslog":
-            filename = "/var/log/messages"
-        elif logfile == "test":
-            filename = "../README.md"
-
-        log: Path = Path(filename)
-
-        if log.exists():
-            if os.access(str(log), os.R_OK):
-                self.log_file_content = util.fast_tail(
-                    str(log.absolute()), lines
-                )
-        self.log_viewer = LineBox(
-            Pile(
-                [
-                    ScrollBar(
-                        Scrollable(
-                            Pile(
-                                [GText(line) for line in self.log_file_content]
-                            )
-                        )
-                    )
-                ]
-            )
         )
 
     def prepare_log_viewer(self, unit: str = "syslog", lines: int = 0):
@@ -1552,7 +1466,7 @@ class Application(ApplicationHandler):
         # mainapp()
         if os.getppid() == 1:
             T_ = util.init_localization(language=locale_conf.get('LANG', ''))
-            mainapp()
+            main_app()
             # raise ExitMainLoop()
         else:
             env = {}
@@ -1857,91 +1771,6 @@ class Application(ApplicationHandler):
         menu[1]._selectable = False
         return Frame(menu, header=self.header, footer=self.footer)
 
-    def prepare_radio_list(self, items: Dict[str, Widget]) \
-            -> Tuple[ListBox, ListBox]:
-        """
-        Prepares general radio list containing RadioButtons and content.
-
-        :param items: A dictionary of widgets representing the menu items.
-        :return: Tuple of one ListBox containing menu items and one containing
-        the content.
-        """
-        radio_items: List[RadioButton]
-        radio_content: List[Widget]
-        radio_items, radio_content = self.create_radiobutton_items(items)
-        radio_walker: ListWalker = SimpleListWalker(radio_items)
-        content_walker: ListWalker = SimpleListWalker(radio_content)
-        if len(radio_items) > 0:
-            connect_signal(
-                radio_walker,
-                "modified",
-                self.handle_event,
-                user_args=[radio_walker, radio_items],
-            )
-        return ListBox(radio_walker), ListBox(content_walker)
-
-    def wrap_radio(
-        self,
-        master: ListBox,
-        slave: ListBox,
-        header: Widget,
-        title: str = None,
-    ) -> LineBox:
-        """
-        Wraps the two ListBoxes returned by ::self::.prepare_radio_list() as
-        master (RadioButton) and slave (content)
-        with menus header and an optional title.
-
-        :param master: The leading RadioButtons.
-        :param slave: The following content widgets.
-        :param header: The menu header.
-        :param title: The optional title.
-        :return: The wrapped LineBox.
-        """
-        title = "Menu" if title is None else title
-        return LineBox(
-            Pile(
-                [
-                    (3, AttrMap(Filler(GText(title, CENTER), TOP), "body")),
-                    (1, header),
-                    AttrMap(
-                        Columns(
-                            [
-                                (
-                                    "weight",
-                                    1,
-                                    AttrMap(
-                                        master, "MMI.selectable", "MMI.focus"
-                                    ),
-                                ),
-                                (
-                                    "weight",
-                                    4,
-                                    AttrMap(
-                                        slave, "MMI.selectable", "MMI.focus"
-                                    ),
-                                ),
-                            ]
-                        ),
-                        "reverse",
-                    ),
-                ]
-            )
-        )
-
-    def change_colormode(self, mode: str):
-        """Change to color scheme `mode`."""
-        palette = util.get_palette(mode)
-        self._current_colormode = mode
-        colormode: str = (
-            "light" if self._current_colormode == "dark" else "dark"
-        )
-        self.refresh_header(
-            colormode, self._current_kbdlayout, self.authorized_options
-        )
-        self._loop.screen.register_palette(palette)
-        self._loop.screen.clear()
-
     def switch_next_colormode(self):
         """Switch to next color scheme."""
         original = self._current_colormode
@@ -1954,14 +1783,6 @@ class Application(ApplicationHandler):
         self._loop.screen.register_palette(palette)
         self._loop.screen.clear()
         self._current_colormode = show_next
-
-    def switch_kbdlayout(self):
-        """Switch keyboard layout."""
-        # Base proposal on CUI's last known state
-        proposal = (
-            "de-latin1-nodeadkeys" if self._current_kbdlayout == "us" else "us"
-        )
-        self.set_kbd_layout(proposal)
 
     def set_kbd_layout(self, layout):
         """Set and save selected keyboard layout."""
@@ -2070,106 +1891,6 @@ class Application(ApplicationHandler):
             connect_signal(item, "activate", self.handle_event)
             menu_items.append(AttrMap(item, "selectable", "focus"))
         return menu_items
-
-    def create_radiobutton_items(
-        self, items: Dict[str, Widget]
-    ) -> Tuple[List[RadioButton], List[Widget]]:
-        """
-        Takes a dictionary with menu labels as keys and widget(lists) as
-        content and creates a tuple of two lists. One list of leading
-        RadioButtons and the second list contains the following widget..
-
-        :param items: Dictionary in the form {'label': Widget}.
-        :return: Tuple with two lists. One List of MenuItems representing the
-                 leading radio buttons and one the content
-                 widget.
-        """
-        menu_items: List[RadioButton] = []
-        my_items: List[RadioButton] = []
-        my_items_content: List[Widget] = []
-        for idx, caption in enumerate(items.keys(), 1):
-            item = RadioButton(
-                menu_items, caption, on_state_change=self.handle_click
-            )
-            my_items.append(AttrMap(item, "MMI-selectable", "MMI.focus"))
-            my_items_content.append(
-                AttrMap(items.get(caption), "MMI-selectable", "MMI.focus")
-            )
-        return my_items, my_items_content
-
-    def create_multi_menu_items(
-        self, items: Dict[str, Widget], selected: str = None
-    ) -> List[MultiMenuItem]:
-        """
-        Takes a dictionary with menu labels as keys and widget(lists) as
-        content and creates a list of multi menu items with being one
-        selected..
-
-        :param items: Dictionary in the form {'label': Widget}.
-        :param selected: The label of the selected multi menu item.
-        :return: List of MultiMenuItems.
-        """
-        menu_items: List[MultiMenuItem] = []
-        my_items: List[MultiMenuItem] = []
-        for idx, caption in enumerate(items.keys(), 1):
-            caption_wo_no: str = self.get_pure_menu_name(caption)
-            state: Any
-            if selected is not None:
-                if selected == caption_wo_no:
-                    state = True
-                else:
-                    state = False
-            else:
-                state = "first True"
-            item = MultiMenuItem(
-                menu_items,
-                idx,
-                caption_wo_no,
-                items.get(caption),
-                state=state,
-                on_state_change=MultiMenuItem.handle_menu_changed,
-                app=self,
-            )
-            my_items.append(item)
-        return my_items
-
-    def create_multi_menu_listbox(
-        self, menu_list: List[MultiMenuItem]
-    ) -> ListBox:
-        """
-        Creates general listbox of multi menu items from list of multi
-        menu items.
-
-        :param menu_list: list of MultiMenuItems
-        :return: The ListBox.
-        """
-        listbox: ListBox[ListWalker] = ListBox(SimpleListWalker(menu_list))
-        item: MultiMenuItem
-        for item in menu_list:
-            item.set_parent_listbox(listbox)
-        return listbox
-
-    def wrap_multi_menu_listbox(
-        self, listbox: ListBox, header: Widget = None, title: str = None
-    ) -> LineBox:
-        """
-        Wraps general listbox of multi menu items with a linebox.
-
-        :param listbox: ListBox to be wrapped.
-        :param header: Optional ListBox header.
-        :param title: Optional title. "Menu" is used if title is None.
-        :return: The wrapping LineBox around the ListBox.
-        """
-        title = "Menu" if title is None else title
-        return LineBox(
-            Pile(
-                [
-                    (3, AttrMap(Filler(GText(title, CENTER), TOP), "body")),
-                    (1, header) if header is not None else (),
-                    AttrMap(Columns([listbox]), "MMI.selectable"),
-                ]
-            )
-        )
 
     def print(self, string="", align="left"):
         """
@@ -2642,29 +2363,8 @@ class Application(ApplicationHandler):
             if not modal:
                 self._loop.draw_screen()
 
-    def check_config_write(self, di) -> bool:
-        """Checks and writes config."""
-        title: str = T_("Write succeeded")
-        height: int = 9
-        msg: List[str] = [T_("The configuration was")]
-        res: bool = True
-        if di.write_config():
-            msg += [T_(" updated.")]
-        else:
-            title = T_("Write failed")
-            height += 1
-            msg += [
-                ("important", T_(" not")),
-                T_(" updated."),
-                "\n",
-                T_("Perhaps you have insufficient rights."),
-            ]
-            res = False
-        self.message_box(msg, title=title, height=height)
-        return res
 
-
-def create_application() -> Union[ApplicationHandler, None]:
+def create_application() -> Union[Application, None]:
     """Creates and returns the main application"""
     global _PRODUCTIVE
     set_encoding("utf-8")
@@ -2689,7 +2389,7 @@ def create_application() -> Union[ApplicationHandler, None]:
     return app
 
 
-def mainapp():
+def main_app():
     """Starts main application."""
     application = create_application()
     # application.set_debug(True)
@@ -2700,4 +2400,4 @@ def mainapp():
 
 
 if __name__ == "__main__":
-    mainapp()
+    main_app()
