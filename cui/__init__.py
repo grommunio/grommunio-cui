@@ -966,13 +966,13 @@ class Application(ApplicationHandler):
                 if self.repo_selection_body.base_widget[3].state:
                     # supported selected
                     user = self.repo_selection_body.base_widget[4][1].edit_text
-                    pw = self.repo_selection_body.base_widget[5][1].edit_text
+                    password = self.repo_selection_body.base_widget[5][1].edit_text
                     testurl="https://download.grommunio.com/supported/open" \
                             "SUSE_Leap_15.3/repodata/repomd.xml"
-                    req: Response = requests.get(testurl, auth=(user, pw))
+                    req: Response = requests.get(testurl, auth=(user, password))
                     if req.status_code == 200:
                         url = '%s:%s@download.grommunio.com/supported/open' \
-                              'SUSE_Leap_15.3/?ssl_verify=no' % (user, pw)
+                              'SUSE_Leap_15.3/?ssl_verify=no' % (user, password)
                         updateable = True
                     else:
                         self.message_box(
@@ -1002,33 +1002,33 @@ class Application(ApplicationHandler):
                         header = GText(T_("One moment, please ..."))
                         footer = GText(T_('Fetching GPG-KEY file and refreshing '
                                           'repositories. This may take a while ...'))
-                        pg = self.create_progress_bar()
-                        pd = urwid.Padding(self.progressbar)  # do not use pg! use self.progressbar.
-                        fil = urwid.Filler(pd)
-                        lb = urwid.LineBox(fil)
-                        self.dialog(lb, header, footer)
+                        self.progressbar = self.create_progress_bar()
+                        pad = urwid.Padding(self.progressbar)  # do not use pg! use self.progressbar.
+                        fil = urwid.Filler(pad)
+                        linebox = urwid.LineBox(fil)
+                        self.dialog(linebox, header, footer)
                         self.draw_progress(20)
                         res: Response = requests.get(keyurl)
                         got_keyfile: bool = False
                         if res.status_code == 200:
                             self.draw_progress(30)
                             tmp = Path(keyfile)
-                            with tmp.open('w') as f:
-                                f.write(res.content.decode())
+                            with tmp.open('w') as file:
+                                file.write(res.content.decode())
                             self.draw_progress(40)
-                            rc = subprocess.Popen(
+                            ret_code = subprocess.Popen(
                                 ["rpm", "--import", keyfile],
                                 stderr=subprocess.DEVNULL,
                                 stdout=subprocess.DEVNULL,
                             )
-                            if rc.wait() == 0:
+                            if ret_code.wait() == 0:
                                 self.draw_progress(60)
-                                rc = subprocess.Popen(
+                                ret_code = subprocess.Popen(
                                     ["zypper", "--non-interactive", "refresh"],
                                     stderr=subprocess.DEVNULL,
                                     stdout=subprocess.DEVNULL,
                                 )
-                                if rc.wait() == 0:
+                                if ret_code.wait() == 0:
                                     self.draw_progress(100)
                                     got_keyfile = True
                         if got_keyfile:
@@ -1071,12 +1071,12 @@ class Application(ApplicationHandler):
                 util.lineconfig_write(
                     "/etc/systemd/timesyncd.conf", self.timesyncd_vars
                 )
-                rc = subprocess.Popen(
+                ret_code = subprocess.Popen(
                     ["timedatectl", "set-ntp", "true"],
                     stderr=subprocess.DEVNULL,
                     stdout=subprocess.DEVNULL,
                 )
-                res = rc.wait() == 0
+                res = ret_code.wait() == 0
                 success_msg = T_("was successful")
                 if not res:
                     success_msg = T_("failed")
@@ -1132,13 +1132,13 @@ class Application(ApplicationHandler):
         exe = "/usr/sbin/grommunio-admin"
         out = ""
         if Path(exe).exists():
-            p = subprocess.Popen(
+            process = subprocess.Popen(
                 [exe, "config", "dump"],
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
-            out, err = p.communicate()
+            out, err = process.communicate()
             if type(out) is bytes:
                 out = out.decode()
         if out == "":
@@ -1167,10 +1167,10 @@ class Application(ApplicationHandler):
             '[%(asctime)s] [%(levelname)s] (%(module)s): "%(message)s"',
         )
 
-    def get_log_unit_by_id(self, id) -> str:
-        """Get logging unit by id."""
+    def get_log_unit_by_id(self, idx) -> str:
+        """Get logging unit by idx."""
         for i, k in enumerate(self.log_units.keys()):
-            if id == i:
+            if idx == i:
                 return self.log_units[k].get("source")[:-8]
         return ""
 
@@ -1395,19 +1395,19 @@ class Application(ApplicationHandler):
             unit if unit.strip().endswith(".service") else f"{unit}.service"
         )
 
-        r = journal.Reader()
-        r.this_boot()
-        # r.log_level(sj.LOG_INFO)
-        r.add_match(_SYSTEMD_UNIT=unitname)
+        reader = journal.Reader()
+        reader.this_boot()
+        # reader.log_level(sj.LOG_INFO)
+        reader.add_match(_SYSTEMD_UNIT=unitname)
         # h = 60 * 60
         # d = 24 * h
         # sincetime = time.time() - 4 * d
-        # r.seek_realtime(sincetime)
-        l: List[str] = []
-        for entry in r:
+        # reader.seek_realtime(sincetime)
+        line_list: List[str] = []
+        for entry in reader:
             if entry.get("__REALTIME_TIMESTAMP", "") == "":
                 continue
-            d = {
+            format_dict = {
                 "asctime": entry.get(
                     "__REALTIME_TIMESTAMP",
                     datetime.datetime(1970, 1, 1, 0, 0, 0),
@@ -1418,8 +1418,8 @@ class Application(ApplicationHandler):
                 ).split(".service")[0],
                 "message": entry.get("MESSAGE", ""),
             }
-            l.append(self.get_logging_formatter() % d)
-        self.log_file_content = l[-lines:]
+            line_list.append(self.get_logging_formatter() % format_dict)
+        self.log_file_content = line_list[-lines:]
         found: bool = False
         pre: List[str] = []
         post: List[str] = []
@@ -1792,7 +1792,7 @@ class Application(ApplicationHandler):
         self.prepare_mainscreen()
         self._loop.widget = self._body
 
-    def check_login(self, w: Widget = None):
+    def check_login(self, widget: Widget = None):
         """
         Checks login data and switch to authenticate on if successful.
         """
@@ -1931,7 +1931,7 @@ class Application(ApplicationHandler):
 
     def change_colormode(self, mode: str):
         """Change to color scheme `mode`."""
-        p = util.get_palette(mode)
+        palette = util.get_palette(mode)
         self._current_colormode = mode
         colormode: str = (
             "light" if self._current_colormode == "dark" else "dark"
@@ -1939,19 +1939,19 @@ class Application(ApplicationHandler):
         self.refresh_header(
             colormode, self._current_kbdlayout, self.authorized_options
         )
-        self._loop.screen.register_palette(p)
+        self._loop.screen.register_palette(palette)
         self._loop.screen.clear()
 
     def switch_next_colormode(self):
         """Switch to next color scheme."""
-        o = self._current_colormode
-        n = util.get_next_palette_name(o)
-        p = util.get_palette(n)
-        show_next = n
+        original = self._current_colormode
+        color_name = util.get_next_palette_name(original)
+        palette = util.get_palette(color_name)
+        show_next = color_name
         self.refresh_header(
             show_next, self._current_kbdlayout, self.authorized_options
         )
-        self._loop.screen.register_palette(p)
+        self._loop.screen.register_palette(palette)
         self._loop.screen.clear()
         self._current_colormode = show_next
 
@@ -2065,8 +2065,8 @@ class Application(ApplicationHandler):
         :return: List of MenuItems.
         """
         menu_items: List[MenuItem] = []
-        for id, caption in enumerate(items.keys(), 1):
-            item = MenuItem(id, caption, items.get(caption), self)
+        for idx, caption in enumerate(items.keys(), 1):
+            item = MenuItem(idx, caption, items.get(caption), self)
             connect_signal(item, "activate", self.handle_event)
             menu_items.append(AttrMap(item, "selectable", "focus"))
         return menu_items
@@ -2087,7 +2087,7 @@ class Application(ApplicationHandler):
         menu_items: List[RadioButton] = []
         my_items: List[RadioButton] = []
         my_items_content: List[Widget] = []
-        for id, caption in enumerate(items.keys(), 1):
+        for idx, caption in enumerate(items.keys(), 1):
             item = RadioButton(
                 menu_items, caption, on_state_change=self.handle_click
             )
@@ -2111,7 +2111,7 @@ class Application(ApplicationHandler):
         """
         menu_items: List[MultiMenuItem] = []
         my_items: List[MultiMenuItem] = []
-        for id, caption in enumerate(items.keys(), 1):
+        for idx, caption in enumerate(items.keys(), 1):
             caption_wo_no: str = self.get_pure_menu_name(caption)
             state: Any
             if selected is not None:
@@ -2123,7 +2123,7 @@ class Application(ApplicationHandler):
                 state = "first True"
             item = MultiMenuItem(
                 menu_items,
-                id,
+                idx,
                 caption_wo_no,
                 items.get(caption),
                 state=state,
@@ -2180,22 +2180,22 @@ class Application(ApplicationHandler):
             align (str): The alignment of the printed text
         """
 
-        def glen(widlist):
-            wl = widlist
-            rv = 0
-            if not wl:
-                rv = 0
-            elif isinstance(wl, list):
-                for elem in wl:
+        def glen(widget_list):
+            wlist = widget_list
+            res = 0
+            if not wlist:
+                res = 0
+            elif isinstance(wlist, list):
+                for elem in wlist:
                     if elem:
-                        rv += glen(elem)
-            elif isinstance(wl, GText):
-                rv += len(wl.view)
-            elif isinstance(wl, str):
-                rv += len(wl)
+                        res += glen(elem)
+            elif isinstance(wlist, GText):
+                res += len(wlist.view)
+            elif isinstance(wlist, str):
+                res += len(wlist)
             else:
-                rv += 0
-            return rv
+                res += 0
+            return res
 
         clock = GText(util.get_clockstring(), right=1)
         footerbar = GText(util.get_footerbar(2, 10), left=1, right=0)
@@ -2445,11 +2445,11 @@ class Application(ApplicationHandler):
         if not self.last_menu_focus == self.current_menu_focus:
             cid: int = self.last_menu_focus - 1
             nid: int = self.current_menu_focus - 1
-            cw: Widget = menu.body[cid].base_widget
-            nw: Widget = menu.body[nid].base_widget
-            if isinstance(cw, MultiMenuItem) and isinstance(nw, MultiMenuItem):
-                cmmi: MultiMenuItem = cw
-                nmmi: MultiMenuItem = nw
+            current_widget: Widget = menu.body[cid].base_widget
+            next_widget: Widget = menu.body[nid].base_widget
+            if isinstance(current_widget, MultiMenuItem) and isinstance(next_widget, MultiMenuItem):
+                cmmi: MultiMenuItem = current_widget
+                nmmi: MultiMenuItem = next_widget
                 cmmi.mark_as_dirty()
                 nmmi.mark_as_dirty()
                 nmmi.set_focus()
@@ -2470,13 +2470,13 @@ class Application(ApplicationHandler):
         """
         if event == "esc":
             return 1
-        id: int = self.get_focused_menu(menu, event)
+        idx: int = self.get_focused_menu(menu, event)
         if str(event) not in ["up", "down"]:
-            return id
+            return idx
         if description_box is not None:
-            focused_item: MenuItem = menu.body[id - 1].base_widget
+            focused_item: MenuItem = menu.body[idx - 1].base_widget
             description_box.body[0] = focused_item.get_description()
-        return id
+        return idx
 
     def handle_standard_tab_behaviour(self, key: str = "tab"):
         """
@@ -2485,8 +2485,8 @@ class Application(ApplicationHandler):
 
         :param key: The key to be handled.
         """
-        TOP_KEYS = ['shift tab', 'up', 'left', 'meta tab']
-        BOTTOM_KEYS = ['tab', 'down', 'right']
+        top_keys = ['shift tab', 'up', 'left', 'meta tab']
+        bottom_keys = ['tab', 'down', 'right']
 
         def switch_body_footer():
             if self.layout.focus_position == "body":
@@ -2500,8 +2500,8 @@ class Application(ApplicationHandler):
             limit = up_to + 1
             non_sels = 0
             sels = 0
-            for w in widget_list:
-                if w._selectable:
+            for widget in widget_list:
+                if widget._selectable:
                     sels = sels + 1
                 else:
                     non_sels = non_sels + 1
@@ -2514,7 +2514,7 @@ class Application(ApplicationHandler):
             first = 0
             try:
                 last = len(part.base_widget.widget_list) - 1
-            except BaseException as e:
+            except BaseException as exc:
                 last = 0
             current = part.base_widget.focus_position
             # Reduce last and current by non selectables
@@ -2522,17 +2522,17 @@ class Application(ApplicationHandler):
             non_sels_last = last + 1 - count_selectables(part.base_widget.widget_list, last)
             last = last - non_sels_last
             current = current - non_sels_current
-            if current <= first and key in TOP_KEYS:
+            if current <= first and key in top_keys:
                 if self.layout.focus_part == 'footer':
                     switch_body_footer()
-            if current >= last and key in BOTTOM_KEYS:
+            if current >= last and key in bottom_keys:
                 if self.layout.focus_part == 'body':
                     switch_body_footer()
             else:
                 move: int = 0
-                if first <= current < last and key in BOTTOM_KEYS:
+                if first <= current < last and key in bottom_keys:
                     move = 1
-                elif first < current <= last and key in TOP_KEYS:
+                elif first < current <= last and key in top_keys:
                     move = -1
                 new_focus = part.base_widget.focus_position + move
                 while 0 <= new_focus < len(part.base_widget.widget_list):
@@ -2549,13 +2549,13 @@ class Application(ApplicationHandler):
             elif current_part == 'footer':
                 jump_part(self.layout.footer)
 
-    def set_debug(self, on: bool):
+    def set_debug(self, yes: bool):
         """
         Sets debug mode on or off.
 
-        :param on: True for on and False for off.
+        :param yes: True for on and False for off.
         """
-        self.debug = on
+        self.debug = yes
 
     def update_clock(self, cb_loop: MainLoop, data: Any = None):
         """
@@ -2628,7 +2628,7 @@ class Application(ApplicationHandler):
             body, header=header, footer=footer, focus_part=focus_part
         )
 
-        w = Overlay(
+        widget = Overlay(
             LineBox(self.layout),
             self._body,
             align=align,
@@ -2638,7 +2638,7 @@ class Application(ApplicationHandler):
         )
 
         if getattr(self, "_loop", None):
-            self._loop.widget = w
+            self._loop.widget = widget
             if not modal:
                 self._loop.draw_screen()
 
@@ -2647,7 +2647,7 @@ class Application(ApplicationHandler):
         title: str = T_("Write succeeded")
         height: int = 9
         msg: List[str] = [T_("The configuration was")]
-        rv: bool = True
+        res: bool = True
         if di.write_config():
             msg += [T_(" updated.")]
         else:
@@ -2659,9 +2659,9 @@ class Application(ApplicationHandler):
                 "\n",
                 T_("Perhaps you have insufficient rights."),
             ]
-            rv = False
+            res = False
         self.message_box(msg, title=title, height=height)
-        return rv
+        return res
 
 
 def create_application() -> Union[ApplicationHandler, None]:
