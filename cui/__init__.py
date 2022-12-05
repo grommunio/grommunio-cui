@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # SPDX-FileCopyrightText: 2021 grommunio GmbH
-import requests
-from requests import Response
-
-import cui.parser
+import datetime
+import time
 import re
 import subprocess
 import sys
@@ -12,19 +10,18 @@ from asyncio.events import AbstractEventLoop
 from pathlib import Path
 from typing import Any, List, Tuple, Dict, Union, Set
 import os
+from getpass import getuser
+import requests
+from requests import Response
 
-import urwid
+from gwidgets import GText, GEdit
+
 import yaml
 # from pudb.remote import set_trace
 from yaml import SafeLoader
-from getpass import getuser
-from cui.scroll import ScrollBar, Scrollable
-from cui.button import GButton, GBoxButton
-from cui.menu import MenuItem, MultiMenuItem
-from gwidgets import GText, GEdit
-from cui.interface import ApplicationHandler, WidgetDrawer
-from cui import util
+from systemd import journal
 from urwid.widget import SPACE
+import urwid
 from urwid import (
     AttrWrap,
     ExitMainLoop,
@@ -54,9 +51,12 @@ from urwid import (
     raw_display,
     RELATIVE_100,
 )
-from systemd import journal
-import datetime
-import time
+from cui import util
+import cui.parser
+from cui.scroll import ScrollBar, Scrollable
+from cui.button import GButton, GBoxButton
+from cui.menu import MenuItem, MultiMenuItem
+from cui.interface import ApplicationHandler, WidgetDrawer
 
 
 try:
@@ -330,7 +330,8 @@ class Application(ApplicationHandler):
 
         # Log file viewer
         self.log_file_content: List[str] = [
-            T_("If this is not that what you expected to see, you probably have insufficient permissions."),
+            T_("If this is not that what you expected to see, you probably have insufficient "
+               "permissions."),
         ]
         self.prepare_log_viewer("NetworkManager", self.log_line_count)
 
