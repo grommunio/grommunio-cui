@@ -125,7 +125,7 @@ and then use `msgmerge` to merge the new or changed keys into the corresponding 
 for lang in $(cd locale && echo */); do \
 	msgmerge --update locale/$lang/LC_MESSAGES/cui.po locale/cui.pot; \
 done
-``
+```
 
 Now handover the corresponding po-files to the translator with the modified language keys. After including the translation changes you will have to reformat the binary mo-files with the assist of the translated po-files.
 
