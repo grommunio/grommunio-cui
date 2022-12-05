@@ -15,7 +15,6 @@
 <summary>Overview</summary>
 
 - [About](#about)
-  - [Compatible with](#compatible-with)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
@@ -25,9 +24,6 @@
 - [Contributing](#contributing)
   - [Additional notes](#additional-notes)
 - [Security](#security)
-- [Development](#development)
-  - [Coding style](#coding-style)
-  - [Setup development environment](#setup-development-environment)
 - [Translators](#translators)
 - [License](#license)
 
