@@ -342,6 +342,7 @@ class Application(ApplicationHandler):
         GButton.application = self
 
     def refresh_main_menu(self):
+        """Refresh main menu."""
         # The common menu description column
         self.menu_description = Pile(
             [
@@ -456,6 +457,7 @@ class Application(ApplicationHandler):
             self._body = self.main_menu
 
     def recreate_text_header(self):
+        """Recreate text header."""
         self.tb_header = GText(
             "".join(self.text_header).format(
                 colormode=self._current_colormode,
@@ -467,6 +469,7 @@ class Application(ApplicationHandler):
         )
 
     def prepare_mainscreen(self):
+        """Prepare main screen."""
         colormode: str = self._current_colormode
         self.text_header = [T_("grommunio console user interface")]
         self.text_header += ["\n"]
@@ -545,12 +548,14 @@ class Application(ApplicationHandler):
         # self.print(T_("Idle"))
 
     def refresh_header(self, colormode, kbd, auth_options):
+        """Refresh header"""
         self.refresh_head_text(colormode, kbd, auth_options)
         self.header = AttrMap(Padding(self.tb_header, align=CENTER), "header")
         if getattr(self, "footer", None):
             self.refresh_main_menu()
 
     def refresh_head_text(self, colormode, kbd, authorized_options):
+        """Refresh head text."""
         self.tb_header.set_text(
             "".join(self.text_header).format(
                 colormode=colormode,
@@ -560,6 +565,7 @@ class Application(ApplicationHandler):
         )
 
     def listen_unsupported(self, what: str, key: Any):
+        """Listen for unsupperted."""
         self.print(T_("What is {%s}." % what))
         if key in ["ctrl a", "A"]:
             return key
@@ -582,6 +588,7 @@ class Application(ApplicationHandler):
         self.print(self.current_bottom_info)
 
     def handle_key_event(self, event: Any):
+        """Handle keyboard event."""
         # event was a key stroke
         key: str = str(event)
         if self.log_finished and self.current_window != _LOG_VIEWER:
@@ -619,6 +626,7 @@ class Application(ApplicationHandler):
         self.key_ev_anytime(key)
 
     def key_ev_main(self, key):
+        """Handle event on mainframe."""
         if key == "f2":
             if util.check_if_password_is_set(getuser()):
                 self.login_body.focus_position = (
@@ -645,6 +653,7 @@ class Application(ApplicationHandler):
             )
 
     def key_ev_mbox(self, key):
+        """Handle event on message box."""
         if key.endswith("enter") or key == "esc":
             if self.current_window != self.message_box_caller \
                     and self.message_box_caller != _MESSAGE_BOX:
@@ -663,6 +672,7 @@ class Application(ApplicationHandler):
                     self.key_counter[key] = 0
 
     def key_ev_ibox(self, key):
+        """Handle event on input box."""
         self.handle_standard_tab_behaviour(key)
         if key.endswith("enter") or key == "esc":
             if key.lower().endswith("enter"):
@@ -681,6 +691,7 @@ class Application(ApplicationHandler):
             self.handle_event(key)
 
     def key_ev_term(self, key):
+        """Handle event on terminal."""
         self.handle_standard_tab_behaviour(key)
         if key == "f10":
             raise ExitMainLoop()
@@ -688,6 +699,7 @@ class Application(ApplicationHandler):
             self.open_main_menu()
 
     def key_ev_pass(self, key):
+        """Handle event on system password reset menu."""
         self.handle_standard_tab_behaviour(key)
         success_msg = T_("NOTHING")
         if key.lower().endswith("enter"):
@@ -726,11 +738,13 @@ class Application(ApplicationHandler):
             )
 
     def key_ev_pass_old(self, key):
+        """Handle event on password dialog."""
         self.handle_standard_tab_behaviour(key)
         if key.lower().endswith("enter") or key == "esc":
             self.open_main_menu()
 
     def key_ev_login(self, key):
+        """Handle event on login menu."""
         self.handle_standard_tab_behaviour(key)
         if key.endswith("enter"):
             self.check_login()
@@ -738,6 +752,7 @@ class Application(ApplicationHandler):
             self.open_mainframe()
 
     def key_ev_reboot(self, key):
+        """Handle event on power off menu."""
         # Restore cursor etc. before going off.
         if key.endswith("enter") and self.last_pressed_button.lower().endswith(
             "ok"
@@ -750,6 +765,7 @@ class Application(ApplicationHandler):
             self.current_window = _MAIN_MENU
 
     def key_ev_shutdown(self, key):
+        """Handle event on shutdown menu."""
         # Restore cursor etc. before going off.
         if key.endswith("enter") and self.last_pressed_button.lower().endswith(
             "ok"
@@ -762,6 +778,7 @@ class Application(ApplicationHandler):
             self.current_window = _MAIN_MENU
 
     def key_ev_mainmenu(self, key):
+        """Handle event on main menu menu."""
         menu_selected: int = self.handle_standard_menu_behaviour(
             self.main_menu_list, key, self.main_menu.base_widget.body[1]
         )
@@ -801,6 +818,7 @@ class Application(ApplicationHandler):
             self.open_mainframe()
 
     def key_ev_logview(self, key):
+        """Handle event on log viewer menu."""
         if key in ["ctrl f1", "H", "h", "L", "l", "esc"]:
             self.current_window = self.log_file_caller
             self._body = self._log_file_caller_body
@@ -840,6 +858,7 @@ class Application(ApplicationHandler):
             self._hidden_pos = 0
 
     def key_ev_unsupp(self, key):
+        """Handle event on unsupported."""
         if key in ["ctrl d", "esc", "ctrl f1", "H", "h", "l", "L"]:
             self.current_window = self.log_file_caller
             self._body = self._log_file_caller_body
@@ -847,6 +866,7 @@ class Application(ApplicationHandler):
             self.reset_layout()
 
     def key_ev_anytime(self, key):
+        """Handle event at anytime."""
         if key in ["f10", "Q"]:
             raise ExitMainLoop()
         elif key == "f4" and len(self.authorized_options) > 0:
@@ -864,6 +884,7 @@ class Application(ApplicationHandler):
             self.open_log_viewer("gromox-http", self.log_line_count)
 
     def key_ev_aapi(self, key):
+        """Handle event on admin api password reset menu."""
         self.handle_standard_tab_behaviour(key)
         success_msg = T_("NOTHING")
         if key.lower().endswith("enter"):
@@ -902,6 +923,7 @@ class Application(ApplicationHandler):
             )
 
     def key_ev_repo_selection(self, key):
+        """Handle event on repository selection menu."""
         self.handle_standard_tab_behaviour(key)
         updateable = False
         keyurl = 'https://download.grommunio.com/RPM-GPG-KEY-grommunio'
@@ -1017,6 +1039,7 @@ class Application(ApplicationHandler):
             )
 
     def key_ev_timesyncd(self, key):
+        """Handle event on timesyncd menu."""
         self.handle_standard_tab_behaviour(key)
         success_msg = T_("NOTHING")
         if key.lower().endswith("enter"):
@@ -1059,6 +1082,7 @@ class Application(ApplicationHandler):
             )
 
     def key_ev_kbd_switch(self, key: str):
+        """Handle event on keyboard switch."""
         self.handle_standard_tab_behaviour(key)
         menu_id = self.handle_standard_menu_behaviour(
             self.keyboard_switch_body, key
@@ -1077,14 +1101,15 @@ class Application(ApplicationHandler):
             self.return_to()
 
     def handle_mouse_event(self, event: Any):
-        # event is a mouse event in the form ('mouse press or release', button,
-        # column, line)
+        """Handle mouse event while event is a mouse event in the
+        form ('mouse press or release', button, column, line)"""
         event: Tuple[str, float, int, int] = tuple(event)
         if event[0] == "mouse press" and event[1] == 1:
             # self.handle_event('mouseclick left enter')
             self.handle_event("my mouseclick left button")
 
     def return_to(self):
+        """Return to mainframe or mainmenu depending on situation and state."""
         if self.last_current_window in [_MAIN_MENU]:
             self.open_main_menu()
         else:
@@ -1118,6 +1143,7 @@ class Application(ApplicationHandler):
                 break
 
     def get_logging_formatter(self) -> str:
+        """Get logging formatter."""
         default = (
             self.config.get("logging", {})
             .get("formatters", {})
@@ -1129,6 +1155,7 @@ class Application(ApplicationHandler):
         )
 
     def get_log_unit_by_id(self, id) -> str:
+        """Get logging unit by id."""
         for i, k in enumerate(self.log_units.keys()):
             if id == i:
                 return self.log_units[k].get("source")[:-8]
@@ -1205,6 +1232,7 @@ class Application(ApplicationHandler):
         self._loop.start()
 
     def reboot_confirm(self):
+        """Confirm reboot."""
         msg = T_("Are you sure?\n")
         msg += T_("After pressing OK, ")
         msg += T_("the system will reboot.")
@@ -1215,6 +1243,7 @@ class Application(ApplicationHandler):
         )
 
     def shutdown_confirm(self):
+        """Confirm shutdown."""
         msg = T_("Are you sure?\n")
         msg += T_("After pressing OK, ")
         msg += T_("the system will shut down and power off.")
@@ -1233,6 +1262,7 @@ class Application(ApplicationHandler):
         self.open_change_system_pw_dialog()
 
     def open_change_system_pw_dialog(self):
+        """Open the change system password Dialog."""
         title = T_("System Password Change")
         msg = T_("Enter the new system password:")
         width = 60
@@ -1278,6 +1308,7 @@ class Application(ApplicationHandler):
         )
 
     def reset_system_passwd(self, new_pw: str) -> bool:
+        """Reset the system password."""
         if new_pw:
             if new_pw != "":
                 proc = subprocess.Popen(
@@ -1298,6 +1329,7 @@ class Application(ApplicationHandler):
         return False
 
     def prepare_password_dialog(self):
+        """Prepare the QuickNDirty password dialog."""
         self.password = Terminal(["passwd"])
         self.password_frame = LineBox(
             Pile(
@@ -1469,6 +1501,7 @@ class Application(ApplicationHandler):
         self._loop.widget = self._body
 
     def run_yast_module(self, modulename: str):
+        """Run yast module `modulename`."""
         self._loop.stop()
         self.screen.tty_signal_keys(*self.old_termios)
         print("\x1b[K")
@@ -1482,6 +1515,7 @@ class Application(ApplicationHandler):
         self._loop.start()
 
     def run_zypper(self, subcmd: str):
+        """Run zypper modul `subcmd`."""
         self._loop.stop()
         self.screen.tty_signal_keys(*self.old_termios)
         print("\x1b[K")
@@ -1493,6 +1527,7 @@ class Application(ApplicationHandler):
         self._loop.start()
 
     def restart_gui(self):
+        """Restart complete GUI to source language in again."""
         global T_
         langfile = '/etc/sysconfig/language'
         config = cui.parser.ConfigParser(infile=langfile)
@@ -1517,6 +1552,7 @@ class Application(ApplicationHandler):
             os.execve(sys.executable, [sys.executable] + sys.argv, env)
 
     def open_reset_aapi_pw(self):
+        """Open reset admin-API password."""
         title = T_("admin-web Password Change")
         msg = T_("Enter the new admin-web password:")
         width = 60
@@ -1562,6 +1598,7 @@ class Application(ApplicationHandler):
         )
 
     def reset_aapi_passwd(self, new_pw: str) -> bool:
+        """Reset admin-API password."""
         if new_pw:
             if new_pw != "":
                 exe = "grammm-admin"
@@ -1577,6 +1614,7 @@ class Application(ApplicationHandler):
         return False
 
     def open_timesyncd_conf(self):
+        """Open timesyncd configuration form."""
         self.reset_layout()
         self.print(T_("Opening timesyncd configuration"))
         self.current_window = _TIMESYNCD
@@ -1597,6 +1635,7 @@ class Application(ApplicationHandler):
         )
 
     def prepare_timesyncd_config(self):
+        """Prepare timesyncd configuration form."""
         ntp_server: List[str] = [
             "0.arch.pool.ntp.org",
             "1.arch.pool.ntp.org",
@@ -1641,6 +1680,7 @@ class Application(ApplicationHandler):
         )
 
     def open_repo_conf(self):
+        """Open repository configuration form."""
         self.reset_layout()
         self.print(T_("Opening repository selection"))
         self.current_window = _REPO_SELECTION
@@ -1661,6 +1701,7 @@ class Application(ApplicationHandler):
         )
 
     def prepare_repo_config(self):
+        """Prepare repository configuration form."""
         baseurl = 'https://download.grommunio.com/community/openSUSE_Leap_' \
                   '15.3/?ssl_verify=no'
         repofile = '/etc/zypp/repos.d/grommunio.repo'
@@ -1708,6 +1749,7 @@ class Application(ApplicationHandler):
         self.repo_selection_body = LineBox(Padding(Filler(Pile(body_content), TOP)))
 
     def open_setup_wizard(self):
+        """Open grommunio setup wizard."""
         self._loop.stop()
         self.screen.tty_signal_keys(*self.old_termios)
         if Path("/usr/sbin/grommunio-setup").exists():
@@ -1794,6 +1836,7 @@ class Application(ApplicationHandler):
         return ListBox(SimpleFocusListWalker(menu_items))
 
     def menu_to_frame(self, listbox: ListBox):
+        """Put menu(ListBox) into a Frame."""
         fopos: int = listbox.focus_position
         menu = Columns([
             AttrMap(listbox, "body"), AttrMap(ListBox(SimpleListWalker([
@@ -1876,6 +1919,7 @@ class Application(ApplicationHandler):
         )
 
     def change_colormode(self, mode: str):
+        """Change to color scheme `mode`."""
         p = util.get_palette(mode)
         self._current_colormode = mode
         colormode: str = (
@@ -1888,6 +1932,7 @@ class Application(ApplicationHandler):
         self._loop.screen.clear()
 
     def switch_next_colormode(self):
+        """Switch to next color scheme."""
         o = self._current_colormode
         n = util.get_next_palette_name(o)
         p = util.get_palette(n)
@@ -1900,6 +1945,7 @@ class Application(ApplicationHandler):
         self._current_colormode = show_next
 
     def switch_kbdlayout(self):
+        """Switch keyboard layout."""
         # Base proposal on CUI's last known state
         proposal = (
             "de-latin1-nodeadkeys" if self._current_kbdlayout == "us" else "us"
@@ -1907,6 +1953,7 @@ class Application(ApplicationHandler):
         self.set_kbd_layout(proposal)
 
     def set_kbd_layout(self, layout):
+        """Set and save selected keyboard layout."""
         # Do read the file again so newly added keys do not get lost
         file = "/etc/vconsole.conf"
         var = util.minishell_read(file)
@@ -1921,6 +1968,7 @@ class Application(ApplicationHandler):
         )
 
     def open_keyboard_selection_menu(self):
+        """Open keyboard selection menu form."""
         self.reset_layout()
         self.print(T_("Opening keyboard configuration"))
         self.last_current_window = self.current_window
@@ -1940,6 +1988,7 @@ class Application(ApplicationHandler):
         )
 
     def prepare_kbd_config(self):
+        """Prepare keyboard config form."""
         def sub_press(button, is_set=True, **kwargs):
             if is_set:
                 layout = button.label
@@ -2173,10 +2222,12 @@ class Application(ApplicationHandler):
         self.current_bottom_info = string
 
     def create_progress_bar(self, max_progress=100):
+        """Create progressbar"""
         self.progressbar = urwid.ProgressBar('PB.normal', 'PB.complete', 0, max_progress, 'PB.satt')
         return self.progressbar
 
     def draw_progress(self, progress, max_progress=100):
+        """Draw progress at progressbar"""
         # completion = float(float(progress)/float(max_progress))
         # self.progressbar.set_completion(completion)
         time.sleep(0.1)
@@ -2328,6 +2379,7 @@ class Application(ApplicationHandler):
         )
 
     def create_footer(self, view_ok: bool = True, view_cancel: bool = False):
+        """Create and return footer."""
         cols = [("weight", 1, GText(""))]
         if view_ok:
             cols += [
@@ -2580,6 +2632,7 @@ class Application(ApplicationHandler):
                 self._loop.draw_screen()
 
     def check_config_write(self, di) -> bool:
+        """Checks and writes config."""
         title: str = T_("Write succeeded")
         height: int = 9
         msg: List[str] = [T_("The configuration was")]
@@ -2600,7 +2653,8 @@ class Application(ApplicationHandler):
         return rv
 
 
-def create_application():
+def create_application() -> ApplicationHandler:
+    """Creates and returns the main application"""
     global _PRODUCTIVE
     set_encoding("utf-8")
     _PRODUCTIVE = True
@@ -2625,6 +2679,7 @@ def create_application():
 
 
 def mainapp():
+    """Starts main application."""
     application = create_application()
     # application.set_debug(True)
     # application.quiet = False
