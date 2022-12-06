@@ -3,6 +3,6 @@
 import cui
 
 if __name__ == "__main__":
-    app = cui.create_application()
+    app = cui.create_application()[0]
     app.start()
     print("\n\x1b[J")

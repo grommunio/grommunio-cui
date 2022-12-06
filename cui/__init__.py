@@ -63,7 +63,7 @@ try:
 except ImportError:
     import trollius as asyncio
 
-_PRODUCTIVE: bool = True
+PRODUCTION: bool = True
 loop: AbstractEventLoop
 _MAIN: str = "MAIN"
 _MAIN_MENU: str = "MAIN-MENU"
@@ -638,7 +638,7 @@ class Application(ApplicationHandler):
                 self.current_window = _LOGIN
             else:
                 self.open_main_menu()
-        elif key == "l" and not _PRODUCTIVE:
+        elif key == "l" and not PRODUCTION:
             self.open_main_menu()
         elif key == "tab":
             self.vsplitbox.focus_position = (
@@ -2364,17 +2364,16 @@ class Application(ApplicationHandler):
                 self._loop.draw_screen()
 
 
-def create_application() -> Union[Application, None]:
+def create_application() -> Tuple[Union[Application, None], bool]:
     """Creates and returns the main application"""
-    global _PRODUCTIVE
     set_encoding("utf-8")
-    _PRODUCTIVE = True
+    production = True
     if "--help" in sys.argv:
         print(T_("Usage: {%s} [OPTIONS]") % sys.argv[0])
         print(T_("\tOPTIONS:"))
         print(T_("\t\t--help: Show this message."))
         print(T_("\t\t-v/--debug: Verbose/Debugging mode."))
-        return None
+        return None, PRODUCTION
     app = Application()
     if "-v" in sys.argv:
         app.set_debug(True)
@@ -2384,17 +2383,18 @@ def create_application() -> Union[Application, None]:
     app.quiet = True
 
     if "--hidden-login" in sys.argv:
-        _PRODUCTIVE = False
+        production = False
 
-    return app
+    return app, production
 
 
 def main_app():
     """Starts main application."""
-    application = create_application()
+    # application, PRODUCTION = create_application()
+    application = create_application()[0]
     # application.set_debug(True)
     # application.quiet = False
-    # # _PRODUCTIVE = False
+    # # PRODUCTION = False
     application.start()
     print("\n\x1b[J")
 
