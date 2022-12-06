@@ -1669,12 +1669,6 @@ class Application(ApplicationHandler):
                 vblank, GEdit(T_('Password: '), edit_text=default_pw), vblank
             ])
         ]
-        body_content[0]._selectable = False
-        body_content[1]._selectable = True
-        body_content[2]._selectable = False
-        body_content[3]._selectable = True
-        body_content[4]._selectable = True
-        body_content[5]._selectable = True
         self.repo_selection_body = LineBox(Padding(Filler(Pile(body_content), TOP)))
 
     def _open_setup_wizard(self):
@@ -1772,7 +1766,6 @@ class Application(ApplicationHandler):
                 listbox.body[fopos].original_widget.get_description()
             ])), "reverse",),
         ])
-        menu[1]._selectable = False
         return Frame(menu, header=self.header, footer=self.footer)
 
     def _switch_next_colormode(self):
@@ -2149,8 +2142,6 @@ class Application(ApplicationHandler):
                 )
             ]
         cols += [("weight", 1, GText(""))]
-        for col in cols[1:-1]:
-            col[2]._selectable = True
         footer = AttrMap(Columns(cols), "buttonbar")
         return footer
 
@@ -2229,7 +2220,7 @@ class Application(ApplicationHandler):
             non_sels = 0
             sels = 0
             for widget in widget_list:
-                if widget._selectable:
+                if widget.selectable():
                     sels = sels + 1
                 else:
                     non_sels = non_sels + 1
@@ -2264,7 +2255,7 @@ class Application(ApplicationHandler):
                     move = -1
                 new_focus = part.base_widget.focus_position + move
                 while 0 <= new_focus < len(part.base_widget.widget_list):
-                    if part.base_widget.widget_list[new_focus]._selectable:
+                    if part.base_widget.widget_list[new_focus].selectable():
                         part.base_widget.focus_position = new_focus
                         break
                     else:

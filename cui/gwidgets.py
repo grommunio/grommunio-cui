@@ -6,6 +6,8 @@ import urwid
 
 
 class GText(urwid.WidgetWrap):
+    _selectable = False
+
     def __init__(
         self,
         markup,
@@ -40,6 +42,9 @@ class GText(urwid.WidgetWrap):
 
     def __len__(self):
         return len(self._t.text) + self._p.left + self._p.right
+
+    def selectable(self):
+        return self._selectable
 
 
 class GEdit(urwid.WidgetWrap):
@@ -147,3 +152,6 @@ class GEdit(urwid.WidgetWrap):
     def edit_text(self, text):
         # self._wrapped_widget.base_widget.base_widget.edit_text = text
         self.edit_widget.edit_text = text
+
+    def selectable(self):
+        return self._selectable
