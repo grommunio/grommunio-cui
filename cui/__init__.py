@@ -1112,7 +1112,7 @@ class Application(ApplicationHandler):
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
-            out, err = process.communicate()
+            out = process.communicate()[0]
             if type(out) is bytes:
                 out = out.decode()
         if out == "":
@@ -1278,10 +1278,10 @@ class Application(ApplicationHandler):
                 )
                 proc.stdin.write(f"{new_pw}\n{new_pw}\n".encode())
                 proc.stdin.flush()
-                for i in range(0, 10):
-                    if proc.poll() is not None:
-                        break
+                i = 0
+                while i < 10 and proc.poll() is None:
                     time.sleep(0.1)
+                    i += 1
                 proc.terminate()
                 proc.kill()
                 return proc.returncode == 0
@@ -1338,7 +1338,7 @@ class Application(ApplicationHandler):
         pre: List[str] = []
         post: List[str] = []
         cur: str = f" {unitname[:-8]} "
-        for i, uname in enumerate(self.log_units.keys()):
+        for uname in self.log_units.keys():
             src = self.log_units[uname].get("source")
             if src == unitname:
                 found = True
@@ -1456,11 +1456,9 @@ class Application(ApplicationHandler):
         global T_
         langfile = '/etc/sysconfig/language'
         config = cui.parser.ConfigParser(infile=langfile)
-        root_uses_lang = config.get('ROOT_USES_LANG', None)
         config['ROOT_USES_LANG'] = '"yes"'
         config.write()
         # assert os.getenv('PPID') == 1, 'Gugg mal rein da!'
-        height = 12
         locale_conf = util.minishell_read('/etc/locale.conf')
         # T_ = util.init_localization()
         # mainapp()
@@ -2236,6 +2234,7 @@ class Application(ApplicationHandler):
             try:
                 last = len(part.base_widget.widget_list) - 1
             except BaseException as exc:
+                self.print(f"{exc}")
                 last = 0
             current = part.base_widget.focus_position
             # Reduce last and current by non selectables
