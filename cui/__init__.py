@@ -155,7 +155,7 @@ class Application(ApplicationHandler):
         self.old_termios = self.screen.tty_signal_keys()
         self.blank_termios = ["undefined" for _ in range(0, 5)]
         self.screen.tty_signal_keys(*self.blank_termios)
-        self.prepare_mainscreen()
+        self._prepare_mainscreen()
 
         # Loop
         self._loop = MainLoop(
@@ -165,7 +165,7 @@ class Application(ApplicationHandler):
             screen=self.screen,
             handle_mouse=False,
         )
-        self._loop.set_alarm_in(1, self.update_clock)
+        self._loop.set_alarm_in(1, self._update_clock)
 
         # Login Dialog
         self.login_header = AttrMap(
@@ -183,7 +183,7 @@ class Application(ApplicationHandler):
                 self.pass_edit,
             ]
         )
-        login_button = GBoxButton(T_("Login"), self.check_login)
+        login_button = GBoxButton(T_("Login"), self._check_login)
         connect_signal(
             login_button,
             "click",
@@ -194,7 +194,7 @@ class Application(ApplicationHandler):
         )
 
         # Common OK Button
-        self.ok_button = GBoxButton(T_("OK"), self.press_button)
+        self.ok_button = GBoxButton(T_("OK"), self._press_button)
         connect_signal(
             self.ok_button,
             "click",
@@ -223,7 +223,7 @@ class Application(ApplicationHandler):
         )
 
         # Common Cancel Button
-        self.cancel_button = GBoxButton(T_("Cancel"), self.press_button)
+        self.cancel_button = GBoxButton(T_("Cancel"), self._press_button)
         connect_signal(
             self.cancel_button,
             "click",
@@ -235,7 +235,7 @@ class Application(ApplicationHandler):
         )
 
         # Common Close Button
-        self.close_button = GBoxButton(T_("Close"), self.press_button)
+        self.close_button = GBoxButton(T_("Close"), self._press_button)
         connect_signal(
             self.close_button,
             "click",
@@ -264,7 +264,7 @@ class Application(ApplicationHandler):
         )
 
         # Common Add Button
-        self.add_button = GBoxButton(T_("Add"), self.press_button)
+        self.add_button = GBoxButton(T_("Add"), self._press_button)
         connect_signal(
             self.add_button,
             "click",
@@ -276,7 +276,7 @@ class Application(ApplicationHandler):
         )
 
         # Common Edit Button
-        self.edit_button = GBoxButton(T_("Edit"), self.press_button)
+        self.edit_button = GBoxButton(T_("Edit"), self._press_button)
         connect_signal(
             self.edit_button,
             "click",
@@ -288,7 +288,7 @@ class Application(ApplicationHandler):
         )
 
         # Common Details Button
-        self.details_button = GBoxButton(T_("Details"), self.press_button)
+        self.details_button = GBoxButton(T_("Details"), self._press_button)
         connect_signal(
             self.details_button,
             "click",
@@ -300,7 +300,7 @@ class Application(ApplicationHandler):
         )
 
         # Common Toggle Button
-        self.toggle_button = GBoxButton(T_("Space to toggle"), self.press_button)
+        self.toggle_button = GBoxButton(T_("Space to toggle"), self._press_button)
         self.toggle_button._selectable = False
         self.toggle_button = (len(self.toggle_button.label) + 6, self.toggle_button)
         self.toggle_button_footer = GridFlow(
@@ -308,7 +308,7 @@ class Application(ApplicationHandler):
         )
 
         # Common Apply Button
-        self.apply_button = GBoxButton(T_("Apply"), self.press_button)
+        self.apply_button = GBoxButton(T_("Apply"), self._press_button)
         connect_signal(
             self.apply_button,
             "click",
@@ -320,7 +320,7 @@ class Application(ApplicationHandler):
         )
 
         # Common Save Button
-        self.save_button = GBoxButton(T_("Save"), self.press_button)
+        self.save_button = GBoxButton(T_("Save"), self._press_button)
         connect_signal(
             self.save_button,
             "click",
@@ -331,10 +331,10 @@ class Application(ApplicationHandler):
             [self.save_button[1]], 10, 1, 1, "center"
         )
 
-        self.refresh_main_menu()
+        self._refresh_main_menu()
 
         # Password Dialog
-        self.prepare_password_dialog()
+        self._prepare_password_dialog()
 
         # Read in logging units
         self._load_journal_units()
@@ -344,15 +344,15 @@ class Application(ApplicationHandler):
             T_("If this is not that what you expected to see, you probably have insufficient "
                "permissions."),
         ]
-        self.prepare_log_viewer("NetworkManager", self.log_line_count)
+        self._prepare_log_viewer("NetworkManager", self.log_line_count)
 
-        self.prepare_timesyncd_config()
+        self._prepare_timesyncd_config()
 
         # some settings
         MultiMenuItem.application = self
         GButton.application = self
 
-    def refresh_main_menu(self):
+    def _refresh_main_menu(self):
         """Refresh main menu."""
         # The common menu description column
         self.menu_description = Pile(
@@ -456,18 +456,18 @@ class Application(ApplicationHandler):
         }
         if os.getppid() != 1:
             items["Exit"] = Pile([GText(T_("Exit CUI"), CENTER)])
-        self.main_menu_list = self.prepare_menu_list(items)
+        self.main_menu_list = self._prepare_menu_list(items)
         if self.current_window == _MAIN_MENU and self.current_menu_focus > 0:
             off: int = 1
             if self.last_current_window == _MAIN_MENU:
                 off = 1
             self.main_menu_list.focus_position = self.current_menu_focus - off
-        self.main_menu = self.menu_to_frame(self.main_menu_list)
+        self.main_menu = self._menu_to_frame(self.main_menu_list)
         if self.current_window == _MAIN_MENU:
             self._loop.widget = self.main_menu
             self._body = self.main_menu
 
-    def prepare_mainscreen(self):
+    def _prepare_mainscreen(self):
         """Prepare main screen."""
         colormode: str = self._current_colormode
         self.text_header = [T_("grommunio console user interface")]
@@ -529,7 +529,7 @@ class Application(ApplicationHandler):
             align=CENTER,
             wrap=SPACE,
         )
-        self.refresh_header(colormode, self._current_kbdlayout, "")
+        self._refresh_header(colormode, self._current_kbdlayout, "")
         self.vsplitbox = Pile(
             [
                 ("weight", 50, AttrMap(self.main_top, "body")),
@@ -546,14 +546,14 @@ class Application(ApplicationHandler):
         self._body = self.mainframe
         # self.print(T_("Idle"))
 
-    def refresh_header(self, colormode, kbd, auth_options):
+    def _refresh_header(self, colormode, kbd, auth_options):
         """Refresh header"""
-        self.refresh_head_text(colormode, kbd, auth_options)
+        self._refresh_head_text(colormode, kbd, auth_options)
         self.header = AttrMap(Padding(self.tb_header, align=CENTER), "header")
         if getattr(self, "footer", None):
-            self.refresh_main_menu()
+            self._refresh_main_menu()
 
-    def refresh_head_text(self, colormode, kbd, authorized_options):
+    def _refresh_head_text(self, colormode, kbd, authorized_options):
         """Refresh head text."""
         self.tb_header.set_text(
             "".join(self.text_header).format(
@@ -575,50 +575,50 @@ class Application(ApplicationHandler):
         """
         self.current_event = event
         if type(event) == str:
-            self.handle_key_event(event)
+            self._handle_key_event(event)
         elif type(event) == tuple:
-            self.handle_mouse_event(event)
+            self._handle_mouse_event(event)
         self.print(self.current_bottom_info)
 
-    def handle_key_event(self, event: Any):
+    def _handle_key_event(self, event: Any):
         """Handle keyboard event."""
         # event was a key stroke
         key: str = str(event)
         if self.log_finished and self.current_window != _LOG_VIEWER:
             self.log_finished = False
         if self.current_window == _MAIN:
-            self.key_ev_main(key)
+            self._key_ev_main(key)
         elif self.current_window == _MESSAGE_BOX:
-            self.key_ev_mbox(key)
+            self._key_ev_mbox(key)
         elif self.current_window == _INPUT_BOX:
-            self.key_ev_ibox(key)
+            self._key_ev_ibox(key)
         elif self.current_window == _TERMINAL:
-            self.key_ev_term(key)
+            self._key_ev_term(key)
         elif self.current_window == _PASSWORD:
-            self.key_ev_pass(key)
+            self._key_ev_pass(key)
         elif self.current_window == _LOGIN:
-            self.key_ev_login(key)
+            self._key_ev_login(key)
         elif self.current_window == _REBOOT:
-            self.key_ev_reboot(key)
+            self._key_ev_reboot(key)
         elif self.current_window == _SHUTDOWN:
-            self.key_ev_shutdown(key)
+            self._key_ev_shutdown(key)
         elif self.current_window == _MAIN_MENU:
-            self.key_ev_mainmenu(key)
+            self._key_ev_mainmenu(key)
         elif self.current_window == _LOG_VIEWER:
-            self.key_ev_logview(key)
+            self._key_ev_logview(key)
         elif self.current_window == _UNSUPPORTED:
-            self.key_ev_unsupp(key)
+            self._key_ev_unsupp(key)
         elif self.current_window == _ADMIN_WEB_PW:
-            self.key_ev_aapi(key)
+            self._key_ev_aapi(key)
         elif self.current_window == _TIMESYNCD:
-            self.key_ev_timesyncd(key)
+            self._key_ev_timesyncd(key)
         elif self.current_window == _REPO_SELECTION:
-            self.key_ev_repo_selection(key)
+            self._key_ev_repo_selection(key)
         elif self.current_window == _KEYBOARD_SWITCH:
-            self.key_ev_kbd_switch(key)
-        self.key_ev_anytime(key)
+            self._key_ev_kbd_switch(key)
+        self._key_ev_anytime(key)
 
-    def key_ev_main(self, key):
+    def _key_ev_main(self, key):
         """Handle event on mainframe."""
         if key == "f2":
             if util.check_if_password_is_set(getuser()):
@@ -637,15 +637,15 @@ class Application(ApplicationHandler):
                 )
                 self.current_window = _LOGIN
             else:
-                self.open_main_menu()
+                self._open_main_menu()
         elif key == "l" and not PRODUCTION:
-            self.open_main_menu()
+            self._open_main_menu()
         elif key == "tab":
             self.vsplitbox.focus_position = (
                 0 if self.vsplitbox.focus_position == 1 else 1
             )
 
-    def key_ev_mbox(self, key):
+    def _key_ev_mbox(self, key):
         """Handle event on message box."""
         if key.endswith("enter") or key == "esc":
             if self.current_window != self.message_box_caller \
@@ -654,7 +654,7 @@ class Application(ApplicationHandler):
                 self._body = self._message_box_caller_body
             if self.old_layout:
                 self.layout = self.old_layout
-            self.reset_layout()
+            self._reset_layout()
             if self.current_window not in [
                 _LOGIN, _MAIN_MENU, _TIMESYNCD, _REPO_SELECTION
             ]:
@@ -664,9 +664,9 @@ class Application(ApplicationHandler):
                 else:
                     self.key_counter[key] = 0
 
-    def key_ev_ibox(self, key):
+    def _key_ev_ibox(self, key):
         """Handle event on input box."""
-        self.handle_standard_tab_behaviour(key)
+        self._handle_standard_tab_behaviour(key)
         if key.endswith("enter") or key == "esc":
             if key.lower().endswith("enter"):
                 self.last_input_box_value = (
@@ -680,20 +680,20 @@ class Application(ApplicationHandler):
             self._body = self._input_box_caller_body
             if self.old_layout:
                 self.layout = self.old_layout
-            self.reset_layout()
+            self._reset_layout()
             self.handle_event(key)
 
-    def key_ev_term(self, key):
+    def _key_ev_term(self, key):
         """Handle event on terminal."""
-        self.handle_standard_tab_behaviour(key)
+        self._handle_standard_tab_behaviour(key)
         if key == "f10":
             raise ExitMainLoop()
         elif key.endswith("enter") or key == "esc":
-            self.open_main_menu()
+            self._open_main_menu()
 
-    def key_ev_pass(self, key):
+    def _key_ev_pass(self, key):
         """Handle event on system password reset menu."""
-        self.handle_standard_tab_behaviour(key)
+        self._handle_standard_tab_behaviour(key)
         success_msg = T_("NOTHING")
         if key.lower().endswith("enter"):
             if key.lower().startswith("hidden"):
@@ -709,19 +709,19 @@ class Application(ApplicationHandler):
                     4
                 ].edit_text
                 if pw1 == pw2:
-                    res = self.reset_system_passwd(pw1)
+                    res = self._reset_system_passwd(pw1)
                 else:
                     res = 2
                     success_msg = T_("failed due to mismatching password values")
                 if not res:
                     success_msg = T_("failed")
-                self.open_main_menu()
+                self._open_main_menu()
             else:
                 success_msg = T_("aborted")
-                self.open_main_menu()
+                self._open_main_menu()
         elif key.lower().find("cancel") >= 0 or key.lower() in ["esc"]:
             success_msg = T_("aborted")
-            self.open_main_menu()
+            self._open_main_menu()
         if key.lower().endswith("enter") or key in ["esc", "enter"]:
             self.current_window = self.input_box_caller
             self.message_box(
@@ -730,15 +730,15 @@ class Application(ApplicationHandler):
                 height=10,
             )
 
-    def key_ev_login(self, key):
+    def _key_ev_login(self, key):
         """Handle event on login menu."""
-        self.handle_standard_tab_behaviour(key)
+        self._handle_standard_tab_behaviour(key)
         if key.endswith("enter"):
-            self.check_login()
+            self._check_login()
         elif key == "esc":
-            self.open_mainframe()
+            self._open_mainframe()
 
-    def key_ev_reboot(self, key):
+    def _key_ev_reboot(self, key):
         """Handle event on power off menu."""
         # Restore cursor etc. before going off.
         if key.endswith("enter") and self.last_pressed_button.lower().endswith(
@@ -751,7 +751,7 @@ class Application(ApplicationHandler):
         else:
             self.current_window = _MAIN_MENU
 
-    def key_ev_shutdown(self, key):
+    def _key_ev_shutdown(self, key):
         """Handle event on shutdown menu."""
         # Restore cursor etc. before going off.
         if key.endswith("enter") and self.last_pressed_button.lower().endswith(
@@ -764,52 +764,52 @@ class Application(ApplicationHandler):
         else:
             self.current_window = _MAIN_MENU
 
-    def key_ev_mainmenu(self, key):
+    def _key_ev_mainmenu(self, key):
         """Handle event on main menu menu."""
-        menu_selected: int = self.handle_standard_menu_behaviour(
+        menu_selected: int = self._handle_standard_menu_behaviour(
             self.main_menu_list, key, self.main_menu.base_widget.body[1]
         )
         if key.endswith("enter") or key in range(ord("1"), ord("9") + 1):
             if menu_selected == 1:
                 pre = cui.parser.ConfigParser(infile='/etc/locale.conf')
-                self.run_yast_module("language")
+                self._run_yast_module("language")
                 post = cui.parser.ConfigParser(infile='/etc/locale.conf')
                 if pre != post:
                     self.restart_gui()
             elif menu_selected == 2:
-                self.open_change_password()
+                self._open_change_password()
             elif menu_selected == 3:
-                self.run_yast_module("lan")
+                self._run_yast_module("lan")
             elif menu_selected == 4:
-                self.run_yast_module("timezone")
+                self._run_yast_module("timezone")
             elif menu_selected == 5:
-                self.open_timesyncd_conf()
+                self._open_timesyncd_conf()
             elif menu_selected == 6:
-                self.open_repo_conf()
+                self._open_repo_conf()
             elif menu_selected == 7:
-                self.run_zypper("up")
+                self._run_zypper("up")
             elif menu_selected == 8:
-                self.open_setup_wizard()
+                self._open_setup_wizard()
             elif menu_selected == 9:
-                self.open_reset_aapi_pw()
+                self._open_reset_aapi_pw()
             elif menu_selected == 10:
-                self.open_terminal()
+                self._open_terminal()
             elif menu_selected == 11:
-                self.reboot_confirm()
+                self._reboot_confirm()
             elif menu_selected == 12:
-                self.shutdown_confirm()
+                self._shutdown_confirm()
             elif menu_selected == 13:
                 # Exit, not always visible
                 raise ExitMainLoop()
         elif key == "esc":
-            self.open_mainframe()
+            self._open_mainframe()
 
-    def key_ev_logview(self, key):
+    def _key_ev_logview(self, key):
         """Handle event on log viewer menu."""
         if key in ["ctrl f1", "H", "h", "L", "l", "esc"]:
             self.current_window = self.log_file_caller
             self._body = self._log_file_caller_body
-            self.reset_layout()
+            self._reset_layout()
             self.log_finished = True
         elif key in ["left", "right", "+", "-"]:
             if key == "-":
@@ -828,8 +828,8 @@ class Application(ApplicationHandler):
                 self.current_log_unit = 0
             elif self.current_log_unit >= len(self.log_units):
                 self.current_log_unit = len(self.log_units) - 1
-            self.open_log_viewer(
-                self.get_log_unit_by_id(self.current_log_unit),
+            self._open_log_viewer(
+                self._get_log_unit_by_id(self.current_log_unit),
                 self.log_line_count,
             )
         elif (
@@ -839,40 +839,40 @@ class Application(ApplicationHandler):
             self._hidden_input += key
             self._hidden_pos += 1
             if self._hidden_input == _UNSUPPORTED.lower():
-                self.open_log_viewer("syslog")
+                self._open_log_viewer("syslog")
         else:
             self._hidden_input = ""
             self._hidden_pos = 0
 
-    def key_ev_unsupp(self, key):
+    def _key_ev_unsupp(self, key):
         """Handle event on unsupported."""
         if key in ["ctrl d", "esc", "ctrl f1", "H", "h", "l", "L"]:
             self.current_window = self.log_file_caller
             self._body = self._log_file_caller_body
             self.log_finished = True
-            self.reset_layout()
+            self._reset_layout()
 
-    def key_ev_anytime(self, key):
+    def _key_ev_anytime(self, key):
         """Handle event at anytime."""
         if key in ["f10", "Q"]:
             raise ExitMainLoop()
         elif key == "f4" and len(self.authorized_options) > 0:
-            self.open_main_menu()
+            self._open_main_menu()
         elif key == "f1" or key == "c":
-            self.switch_next_colormode()
+            self._switch_next_colormode()
         elif key == "f5":
-            self.open_keyboard_selection_menu()
+            self._open_keyboard_selection_menu()
         elif (
             key in ["ctrl f1", "H", "h", "L", "l"]
             and self.current_window != _LOG_VIEWER
             and self.current_window != _UNSUPPORTED
             and not self.log_finished
         ):
-            self.open_log_viewer("gromox-http", self.log_line_count)
+            self._open_log_viewer("gromox-http", self.log_line_count)
 
-    def key_ev_aapi(self, key):
+    def _key_ev_aapi(self, key):
         """Handle event on admin api password reset menu."""
-        self.handle_standard_tab_behaviour(key)
+        self._handle_standard_tab_behaviour(key)
         success_msg = T_("NOTHING")
         if key.lower().endswith("enter"):
             if key.lower().startswith("hidden"):
@@ -888,19 +888,19 @@ class Application(ApplicationHandler):
                     4
                 ].edit_text
                 if pw1 == pw2:
-                    res = self.reset_aapi_passwd(pw1)
+                    res = self._reset_aapi_passwd(pw1)
                 else:
                     res = 2
                     success_msg = T_("failed due to mismatching password values")
                 if not res:
                     success_msg = T_("failed")
-                self.open_main_menu()
+                self._open_main_menu()
             else:
                 success_msg = T_("aborted")
-                self.open_main_menu()
+                self._open_main_menu()
         elif key.lower().find("cancel") >= 0 or key.lower() in ["esc"]:
             success_msg = T_("aborted")
-            self.open_main_menu()
+            self._open_main_menu()
         if key.lower().endswith("enter") or key in ["esc", "enter"]:
             self.current_window = self.input_box_caller
             self.message_box(
@@ -909,9 +909,9 @@ class Application(ApplicationHandler):
                 height=10,
             )
 
-    def key_ev_repo_selection(self, key):
+    def _key_ev_repo_selection(self, key):
         """Handle event on repository selection menu."""
-        self.handle_standard_tab_behaviour(key)
+        self._handle_standard_tab_behaviour(key)
         updateable = False
         keyurl = 'https://download.grommunio.com/RPM-GPG-KEY-grommunio'
         keyfile = '/tmp/RPM-GPG-KEY-grommunio'
@@ -924,7 +924,7 @@ class Application(ApplicationHandler):
             config['grommunio']['auorefresh'] = 1
         height = 10
         if key.lower().endswith("enter"):
-            self.open_main_menu()
+            self._open_main_menu()
             if key.lower().startswith("hidden"):
                 button_type = T_(key.split(" ")[1]).lower()
             else:
@@ -976,34 +976,34 @@ class Application(ApplicationHandler):
                         header = GText(T_("One moment, please ..."))
                         footer = GText(T_('Fetching GPG-KEY file and refreshing '
                                           'repositories. This may take a while ...'))
-                        self.progressbar = self.create_progress_bar()
+                        self.progressbar = self._create_progress_bar()
                         pad = urwid.Padding(self.progressbar)  # do not use pg! use self.progressbar.
                         fil = urwid.Filler(pad)
                         linebox = urwid.LineBox(fil)
                         self.dialog(linebox, header, footer)
-                        self.draw_progress(20)
+                        self._draw_progress(20)
                         res: Response = requests.get(keyurl)
                         got_keyfile: bool = False
                         if res.status_code == 200:
-                            self.draw_progress(30)
+                            self._draw_progress(30)
                             tmp = Path(keyfile)
                             with tmp.open('w') as file:
                                 file.write(res.content.decode())
-                            self.draw_progress(40)
+                            self._draw_progress(40)
                             ret_code = subprocess.Popen(
                                 ["rpm", "--import", keyfile],
                                 stderr=subprocess.DEVNULL,
                                 stdout=subprocess.DEVNULL,
                             )
                             if ret_code.wait() == 0:
-                                self.draw_progress(60)
+                                self._draw_progress(60)
                                 ret_code = subprocess.Popen(
                                     ["zypper", "--non-interactive", "refresh"],
                                     stderr=subprocess.DEVNULL,
                                     stdout=subprocess.DEVNULL,
                                 )
                                 if ret_code.wait() == 0:
-                                    self.draw_progress(100)
+                                    self._draw_progress(100)
                                     got_keyfile = True
                         if got_keyfile:
                             self.message_box(
@@ -1019,15 +1019,15 @@ class Application(ApplicationHandler):
                                 height=height+1
                             )
         elif key == 'esc':
-            self.open_main_menu()
+            self._open_main_menu()
             self.message_box(
                 T_('Software repository selection has been canceled.'),
                 height=height
             )
 
-    def key_ev_timesyncd(self, key):
+    def _key_ev_timesyncd(self, key):
         """Handle event on timesyncd menu."""
-        self.handle_standard_tab_behaviour(key)
+        self._handle_standard_tab_behaviour(key)
         success_msg = T_("NOTHING")
         if key.lower().endswith("enter"):
             if key.lower().startswith("hidden"):
@@ -1054,13 +1054,13 @@ class Application(ApplicationHandler):
                 success_msg = T_("was successful")
                 if not res:
                     success_msg = T_("failed")
-                self.open_main_menu()
+                self._open_main_menu()
             else:
                 success_msg = T_("aborted")
-                self.open_main_menu()
+                self._open_main_menu()
         elif key.lower().find("cancel") >= 0 or key.lower() in ["esc"]:
             success_msg = T_("aborted")
-            self.open_main_menu()
+            self._open_main_menu()
         if key.lower().endswith("enter") or key in ["esc", "enter"]:
             self.message_box(
                 T_(f"Timesyncd configuration change {success_msg}!"),
@@ -1068,10 +1068,10 @@ class Application(ApplicationHandler):
                 height=10,
             )
 
-    def key_ev_kbd_switch(self, key: str):
+    def _key_ev_kbd_switch(self, key: str):
         """Handle event on keyboard switch."""
-        self.handle_standard_tab_behaviour(key)
-        menu_id = self.handle_standard_menu_behaviour(
+        self._handle_standard_tab_behaviour(key)
+        menu_id = self._handle_standard_menu_behaviour(
             self.keyboard_switch_body, key
         )
         stay = False
@@ -1079,15 +1079,15 @@ class Application(ApplicationHandler):
             key.lower().endswith("enter") and key.lower().startswith("hidden")
         ) or key.lower() in ["space"]:
             kbd = self.keyboard_content[menu_id - 1]
-            self.set_kbd_layout(kbd)
+            self._set_kbd_layout(kbd)
         elif key.lower() == "esc":
             print()
         else:
             stay = True
         if not stay:
-            self.return_to()
+            self._return_to()
 
-    def handle_mouse_event(self, event: Any):
+    def _handle_mouse_event(self, event: Any):
         """Handle mouse event while event is a mouse event in the
         form ('mouse press or release', button, column, line)"""
         event: Tuple[str, float, int, int] = tuple(event)
@@ -1095,12 +1095,12 @@ class Application(ApplicationHandler):
             # self.handle_event('mouseclick left enter')
             self.handle_event("my mouseclick left button")
 
-    def return_to(self):
+    def _return_to(self):
         """Return to mainframe or mainmenu depending on situation and state."""
         if self.last_current_window in [_MAIN_MENU]:
-            self.open_main_menu()
+            self._open_main_menu()
         else:
-            self.open_mainframe()
+            self._open_mainframe()
 
     def _load_journal_units(self):
         exe = "/usr/sbin/grommunio-admin"
@@ -1129,7 +1129,7 @@ class Application(ApplicationHandler):
                 self.current_log_unit = i
                 break
 
-    def get_logging_formatter(self) -> str:
+    def _get_logging_formatter(self) -> str:
         """Get logging formatter."""
         default = (
             self.config.get("logging", {})
@@ -1141,7 +1141,7 @@ class Application(ApplicationHandler):
             '[%(asctime)s] [%(levelname)s] (%(module)s): "%(message)s"',
         )
 
-    def get_log_unit_by_id(self, idx) -> str:
+    def _get_log_unit_by_id(self, idx) -> str:
         """Get logging unit by idx."""
         for i, k in enumerate(self.log_units.keys()):
             if idx == i:
@@ -1172,7 +1172,7 @@ class Application(ApplicationHandler):
         """
         self.print(T_("Creator (%s) clicked %r." % creator, option))
 
-    def open_terminal(self):
+    def _open_terminal(self):
         """
         Jump to a shell prompt
         """
@@ -1190,7 +1190,7 @@ class Application(ApplicationHandler):
         self.screen.tty_signal_keys(*self.blank_termios)
         self._loop.start()
 
-    def reboot_confirm(self):
+    def _reboot_confirm(self):
         """Confirm reboot."""
         msg = T_("Are you sure?\n")
         msg += T_("After pressing OK, ")
@@ -1201,7 +1201,7 @@ class Application(ApplicationHandler):
             msg, title, width=80, height=10, view_ok=True, view_cancel=True
         )
 
-    def shutdown_confirm(self):
+    def _shutdown_confirm(self):
         """Confirm shutdown."""
         msg = T_("Are you sure?\n")
         msg += T_("After pressing OK, ")
@@ -1212,15 +1212,15 @@ class Application(ApplicationHandler):
             msg, title, width=80, height=10, view_ok=True, view_cancel=True
         )
 
-    def open_change_password(self):
+    def _open_change_password(self):
         """
         Opens password changing dialog.
         """
-        self.reset_layout()
+        self._reset_layout()
         self.print(T_("Changing system password"))
-        self.open_change_system_pw_dialog()
+        self._open_change_system_pw_dialog()
 
-    def open_change_system_pw_dialog(self):
+    def _open_change_system_pw_dialog(self):
         """Open the change system password Dialog."""
         title = T_("System Password Change")
         msg = T_("Enter the new system password:")
@@ -1251,7 +1251,7 @@ class Application(ApplicationHandler):
                 )
             )
         )
-        footer = self.create_footer(view_ok, view_cancel)
+        footer = self._create_footer(view_ok, view_cancel)
 
         if title is None:
             title = "Input expected"
@@ -1266,7 +1266,7 @@ class Application(ApplicationHandler):
             height=height,
         )
 
-    def reset_system_passwd(self, new_pw: str) -> bool:
+    def _reset_system_passwd(self, new_pw: str) -> bool:
         """Reset the system password."""
         if new_pw:
             if new_pw != "":
@@ -1287,7 +1287,7 @@ class Application(ApplicationHandler):
                 return proc.returncode == 0
         return False
 
-    def prepare_password_dialog(self):
+    def _prepare_password_dialog(self):
         """Prepare the QuickNDirty password dialog."""
         self.password = Terminal(["passwd"])
         self.password_frame = LineBox(
@@ -1298,7 +1298,7 @@ class Application(ApplicationHandler):
             ),
         )
 
-    def prepare_log_viewer(self, unit: str = "syslog", lines: int = 0):
+    def _prepare_log_viewer(self, unit: str = "syslog", lines: int = 0):
         """
         Prepares the log file viewer widget and fills the last lines of the file content.
 
@@ -1332,7 +1332,7 @@ class Application(ApplicationHandler):
                 ).split(".service")[0],
                 "message": entry.get("MESSAGE", ""),
             }
-            line_list.append(self.get_logging_formatter() % format_dict)
+            line_list.append(self._get_logging_formatter() % format_dict)
         self.log_file_content = line_list[-lines:]
         found: bool = False
         pre: List[str] = []
@@ -1412,7 +1412,7 @@ class Application(ApplicationHandler):
             )
         )
 
-    def open_log_viewer(self, unit: str, lines: int = 0):
+    def _open_log_viewer(self, unit: str, lines: int = 0):
         """
         Opens log file viewer.
         """
@@ -1421,11 +1421,11 @@ class Application(ApplicationHandler):
             self._log_file_caller_body = self._body
             self.current_window = _LOG_VIEWER
         self.print(T_("Log file viewer has to open file {%s} ...") % unit)
-        self.prepare_log_viewer(unit, lines)
+        self._prepare_log_viewer(unit, lines)
         self._body = self.log_viewer
         self._loop.widget = self._body
 
-    def run_yast_module(self, modulename: str):
+    def _run_yast_module(self, modulename: str):
         """Run yast module `modulename`."""
         self._loop.stop()
         self.screen.tty_signal_keys(*self.old_termios)
@@ -1439,7 +1439,7 @@ class Application(ApplicationHandler):
         self.screen.tty_signal_keys(*self.blank_termios)
         self._loop.start()
 
-    def run_zypper(self, subcmd: str):
+    def _run_zypper(self, subcmd: str):
         """Run zypper modul `subcmd`."""
         self._loop.stop()
         self.screen.tty_signal_keys(*self.old_termios)
@@ -1476,7 +1476,7 @@ class Application(ApplicationHandler):
                 env[k] = locale_conf.get(k)
             os.execve(sys.executable, [sys.executable] + sys.argv, env)
 
-    def open_reset_aapi_pw(self):
+    def _open_reset_aapi_pw(self):
         """Open reset admin-API password."""
         title = T_("admin-web Password Change")
         msg = T_("Enter the new admin-web password:")
@@ -1507,7 +1507,7 @@ class Application(ApplicationHandler):
                 )
             )
         )
-        footer = self.create_footer(view_ok, view_cancel)
+        footer = self._create_footer(view_ok, view_cancel)
 
         if title is None:
             title = "Input expected"
@@ -1522,7 +1522,7 @@ class Application(ApplicationHandler):
             height=height,
         )
 
-    def reset_aapi_passwd(self, new_pw: str) -> bool:
+    def _reset_aapi_passwd(self, new_pw: str) -> bool:
         """Reset admin-API password."""
         if new_pw:
             if new_pw != "":
@@ -1538,13 +1538,13 @@ class Application(ApplicationHandler):
                 return proc.wait() == 0
         return False
 
-    def open_timesyncd_conf(self):
+    def _open_timesyncd_conf(self):
         """Open timesyncd configuration form."""
-        self.reset_layout()
+        self._reset_layout()
         self.print(T_("Opening timesyncd configuration"))
         self.current_window = _TIMESYNCD
         header = AttrMap(GText(T_("Timesyncd Configuration"), CENTER), "header")
-        self.prepare_timesyncd_config()
+        self._prepare_timesyncd_config()
         footer = AttrMap(
             Columns([self.ok_button, self.cancel_button]), "buttonbar"
         )
@@ -1559,7 +1559,7 @@ class Application(ApplicationHandler):
             height=15,
         )
 
-    def prepare_timesyncd_config(self):
+    def _prepare_timesyncd_config(self):
         """Prepare timesyncd configuration form."""
         ntp_server: List[str] = [
             "0.arch.pool.ntp.org",
@@ -1604,13 +1604,13 @@ class Application(ApplicationHandler):
             )
         )
 
-    def open_repo_conf(self):
+    def _open_repo_conf(self):
         """Open repository configuration form."""
-        self.reset_layout()
+        self._reset_layout()
         self.print(T_("Opening repository selection"))
         self.current_window = _REPO_SELECTION
         header = AttrMap(GText(T_("Software repository selection"), CENTER), "header")
-        self.prepare_repo_config()
+        self._prepare_repo_config()
         footer = AttrMap(
             Columns([self.save_button, self.cancel_button]), "buttonbar"
         )
@@ -1625,7 +1625,7 @@ class Application(ApplicationHandler):
             height=15,
         )
 
-    def prepare_repo_config(self):
+    def _prepare_repo_config(self):
         """Prepare repository configuration form."""
         baseurl = 'https://download.grommunio.com/community/openSUSE_Leap_' \
                   '15.3/?ssl_verify=no'
@@ -1673,7 +1673,7 @@ class Application(ApplicationHandler):
         body_content[5]._selectable = True
         self.repo_selection_body = LineBox(Padding(Filler(Pile(body_content), TOP)))
 
-    def open_setup_wizard(self):
+    def _open_setup_wizard(self):
         """Open grommunio setup wizard."""
         self._loop.stop()
         self.screen.tty_signal_keys(*self.old_termios)
@@ -1684,29 +1684,29 @@ class Application(ApplicationHandler):
         self.screen.tty_signal_keys(*self.blank_termios)
         self._loop.start()
 
-    def open_main_menu(self):
+    def _open_main_menu(self):
         """
         Opens amin menu,
         """
-        self.reset_layout()
+        self._reset_layout()
         self.print(T_("Login successful"))
         self.current_window = _MAIN_MENU
         self.authorized_options = T_(", <F4> for Main-Menu")
-        self.prepare_mainscreen()
+        self._prepare_mainscreen()
         self._body = self.main_menu
         self._loop.widget = self._body
 
-    def open_mainframe(self):
+    def _open_mainframe(self):
         """
         Opens main window. (Welcome screen)
         """
-        self.reset_layout()
+        self._reset_layout()
         self.print(T_("Returning to main screen."))
         self.current_window = _MAIN
-        self.prepare_mainscreen()
+        self._prepare_mainscreen()
         self._loop.widget = self._body
 
-    def check_login(self, widget: Widget = None):
+    def _check_login(self, widget: Widget = None):
         """
         Checks login data and switch to authenticate on if successful.
         """
@@ -1721,7 +1721,7 @@ class Application(ApplicationHandler):
                 self.user_edit.get_edit_text(), self.pass_edit.get_edit_text()
             ):
                 self.pass_edit.set_edit_text("")
-                self.open_main_menu()
+                self._open_main_menu()
             else:
                 self.message_box(
                     T_("Incorrect credentials. Access denied!"),
@@ -1729,7 +1729,7 @@ class Application(ApplicationHandler):
                 )
                 self.print(T_("Login wrong! (%s)") % msg)
 
-    def press_button(self, button: Widget, *args, **kwargs):
+    def _press_button(self, button: Widget, *args, **kwargs):
         """
         Handles general events if a button is pressed.
 
@@ -1750,17 +1750,17 @@ class Application(ApplicationHandler):
             )
             self.handle_event(f"{label} enter")
 
-    def prepare_menu_list(self, items: Dict[str, Widget]) -> ListBox:
+    def _prepare_menu_list(self, items: Dict[str, Widget]) -> ListBox:
         """
         Prepare general menu list.
 
         :param items: A dictionary of widgets representing the menu items.
         :return: ListBox containing menu items.
         """
-        menu_items: List[MenuItem] = self.create_menu_items(items)
+        menu_items: List[MenuItem] = self._create_menu_items(items)
         return ListBox(SimpleFocusListWalker(menu_items))
 
-    def menu_to_frame(self, listbox: ListBox):
+    def _menu_to_frame(self, listbox: ListBox):
         """Put menu(ListBox) into a Frame."""
         fopos: int = listbox.focus_position
         menu = Columns([
@@ -1771,20 +1771,20 @@ class Application(ApplicationHandler):
         menu[1]._selectable = False
         return Frame(menu, header=self.header, footer=self.footer)
 
-    def switch_next_colormode(self):
+    def _switch_next_colormode(self):
         """Switch to next color scheme."""
         original = self._current_colormode
         color_name = util.get_next_palette_name(original)
         palette = util.get_palette(color_name)
         show_next = color_name
-        self.refresh_header(
+        self._refresh_header(
             show_next, self._current_kbdlayout, self.authorized_options
         )
         self._loop.screen.register_palette(palette)
         self._loop.screen.clear()
         self._current_colormode = show_next
 
-    def set_kbd_layout(self, layout):
+    def _set_kbd_layout(self, layout):
         """Set and save selected keyboard layout."""
         # Do read the file again so newly added keys do not get lost
         file = "/etc/vconsole.conf"
@@ -1793,20 +1793,20 @@ class Application(ApplicationHandler):
         util.minishell_write(file, var)
         os.system("systemctl restart systemd-vconsole-setup")
         self._current_kbdlayout = layout
-        self.refresh_head_text(
+        self._refresh_head_text(
             self._current_colormode,
             self._current_kbdlayout,
             self.authorized_options,
         )
 
-    def open_keyboard_selection_menu(self):
+    def _open_keyboard_selection_menu(self):
         """Open keyboard selection menu form."""
-        self.reset_layout()
+        self._reset_layout()
         self.print(T_("Opening keyboard configuration"))
         self.last_current_window = self.current_window
         self.current_window = _KEYBOARD_SWITCH
         header = None
-        self.prepare_kbd_config()
+        self._prepare_kbd_config()
         footer = None
         self.dialog(
             body=AttrMap(self.keyboard_switch_body, "body"),
@@ -1819,13 +1819,13 @@ class Application(ApplicationHandler):
             height=10,
         )
 
-    def prepare_kbd_config(self):
+    def _prepare_kbd_config(self):
         """Prepare keyboard config form."""
         def sub_press(button, is_set=True, **kwargs):
             if is_set:
                 layout = button.label
-                self.set_kbd_layout(layout)
-                self.return_to()
+                self._set_kbd_layout(layout)
+                self._return_to()
 
         keyboards: Set[str] = {"de-latin1-nodeadkeys", "us"}
         all_kbds = [
@@ -1868,7 +1868,7 @@ class Application(ApplicationHandler):
             if self._loop:
                 self._loop.draw_screen()
 
-    def reset_layout(self):
+    def _reset_layout(self):
         """
         Resets the console UI to the default layout
         """
@@ -1877,7 +1877,7 @@ class Application(ApplicationHandler):
             self._loop.widget = self._body
             self._loop.draw_screen()
 
-    def create_menu_items(self, items: Dict[str, Widget]) -> List[MenuItem]:
+    def _create_menu_items(self, items: Dict[str, Widget]) -> List[MenuItem]:
         """
         Takes a dictionary with menu labels as keys and widget(lists) as
         content and creates a list of menu items.
@@ -1953,12 +1953,12 @@ class Application(ApplicationHandler):
             self.redraw()
         self.current_bottom_info = string
 
-    def create_progress_bar(self, max_progress=100):
+    def _create_progress_bar(self, max_progress=100):
         """Create progressbar"""
         self.progressbar = urwid.ProgressBar('PB.normal', 'PB.complete', 0, max_progress, 'PB.satt')
         return self.progressbar
 
-    def draw_progress(self, progress, max_progress=100):
+    def _draw_progress(self, progress, max_progress=100):
         """Draw progress at progressbar"""
         # completion = float(float(progress)/float(max_progress))
         # self.progressbar.set_completion(completion)
@@ -1966,7 +1966,7 @@ class Application(ApplicationHandler):
         self.progressbar.done = max_progress
         self.progressbar.current = progress
         if progress == max_progress:
-            self.reset_layout()
+            self._reset_layout()
         self._loop.draw_screen()
 
     def message_box(
@@ -2012,7 +2012,7 @@ class Application(ApplicationHandler):
             self._message_box_caller_body = self._loop.widget
             self.current_window = _MESSAGE_BOX
         body = LineBox(Padding(Filler(Pile([GText(msg, CENTER)]), TOP)))
-        footer = self.create_footer(view_ok, view_cancel)
+        footer = self._create_footer(view_ok, view_cancel)
 
         if title is None:
             title = "Message"
@@ -2094,7 +2094,7 @@ class Application(ApplicationHandler):
                 )
             )
         )
-        footer = self.create_footer(view_ok, view_cancel)
+        footer = self._create_footer(view_ok, view_cancel)
 
         if title is None:
             title = T_("Input expected")
@@ -2110,7 +2110,7 @@ class Application(ApplicationHandler):
             modal=modal,
         )
 
-    def create_footer(self, view_ok: bool = True, view_cancel: bool = False):
+    def _create_footer(self, view_ok: bool = True, view_cancel: bool = False):
         """Create and return footer."""
         cols = [("weight", 1, GText(""))]
         if view_ok:
@@ -2177,7 +2177,7 @@ class Application(ApplicationHandler):
                 cmmi.refresh_content()
         return self.current_menu_focus
 
-    def handle_standard_menu_behaviour(
+    def _handle_standard_menu_behaviour(
         self, menu: ListBox, event: Any, description_box: ListBox = None
     ) -> int:
         """
@@ -2199,7 +2199,7 @@ class Application(ApplicationHandler):
             description_box.body[0] = focused_item.get_description()
         return idx
 
-    def handle_standard_tab_behaviour(self, key: str = "tab"):
+    def _handle_standard_tab_behaviour(self, key: str = "tab"):
         """
         Handles standard tabulator behaviour in dialogs. Switching from body
         to footer and vice versa.
@@ -2243,12 +2243,12 @@ class Application(ApplicationHandler):
             non_sels_last = last + 1 - count_selectables(part.base_widget.widget_list, last)
             last = last - non_sels_last
             current = current - non_sels_current
-            if current <= first and key in top_keys:
-                if self.layout.focus_part == 'footer':
-                    switch_body_footer()
-            if current >= last and key in bottom_keys:
-                if self.layout.focus_part == 'body':
-                    switch_body_footer()
+            if current <= first and key in top_keys \
+                    and self.layout.focus_part == 'footer':
+                switch_body_footer()
+            if current >= last and key in bottom_keys \
+                    and self.layout.focus_part == 'body':
+                switch_body_footer()
             else:
                 move: int = 0
                 if first <= current < last and key in bottom_keys:
@@ -2278,7 +2278,7 @@ class Application(ApplicationHandler):
         """
         self.debug = yes
 
-    def update_clock(self, cb_loop: MainLoop, data: Any = None):
+    def _update_clock(self, cb_loop: MainLoop, data: Any = None):
         """
         Updates taskbar every second.
 
@@ -2286,7 +2286,7 @@ class Application(ApplicationHandler):
         :param data: Optional user data
         """
         self.print(self.current_bottom_info)
-        cb_loop.set_alarm_in(1, self.update_clock, data)
+        cb_loop.set_alarm_in(1, self._update_clock, data)
 
     def start(self):
         """
@@ -2333,7 +2333,7 @@ class Application(ApplicationHandler):
 
         # Footer
         if isinstance(footer, str) and footer == "":
-            footer = GBoxButton("Okay", self.reset_layout())
+            footer = GBoxButton("Okay", self._reset_layout())
             footer = AttrWrap(footer, "selectable", "focus")
             footer = GridFlow([footer], 8, 1, 1, "center")
 
