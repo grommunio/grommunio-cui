@@ -50,7 +50,7 @@ from urwid import (
     raw_display,
     RELATIVE_100,
 )
-from cui import util
+from cui import util, parameter
 import cui.parser
 from cui.scroll import ScrollBar, Scrollable
 from cui.button import GButton, GBoxButton
@@ -625,7 +625,7 @@ class Application(ApplicationHandler):
                 self.login_body.focus_position = (
                     0 if getuser() == "" else 1
                 )  # focus on passwd if user detected
-                self.dialog(
+                params = parameter.DialogParams(
                     body=LineBox(Padding(Filler(self.login_body))),
                     header=self.login_header,
                     footer=self.login_footer,
@@ -635,6 +635,7 @@ class Application(ApplicationHandler):
                     width=40,
                     height=10,
                 )
+                self.dialog(params)
                 self.current_window = _LOGIN
             else:
                 self._open_main_menu()
@@ -980,7 +981,8 @@ class Application(ApplicationHandler):
                         pad = urwid.Padding(self.progressbar)  # do not use pg! use self.progressbar.
                         fil = urwid.Filler(pad)
                         linebox = urwid.LineBox(fil)
-                        self.dialog(linebox, header, footer)
+                        params = parameter.DialogParams(linebox, header, footer)
+                        self.dialog(params)
                         self._draw_progress(20)
                         res: Response = requests.get(keyurl)
                         got_keyfile: bool = False
@@ -1255,7 +1257,7 @@ class Application(ApplicationHandler):
 
         if title is None:
             title = "Input expected"
-        self.dialog(
+        params = parameter.DialogParams(
             body=body,
             header=GText(title, CENTER),
             footer=footer,
@@ -1265,6 +1267,7 @@ class Application(ApplicationHandler):
             valign=valign,
             height=height,
         )
+        self.dialog(params)
 
     def _reset_system_passwd(self, new_pw: str) -> bool:
         """Reset the system password."""
@@ -1509,7 +1512,7 @@ class Application(ApplicationHandler):
 
         if title is None:
             title = "Input expected"
-        self.dialog(
+        params = parameter.DialogParams(
             body=body,
             header=GText(title, CENTER),
             footer=footer,
@@ -1519,6 +1522,7 @@ class Application(ApplicationHandler):
             valign=valign,
             height=height,
         )
+        self.dialog(params)
 
     def _reset_aapi_passwd(self, new_pw: str) -> bool:
         """Reset admin-API password."""
@@ -1546,7 +1550,7 @@ class Application(ApplicationHandler):
         footer = AttrMap(
             Columns([self.ok_button, self.cancel_button]), "buttonbar"
         )
-        self.dialog(
+        params = parameter.DialogParams(
             body=AttrMap(self.timesyncd_body, "body"),
             header=header,
             footer=footer,
@@ -1556,6 +1560,7 @@ class Application(ApplicationHandler):
             valign=MIDDLE,
             height=15,
         )
+        self.dialog(params)
 
     def _prepare_timesyncd_config(self):
         """Prepare timesyncd configuration form."""
@@ -1612,7 +1617,7 @@ class Application(ApplicationHandler):
         footer = AttrMap(
             Columns([self.save_button, self.cancel_button]), "buttonbar"
         )
-        self.dialog(
+        params = parameter.DialogParams(
             body=AttrMap(self.repo_selection_body, "body"),
             header=header,
             footer=footer,
@@ -1622,6 +1627,7 @@ class Application(ApplicationHandler):
             valign=MIDDLE,
             height=15,
         )
+        self.dialog(params)
 
     def _prepare_repo_config(self):
         """Prepare repository configuration form."""
@@ -1806,7 +1812,7 @@ class Application(ApplicationHandler):
         header = None
         self._prepare_kbd_config()
         footer = None
-        self.dialog(
+        params = parameter.DialogParams(
             body=AttrMap(self.keyboard_switch_body, "body"),
             header=header,
             footer=footer,
@@ -1816,6 +1822,7 @@ class Application(ApplicationHandler):
             valign=MIDDLE,
             height=10,
         )
+        self.dialog(params)
 
     def _prepare_kbd_config(self):
         """Prepare keyboard config form."""
@@ -2014,7 +2021,7 @@ class Application(ApplicationHandler):
 
         if title is None:
             title = "Message"
-        self.dialog(
+        params = parameter.DialogParams(
             body=body,
             header=GText(title, CENTER),
             footer=footer,
@@ -2025,6 +2032,7 @@ class Application(ApplicationHandler):
             height=height,
             modal=modal,
         )
+        self.dialog(params)
 
     def input_box(
         self,
@@ -2096,7 +2104,7 @@ class Application(ApplicationHandler):
 
         if title is None:
             title = T_("Input expected")
-        self.dialog(
+        params = parameter.DialogParams(
             body=body,
             header=GText(title, CENTER),
             footer=footer,
@@ -2107,6 +2115,7 @@ class Application(ApplicationHandler):
             height=height,
             modal=modal,
         )
+        self.dialog(params)
 
     def _create_footer(self, view_ok: bool = True, view_cancel: bool = False):
         """Create and return footer."""
@@ -2233,8 +2242,7 @@ class Application(ApplicationHandler):
             first = 0
             try:
                 last = len(part.base_widget.widget_list) - 1
-            except BaseException as exc:
-                self.print(f"{exc}")
+            except IndexError:
                 last = 0
             current = part.base_widget.focus_position
             # Reduce last and current by non selectables
@@ -2298,16 +2306,7 @@ class Application(ApplicationHandler):
             self.screen.tty_signal_keys(*self.old_termios)
 
     def dialog(
-        self,
-        body: Widget = None,
-        header: Any = None,
-        footer: Any = None,
-        focus_part: str = None,
-        align: str = CENTER,
-        width: int = 40,
-        valign: str = MIDDLE,
-        height: int = 10,
-        modal: bool = False,
+        self, params: parameter.DialogParams
     ):
         """
         Overlays a dialog box on top of the console UI
@@ -2323,21 +2322,30 @@ class Application(ApplicationHandler):
             valign (str): Vertical align.
             height (int): The height of the box.
         """
+        (body, header, footer, focus_part, align, width, valign, height, modal) = \
+            (params.body, params.header, params.footer, params.focus_part, params.align,
+             params.width, params.valign, params.height, params.modal)
         # Body
-        if isinstance(body, str) and body == "":
+        if isinstance(params.body, str) and params.body == "":
             body_text = GText("No body", align="center")
             body_filler = Filler(body_text, valign="top")
             body_padding = Padding(body_filler, left=1, right=1)
             body = LineBox(body_padding)
 
         # Footer
-        if isinstance(footer, str) and footer == "":
+        if isinstance(params.footer, str) and params.footer == "":
             footer = GBoxButton("Okay", self._reset_layout())
             footer = AttrWrap(footer, "selectable", "focus")
             footer = GridFlow([footer], 8, 1, 1, "center")
 
+        # Header
+        if isinstance(params.header, str) and params.header == "":
+            header = GBoxButton("Okay", self._reset_layout())
+            header = AttrWrap(header, "selectable", "focus")
+            header = GridFlow([header], 8, 1, 1, "center")
+
         # Focus
-        if focus_part is None:
+        if params.focus_part is None:
             focus_part = "footer"
 
         # Layout
@@ -2347,6 +2355,8 @@ class Application(ApplicationHandler):
         self.layout = Frame(
             body, header=header, footer=footer, focus_part=focus_part
         )
+
+        # self._body = body
 
         widget = Overlay(
             LineBox(self.layout),
