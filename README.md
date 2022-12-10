@@ -127,13 +127,7 @@ for lang in $(cd locale && echo */); do \
 done
 ```
 
-Now handover the corresponding po-files to the translator with the modified language keys. After including the translation changes you will have to reformat the binary mo-files with the assist of the translated po-files.
-
-```    
-for lang in $(cd locale && echo */); do \
-	msgfmt -o locale/$lang/LC_MESSAGES/cui.mo locale/$lang/LC_MESSAGES/cui.po; \
-done
-```
+The translations are managed by [Weblate](https://hosted.weblate.org/projects/grommunio/grommunio-cui/). Contributions are regularly monitored and integrated in the release cycles of grommunio CUI.
 
 ## License
 
