@@ -3,19 +3,21 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: grommunio CUI Deutsch\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2022-11-04 19:11+0100\n"
-"PO-Revision-Date: 2022-10-25 22:45+0200\n"
-"Last-Translator: Noah Schmidt <noah.schmidt@grommunio.com>\n"
-"Language-Team: Deutsch <https://hosted.weblate.org/projects/>\n"
+"PO-Revision-Date: 2022-12-10 17:12+0000\n"
+"Last-Translator: Mike Williams <mike.williams@grammm.com>\n"
+"Language-Team: German <https://hosted.weblate.org/projects/grommunio/"
+"grommunio-cui/de/>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 4.15-dev\n"
 
 #: cui/__init__.py:121 cui/__init__.py:553
 msgid "Idle"
@@ -74,8 +76,8 @@ msgid ""
 "If this is not that what you expected to see, you probably have insufficient "
 "permissions."
 msgstr ""
-"Sollte das nicht das sein was Sie erwartet haben, haben Sie eventuell nicht "
-"die erforderlichen Rechte."
+"Sollte Sie das nicht erwartet haben, haben Sie eventuell nicht die "
+"erforderlichen Rechte."
 
 #: cui/__init__.py:356
 msgid "Main Menu"
@@ -533,7 +535,7 @@ msgstr "\t\t--help: Zeigt diesen Text an."
 
 #: cui/__init__.py:2534
 msgid "\t\t-v/--debug: Verbose/Debugging mode."
-msgstr "\t\t-v/--debug: Verbose/Debugging mode."
+msgstr "\t\t-v/--debug: Verbose/Debugging modus."
 
 #: cui/util.py:32
 msgid "System password is not set."
@@ -549,7 +551,7 @@ msgstr "grommunio-setup wurde noch nicht ausgeführt."
 
 #: cui/util.py:35
 msgid "timesyncd configuration is missing."
-msgstr "Zeitsynchronisationskonfiguration fehlt"
+msgstr "Zeitsynchronisationskonfiguration fehlt."
 
 #: cui/util.py:36
 msgid "nginx is not running."
