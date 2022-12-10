@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2022-12-10 17:31+0100\n"
-"PO-Revision-Date: 2022-12-10 17:04+0000\n"
-"Last-Translator: Mike Williams <mike.williams@grammm.com>\n"
+"PO-Revision-Date: 2022-12-10 22:47+0000\n"
+"Last-Translator: Orkan Eser <orkan.eser@grommunio.com>\n"
 "Language-Team: Turkish <https://hosted.weblate.org/projects/grommunio/"
 "grommunio-cui/tr/>\n"
 "Language: tr\n"
@@ -25,165 +25,175 @@ msgstr "Boşta"
 
 #: cui/__init__.py:161 cui/__init__.py:175 cui/util.py:635
 msgid "Login"
-msgstr ""
+msgstr "Giriş"
 
 #: cui/__init__.py:164 cui/__init__.py:1695
 msgid "Username: "
-msgstr ""
+msgstr "Kullanıcı adı: "
 
 #: cui/__init__.py:167 cui/__init__.py:1698
 msgid "Password: "
-msgstr ""
+msgstr "Şifre: "
 
 #: cui/__init__.py:186
 msgid "OK"
-msgstr ""
+msgstr "Tamam"
 
 #: cui/__init__.py:215 cui/__init__.py:921 cui/__init__.py:922
 msgid "Cancel"
-msgstr ""
+msgstr "İptal"
 
 #: cui/__init__.py:227
 msgid "Close"
-msgstr ""
+msgstr "Kapat"
 
 #: cui/__init__.py:256
 msgid "Add"
-msgstr ""
+msgstr "Ekle"
 
 #: cui/__init__.py:268
 msgid "Edit"
-msgstr ""
+msgstr "Düzenle"
 
 #: cui/__init__.py:280
 msgid "Details"
-msgstr ""
+msgstr "Ayrıntılar"
 
 #: cui/__init__.py:292
 msgid "Space to toggle"
-msgstr ""
+msgstr "Genişlet"
 
 #: cui/__init__.py:300
 msgid "Apply"
-msgstr ""
+msgstr "Uygula"
 
 #: cui/__init__.py:312
 msgid "Save"
-msgstr ""
+msgstr "Kaydet"
 
 #: cui/__init__.py:333
 msgid ""
 "If this is not that what you expected to see, you probably have insufficient "
 "permissions."
-msgstr ""
+msgstr "Görmek istediğiniz bu değilse, muhtemelen yeterli yetkiniz yoktur."
 
 #: cui/__init__.py:347
 msgid "Main Menu"
-msgstr ""
+msgstr "Ana Menü"
 
 #: cui/__init__.py:348
 msgid "Here you can do the main actions"
-msgstr ""
+msgstr "Burada ana eylemleri yapabilirsiniz"
 
 #: cui/__init__.py:353
 msgid "Language configuration"
-msgstr ""
+msgstr "Dil yapılandırması"
 
 #: cui/__init__.py:355
 msgid "Language"
-msgstr ""
+msgstr "Dil"
 
 #: cui/__init__.py:358
 msgid "Opens the yast2 configurator for setting language settings."
-msgstr ""
+msgstr "Dil ayarlarını yapmak için yast2 konfigüratörünü açar."
 
 #: cui/__init__.py:362
 msgid "Change system password"
-msgstr ""
+msgstr "Sistem şifresini değiştir"
 
 #: cui/__init__.py:364 cui/__init__.py:417
 msgid "Password change"
-msgstr ""
+msgstr "Şifre değişimi"
 
 #: cui/__init__.py:366
 msgid ""
 "Opens a dialog for changing the password of the system root user. When a "
 "password is set, you can login via ssh and rerun grommunio-cui."
 msgstr ""
+"Sistem \"root\" kullanıcısının parolasını değiştirmek için bir iletişim "
+"kutusu açar. Bir şifre ayarlandığında, \"ssh\" ile giriş yapabilir ve "
+"grommunio-cui'yi tekrar çalıştırabilirsiniz."
 
 #: cui/__init__.py:369
 msgid "Network interface configuration"
-msgstr ""
+msgstr "Ağ arabirimi yapılandırması"
 
 #: cui/__init__.py:371
 msgid "Configuration of network"
-msgstr ""
+msgstr "Ağ yapılandırması"
 
 #: cui/__init__.py:374
 msgid ""
 "Opens the yast2 configurator for setting up devices, interfaces, IP "
 "addresses, DNS and more."
 msgstr ""
+"Aygıtları, arabirimleri, IP adreslerini, DNS'yi ve daha fazlasını ayarlamak "
+"için yast2 yapılandırıcısını açar."
 
 #: cui/__init__.py:378
 msgid "Timezone configuration"
-msgstr ""
+msgstr "Saat dilimi (Timezone)"
 
 #: cui/__init__.py:380
 msgid "Timezone"
-msgstr ""
+msgstr "Saat Dilimi"
 
 #: cui/__init__.py:383
 msgid "Opens the yast2 configurator for setting country and timezone settings."
 msgstr ""
+"Ülke ve saat dilimi ayarlarını yapmak için yast2 yapılandırıcısını açar."
 
 #: cui/__init__.py:387
 msgid "timesyncd configuration"
-msgstr ""
+msgstr "zaman eşitleme yapılandırması"
 
 #: cui/__init__.py:389
 msgid "timesyncd"
-msgstr ""
+msgstr "\"timesyncd\""
 
 #: cui/__init__.py:392
 msgid ""
 "Opens a simple configurator for configuring systemd-timesyncd as a "
 "lightweight NTP client for time synchronization."
 msgstr ""
+"Zaman senkronizasyonu için \"systemd-timesyncd\"yi hafif bir NTP istemcisi "
+"olarak yapılandırmak için basit bir yapılandırıcı açar."
 
 #: cui/__init__.py:396
 msgid "Select software repositories"
-msgstr ""
+msgstr "Yazılım depolarını seçin"
 
 #: cui/__init__.py:397
 msgid "Software repositories selection"
-msgstr ""
+msgstr "Yazılım depolarını seçin"
 
 #: cui/__init__.py:399
 msgid "Opens dialog for choosing software repositories."
-msgstr ""
+msgstr "Yazılım depolarını seçmek için iletişim kutusunu açar."
 
 #: cui/__init__.py:401
 msgid "Update the system"
-msgstr ""
+msgstr "Sistemi güncellemek"
 
 #: cui/__init__.py:402
 msgid "System update"
-msgstr ""
+msgstr "Sistem güncelleme"
 
 #: cui/__init__.py:404
 msgid ""
 "Executes the system package manager for the installation of newer component "
 "versions."
 msgstr ""
+"Daha yeni bileşen sürümlerinin kurulumu için sistem paketi yöneticisini "
+"yürütür."
 
 #: cui/__init__.py:406
 msgid "grommunio setup wizard"
-msgstr ""
+msgstr "grommunio kurulum sihirbazı"
 
 #: cui/__init__.py:408
 msgid "Setup wizard"
-msgstr ""
+msgstr "Kurulum sihirbazı"
 
 #: cui/__init__.py:411
 msgid ""
@@ -191,193 +201,205 @@ msgid ""
 "grommunio databases, TLS certificates, services and the administration web "
 "user interface."
 msgstr ""
+"grommunio veritabanlarının, TLS sertifikalarının, hizmetlerinin ve yönetim "
+"web kullanıcı arabiriminin ilk yapılandırması için grommunio-setup komut "
+"dosyasını yürütür."
 
 #: cui/__init__.py:415
 msgid "Change admin-web password"
-msgstr ""
+msgstr "admin-web şifresini değiştir"
 
 #: cui/__init__.py:420
 msgid ""
 "Opens a dialog for changing the password used by the administration web "
 "interface."
 msgstr ""
+"Yönetim web arabirimi tarafından kullanılan parolayı değiştirmek için bir "
+"iletişim kutusu açar."
 
 #: cui/__init__.py:424 cui/__init__.py:426
 msgid "Terminal"
-msgstr ""
+msgstr "Terminal"
 
 #: cui/__init__.py:429
 msgid "Starts terminal for advanced system configuration."
-msgstr ""
+msgstr "Gelişmiş sistem konfigürasyonu için terminali açar."
 
 #: cui/__init__.py:433 cui/__init__.py:1210
 msgid "Reboot"
-msgstr ""
+msgstr "Yeniden başlat"
 
 #: cui/__init__.py:434
 msgid "Reboot system."
-msgstr ""
+msgstr "Sistemi yeniden başlatma."
 
 #: cui/__init__.py:436 cui/__init__.py:1220
 msgid "Shutdown"
-msgstr ""
+msgstr "Kapat"
 
 #: cui/__init__.py:438
 msgid "Shutdown system."
-msgstr ""
+msgstr "Sistemi kapat."
 
 #: cui/__init__.py:440
 msgid "Shuts down the system and powers off."
-msgstr ""
+msgstr "Sistemi ve gücü kapatır."
 
 #: cui/__init__.py:445
 msgid "Exit CUI"
-msgstr ""
+msgstr "CUI'den çık"
 
 #: cui/__init__.py:470
 msgid "grommunio console user interface"
-msgstr ""
+msgstr "grommunio konsol kullanıcı arabirimi"
 
 #: cui/__init__.py:473
 #, python-brace-format
 msgid "Active keyboard layout: {kbd}; color set: {colormode}."
-msgstr ""
+msgstr "Aktif klavye düzeni: {kbd}; renk seti: {colormode}."
 
 #: cui/__init__.py:478
 msgid "If you need help, press the 'L' key to view logs."
 msgstr ""
+"Yardıma ihtiyacınız varsa günlükleri görüntülemek için 'L' tuşuna basın."
 
 #: cui/__init__.py:562
 #, python-format
 msgid "What is {%s}."
-msgstr ""
+msgstr "{%s} dir."
 
 #: cui/__init__.py:691 cui/__init__.py:867 cui/__init__.py:1020
 msgid "NOTHING"
-msgstr ""
+msgstr "HİÇ"
 
 #: cui/__init__.py:698 cui/__init__.py:874 cui/__init__.py:1043
 msgid "was successful"
-msgstr ""
+msgstr "başarılıydı"
 
 #: cui/__init__.py:709 cui/__init__.py:885
 msgid "failed due to mismatching password values"
-msgstr ""
+msgstr "uyumsuz parola nedeniyle başarısız oldu"
 
 #: cui/__init__.py:711 cui/__init__.py:887 cui/__init__.py:1045
 msgid "failed"
-msgstr ""
+msgstr "başarısız"
 
 #: cui/__init__.py:714 cui/__init__.py:717 cui/__init__.py:890
 #: cui/__init__.py:893 cui/__init__.py:1048 cui/__init__.py:1051
 msgid "aborted"
-msgstr ""
+msgstr "durduruldu"
 
 #: cui/__init__.py:722
 #, python-brace-format
 msgid "System password reset {success_msg}!"
-msgstr ""
+msgstr "Sistem şifresi sıfırlandı {success_msg}!"
 
 #: cui/__init__.py:723
 msgid "System password reset"
-msgstr ""
+msgstr "Sistem parolası sıfırlama"
 
 #: cui/__init__.py:898
 #, python-brace-format
 msgid "Admin password reset {success_msg}!"
-msgstr ""
+msgstr "Admin şifresi sıfırlandı {success_msg}!"
 
 #: cui/__init__.py:899
 msgid "Admin password reset"
-msgstr ""
+msgstr "Yönetici parolası sıfırlama"
 
 #: cui/__init__.py:924 cui/__init__.py:1014
 msgid "Software repository selection has been canceled."
-msgstr ""
+msgstr "Yazılım deposu seçimi iptal edildi."
 
 #: cui/__init__.py:943
 msgid ""
 "Please check the credentials for \"supported\"-version or use \"community\"-"
 "version."
 msgstr ""
+"Lütfen \"desteklenen\" sürüm için kimlik bilgilerini kontrol edin veya "
+"\"topluluk\" sürümünü kullanın."
 
 #: cui/__init__.py:957
 msgid "The repo file has not been changed."
-msgstr ""
+msgstr "Repo dosyası değiştirilmedi."
 
 #: cui/__init__.py:966
 msgid "One moment, please ..."
-msgstr ""
+msgstr "Biraz bekleyin lütfen ..."
 
 #: cui/__init__.py:967
 msgid ""
 "Fetching GPG-KEY file and refreshing repositories. This may take a while ..."
 msgstr ""
+"GPG-KEY dosyası getiriliyor ve depolar yenileniyor. Bu biraz zaman alabilir "
+"..."
 
 #: cui/__init__.py:1000
 msgid "Software repository selection has been updated."
-msgstr ""
+msgstr "Yazılım deposu seçimi güncellendi."
 
 #: cui/__init__.py:1006
 msgid ""
 "Software repository selection has not been updated. Something went wrong "
 "while importing key file."
 msgstr ""
+"Yazılım deposu seçimi güncellenmedi. Anahtar dosyası yüklenirken bir terslik "
+"oldu."
 
 #: cui/__init__.py:1055
 #, python-brace-format
 msgid "Timesyncd configuration change {success_msg}!"
-msgstr ""
+msgstr "Timesyncd yapılandırma değişikliği {success_msg}!"
 
 #: cui/__init__.py:1056 cui/__init__.py:1582
 msgid "Timesyncd Configuration"
-msgstr ""
+msgstr "Timesyncd yapılandırması"
 
 #: cui/__init__.py:1160
 msgid "Creator (%s) clicked %b."
-msgstr ""
+msgstr "Yaratıcı (%s) %b'yi tıkladı."
 
 #: cui/__init__.py:1171
 #, python-format
 msgid "Called handle_menu_changed() with args(%s) and "
-msgstr ""
+msgstr "argümanlar(%s) ile handle_menu_changed() olarak adlandırılır ve "
 
 #: cui/__init__.py:1184
 #, python-format
 msgid "Called handle_menu_activated() with args(%s) and "
-msgstr ""
+msgstr "argümanlar(%s) ile handle_menu_actived() olarak adlandırılır ve "
 
 #: cui/__init__.py:1197
 msgid "To return to the CUI, issue the `exit` command."
-msgstr ""
+msgstr "CUI'ye dönmek için \"exit\" komutunu yazın."
 
 #: cui/__init__.py:1207 cui/__init__.py:1217
 msgid "Are you sure?\n"
-msgstr ""
+msgstr "Emin misiniz?\n"
 
 #: cui/__init__.py:1208 cui/__init__.py:1218
 msgid "After pressing OK, "
-msgstr ""
+msgstr "Tamam'a bastıktan sonra, "
 
 #: cui/__init__.py:1209
 msgid "the system will reboot."
-msgstr ""
+msgstr "sistem yeniden başlatılacaktır."
 
 #: cui/__init__.py:1219
 msgid "the system will shut down and power off."
-msgstr ""
+msgstr "sistem tamamen kapanacak."
 
 #: cui/__init__.py:1231
 msgid "Changing system password"
-msgstr ""
+msgstr "Sistem şifresini değiştirme"
 
 #: cui/__init__.py:1235
 msgid "System Password Change"
-msgstr ""
+msgstr "Sistem Parola Değişikliği"
 
 #: cui/__init__.py:1236
 msgid "Enter the new system password:"
-msgstr ""
+msgstr "Yeni sistem parolasını girin:"
 
 #: cui/__init__.py:1393
 #, python-format
@@ -385,218 +407,225 @@ msgid ""
 "Use the arrow keys to switch between logfiles. <LEFT> and <RIGHT> switch the "
 "logfile, while <+> and <-> changes the line count to view. (%s)"
 msgstr ""
+"Günlük dosyaları arasında geçiş yapmak için ok tuşlarını kullanın. <SOL> ve "
+"<SAĞ> günlük dosyasını değiştirirken, <+> ve <-> satır sayısını görüntülemek "
+"için değiştirir. (%s)"
 
 #: cui/__init__.py:1465
 #, python-format
 msgid "Log file viewer has to open file {%s} ..."
-msgstr ""
+msgstr "Günlük kütüğü görüntüleyici, {%s} dosyasını açmalıdır..."
 
 #: cui/__init__.py:1476
 #, python-format
 msgid "Please wait while `yast2 %s` is being run."
-msgstr ""
+msgstr "`yast2 %s` çalıştırılırken lütfen bekleyin."
 
 #: cui/__init__.py:1519
 msgid "admin-web Password Change"
-msgstr ""
+msgstr "admin-web Şifre Değiştirme"
 
 #: cui/__init__.py:1520
 msgid "Enter the new admin-web password:"
-msgstr ""
+msgstr "Yeni admin-web şifresini girin:"
 
 #: cui/__init__.py:1580
 msgid "Opening timesyncd configuration"
-msgstr ""
+msgstr "\"timesyncd\" yapılandırması açılıyor"
 
 #: cui/__init__.py:1620
 msgid "Insert the NTP servers separated by <SPACE> char."
-msgstr ""
+msgstr "<SPACE> karakteriyle ayrılmış NTP sunucularını ekleyin."
 
 #: cui/__init__.py:1644
 msgid "Opening repository selection"
-msgstr ""
+msgstr "Depo seçimi açılıyor"
 
 #: cui/__init__.py:1646
 msgid "Software repository selection"
-msgstr ""
+msgstr "Yazılım deposu seçimi"
 
 #: cui/__init__.py:1688
 msgid "Use \"community\" repository"
-msgstr ""
+msgstr "\"Topluluk\" deposunu kullanın"
 
 #: cui/__init__.py:1692
 msgid "Use \"supported\" repository"
-msgstr ""
+msgstr "\"Desteklenen\" depoyu kullan"
 
 #: cui/__init__.py:1724
 msgid "Login successful"
-msgstr ""
+msgstr "Giriş başarılı"
 
 #: cui/__init__.py:1726
 msgid ", <F4> for Main-Menu"
-msgstr ""
+msgstr ", Ana Menü için <F4> tıklayın"
 
 #: cui/__init__.py:1736
 msgid "Returning to main screen."
-msgstr ""
+msgstr "Ana ekrana dönüş."
 
 #: cui/__init__.py:1747
 msgid "You need root privileges to use another user."
 msgstr ""
+"Başka bir kullanıcıyı kullanmak için \"root\" ayrıcalıklarına ihtiyacınız "
+"var."
 
 #: cui/__init__.py:1750
 #, python-format
 msgid "checking user %s with pass "
-msgstr ""
+msgstr "pass ile kullanıcı %s kontrol ediliyor "
 
 #: cui/__init__.py:1759
 msgid "Incorrect credentials. Access denied!"
-msgstr ""
+msgstr "Yanlış kimlik bilgileri. Erişim reddedildi!"
 
 #: cui/__init__.py:1760
 msgid "Password verification"
-msgstr ""
+msgstr "Şifre doğrulama"
 
 #: cui/__init__.py:1762
 #, python-format
 msgid "Login wrong! (%s)"
-msgstr ""
+msgstr "Yanlış giriş! (%s)"
 
 #: cui/__init__.py:1770
 msgid "UNKNOWN LABEL"
-msgstr ""
+msgstr "BİLİNMEYEN ETİKET"
 
 #: cui/__init__.py:1924
 msgid "Opening keyboard configuration"
-msgstr ""
+msgstr "Klavye yapılandırması açılıyor"
 
 #: cui/__init__.py:2316
 msgid "Input expected"
-msgstr ""
+msgstr "Girdi bekleniyor"
 
 #: cui/__init__.py:2582
 msgid "Write succeeded"
-msgstr ""
+msgstr "Yazma başarılı"
 
 #: cui/__init__.py:2584
 msgid "The configuration was"
-msgstr ""
+msgstr "yapılandırma şuydu"
 
 #: cui/__init__.py:2587 cui/__init__.py:2593
 msgid " updated."
-msgstr ""
+msgstr " güncellendi."
 
 #: cui/__init__.py:2589
 msgid "Write failed"
-msgstr ""
+msgstr "Yazma başarısız oldu"
 
 #: cui/__init__.py:2592
 msgid " not"
-msgstr ""
+msgstr " olumsuz"
 
 #: cui/__init__.py:2595
 msgid "Perhaps you have insufficient rights."
-msgstr ""
+msgstr "Yeterli yetkiniz olmayabilir."
 
 #: cui/__init__.py:2607
 #, python-format
 msgid "Usage: {%s} [OPTIONS]"
-msgstr ""
+msgstr "Kullanım: {%s} [SEÇENEKLER]"
 
 #: cui/__init__.py:2608
 msgid "\tOPTIONS:"
-msgstr ""
+msgstr "\tSEÇENEKLER:"
 
 #: cui/__init__.py:2609
 msgid "\t\t--help: Show this message."
-msgstr ""
+msgstr "\t\t--help: Bu mesajı göster."
 
 #: cui/__init__.py:2610
 msgid "\t\t-v/--debug: Verbose/Debugging mode."
-msgstr ""
+msgstr "\t\t-v/--debug: Ayrıntılı/Hata ayıklama modu."
 
 #: cui/util.py:51
 msgid "System password is not set."
-msgstr ""
+msgstr "Sistem şifresi ayarlanmamış."
 
 #: cui/util.py:52
 msgid "Network configuration is missing."
-msgstr ""
+msgstr "Ağ yapılandırması eksik."
 
 #: cui/util.py:53
 msgid "grommunio-setup has not been run yet."
-msgstr ""
+msgstr "grommunio-setup henüz çalıştırılmadı."
 
 #: cui/util.py:54
 msgid "timesyncd configuration is missing."
-msgstr ""
+msgstr "\"timesyncd\" yapılandırması eksik."
 
 #: cui/util.py:55
 msgid "nginx is not running."
-msgstr ""
+msgstr "\"nginx\" çalışmıyor."
 
 #: cui/util.py:390
 msgid "No name found"
-msgstr ""
+msgstr "Isim bulunamadı"
 
 #: cui/util.py:391
 msgid "No version detectable"
-msgstr ""
+msgstr "Sürüm algılanamadı"
 
 #: cui/util.py:453
 msgid " Average load: "
-msgstr ""
+msgstr " ortalama yük: "
 
 #: cui/util.py:500
 #, python-brace-format
 msgid "Memory {used} used of {total} ({available} free)"
-msgstr ""
+msgstr "Hafıza {used} kullanılan {total} ({available} boş)"
 
 #: cui/util.py:517
 msgid "For further configuration, these URLs can be used:"
-msgstr ""
+msgstr "Daha fazla yapılandırma için şu URL'ler kullanılabilir:"
 
 #: cui/util.py:525
 msgid "It is generally NOT recommended to use localhost as hostname."
 msgstr ""
+"Ana bilgisayar adı olarak \"localhost\" kullanılması genellikle önerilmez."
 
 #: cui/util.py:551
 msgid "There are still some tasks missing to run/use grommunio."
 msgstr ""
+"grommunio'yu çalıştırmak/kullanmak için hala eksik olan bazı görevler var."
 
 #: cui/util.py:560
 msgid "Boot Time: "
-msgstr ""
+msgstr "Önyükleme süresi: "
 
 #: cui/util.py:565
 #, python-format
 msgid "Last login time: {%s}"
-msgstr ""
+msgstr "Son giriş zamanı: {%s}"
 
 #: cui/util.py:568
 msgid "Current language / PPID: {locale.getlocale()[0]} / {os.getppid()}"
-msgstr ""
+msgstr "Geçerli dil / PPID: {locale.getlocale()[0]} / {os.getppid()}"
 
 #: cui/util.py:571
 msgid "Oops!"
-msgstr ""
+msgstr "Hoppala!"
 
 #: cui/util.py:572
 msgid "There should be nothing."
-msgstr ""
+msgstr "Hiçbir şey olmamalı."
 
 #: cui/util.py:635
 msgid "Color"
-msgstr ""
+msgstr "Renk"
 
 #: cui/util.py:635
 msgid "Keyboard"
-msgstr ""
+msgstr "Klavye"
 
 #: cui/util.py:637
 msgid "Exit"
-msgstr ""
+msgstr "Çıkış"
 
 #: cui/util.py:638
 msgid "Logs"
-msgstr ""
+msgstr "Log Dosyası"
