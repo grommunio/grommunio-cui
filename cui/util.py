@@ -32,10 +32,10 @@ def reset_states():
     return STATES
 
 
-def get_button_type(key, open_func_on_ok, mb_func, cancel_msg, size):
-    def open_cancel_msg(msg, mb_size):
+def get_button_type(key, open_func_on_ok, mb_func, cancel_msgbox_params, size):
+    def open_cancel_msg(msg_params, mb_size):
         mb_func(
-            cui.parameter.MsgBoxParams(msg),
+            cui.parameter.MsgBoxParams(msg_params),
             size=mb_size
         )
 
@@ -48,10 +48,10 @@ def get_button_type(key, open_func_on_ok, mb_func, cancel_msg, size):
         else:
             val = T_("Cancel").lower()
         if val == T_("Cancel").lower():
-            open_cancel_msg(cancel_msg, size)
+            open_cancel_msg(cancel_msgbox_params, size)
     elif val == 'esc':
         open_func_on_ok()
-        open_cancel_msg(cancel_msg, size)
+        open_cancel_msg(cancel_msgbox_params, size)
     return val
 
 

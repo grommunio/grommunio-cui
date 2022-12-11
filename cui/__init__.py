@@ -1022,40 +1022,38 @@ class Application(ApplicationHandler):
     def _key_ev_timesyncd(self, key):
         """Handle event on timesyncd menu."""
         self._handle_standard_tab_behaviour(key)
+        success_msg = T_("was successful")
+        button_type = util.get_button_type(
+            key,
+            self._open_main_menu,
+            self.message_box,
+            parameter.MsgBoxParams(
+                T_(f"Timesyncd configuration change {success_msg}!"),
+                T_("Timesyncd Configuration"),
+            ),
+            size=parameter.Size(height=10)
+        )
         success_msg = T_("NOTHING")
-        if key.lower().endswith("enter"):
-            if key.lower().startswith("hidden"):
-                button_type = key.lower().split(" ")[1]
-            else:
-                button_type = "ok"
-            if button_type == "ok":
-                # Save config and return to mainmenu
-                self.timesyncd_vars["NTP"] = self.timesyncd_body.base_widget[
-                    1
-                ].edit_text
-                self.timesyncd_vars[
-                    "FallbackNTP"
-                ] = self.timesyncd_body.base_widget[2].edit_text
-                util.lineconfig_write(
-                    "/etc/systemd/timesyncd.conf", self.timesyncd_vars
-                )
-                ret_code = subprocess.Popen(
-                    ["timedatectl", "set-ntp", "true"],
-                    stderr=subprocess.DEVNULL,
-                    stdout=subprocess.DEVNULL,
-                )
-                res = ret_code.wait() == 0
-                success_msg = T_("was successful")
-                if not res:
-                    success_msg = T_("failed")
-                self._open_main_menu()
-            else:
-                success_msg = T_("aborted")
-                self._open_main_menu()
-        elif key.lower().find("cancel") >= 0 or key.lower() in ["esc"]:
-            success_msg = T_("aborted")
-            self._open_main_menu()
-        if key.lower().endswith("enter") or key in ["esc", "enter"]:
+        if button_type == "ok":
+            # Save config and return to mainmenu
+            self.timesyncd_vars["NTP"] = self.timesyncd_body.base_widget[
+                1
+            ].edit_text
+            self.timesyncd_vars[
+                "FallbackNTP"
+            ] = self.timesyncd_body.base_widget[2].edit_text
+            util.lineconfig_write(
+                "/etc/systemd/timesyncd.conf", self.timesyncd_vars
+            )
+            ret_code = subprocess.Popen(
+                ["timedatectl", "set-ntp", "true"],
+                stderr=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+            )
+            res = ret_code.wait() == 0
+            success_msg = T_("was successful")
+            if not res:
+                success_msg = T_("failed")
             self.message_box(
                 parameter.MsgBoxParams(
                     T_(f"Timesyncd configuration change {success_msg}!"),
