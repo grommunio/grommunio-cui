@@ -8,49 +8,53 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2022-12-10 17:31+0100\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2022-12-11 16:35+0000\n"
+"Last-Translator: Orkan Eser <orkan.eser@grommunio.com>\n"
+"Language-Team: Arabic (Saudi Arabia) <https://hosted.weblate.org/projects/"
+"grommunio/grommunio-cui/ar_SA/>\n"
 "Language: ar_SA\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
+"&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
+"X-Generator: Weblate 4.15-dev\n"
 
 #: cui/__init__.py:111
 msgid "Idle"
-msgstr ""
+msgstr "عاطل"
 
 #: cui/__init__.py:161 cui/__init__.py:175 cui/util.py:635
 msgid "Login"
-msgstr ""
+msgstr "تسجيل الدخول"
 
 #: cui/__init__.py:164 cui/__init__.py:1695
 msgid "Username: "
-msgstr ""
+msgstr "اسم المستخدم: "
 
 #: cui/__init__.py:167 cui/__init__.py:1698
 msgid "Password: "
-msgstr ""
+msgstr "كلمة المرور: "
 
 #: cui/__init__.py:186
 msgid "OK"
-msgstr ""
+msgstr "OK"
 
 #: cui/__init__.py:215 cui/__init__.py:921 cui/__init__.py:922
 msgid "Cancel"
-msgstr ""
+msgstr "يلغي"
 
 #: cui/__init__.py:227
 msgid "Close"
-msgstr ""
+msgstr "قريب"
 
 #: cui/__init__.py:256
 msgid "Add"
-msgstr ""
+msgstr "يضيف"
 
 #: cui/__init__.py:268
 msgid "Edit"
-msgstr ""
+msgstr "يحرر"
 
 #: cui/__init__.py:280
 msgid "Details"
