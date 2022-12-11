@@ -14,9 +14,6 @@ import os
 from getpass import getuser
 import requests
 from requests import Response
-
-from gwidgets import GText, GEdit
-
 import yaml
 # from pudb.remote import set_trace
 from yaml import SafeLoader
@@ -49,6 +46,7 @@ from urwid import (
     raw_display,
     RELATIVE_100,
 )
+from cui.gwidgets import GText, GEdit
 from cui import util, parameter
 import cui.parser
 from cui.scroll import ScrollBar, Scrollable
@@ -573,9 +571,9 @@ class Application(ApplicationHandler):
             :type: Any
         """
         self.current_event = event
-        if type(event) == str:
+        if isinstance(event, str):
             self._handle_key_event(event)
-        elif type(event) == tuple:
+        elif isinstance(event, tuple):
             self._handle_mouse_event(event)
         self.print(self.current_bottom_info)
 
@@ -644,8 +642,7 @@ class Application(ApplicationHandler):
     def _key_ev_mbox(self, key):
         """Handle event on message box."""
         if key.endswith("enter") or key == "esc":
-            if self.current_window != self.message_box_caller \
-                    and self.message_box_caller != _MESSAGE_BOX:
+            if self.message_box_caller not in (self.current_window, _MESSAGE_BOX):
                 self.current_window = self.message_box_caller
                 self._body = self._message_box_caller_body
             if self.old_layout:
@@ -684,8 +681,7 @@ class Application(ApplicationHandler):
         self._handle_standard_tab_behaviour(key)
         if key == "f10":
             raise ExitMainLoop()
-        elif key.endswith("enter") or key == "esc":
-            self._open_main_menu()
+        self._open_main_menu()
 
     def _key_ev_pass(self, key):
         """Handle event on system password reset menu."""
@@ -746,8 +742,7 @@ class Application(ApplicationHandler):
             self.screen.tty_signal_keys(*self.old_termios)
             os.system("reboot")
             raise ExitMainLoop()
-        else:
-            self.current_window = _MAIN_MENU
+        self.current_window = _MAIN_MENU
 
     def _key_ev_shutdown(self, key):
         """Handle event on shutdown menu."""
@@ -759,8 +754,7 @@ class Application(ApplicationHandler):
             self.screen.tty_signal_keys(*self.old_termios)
             os.system("poweroff")
             raise ExitMainLoop()
-        else:
-            self.current_window = _MAIN_MENU
+        self.current_window = _MAIN_MENU
 
     def _key_ev_mainmenu(self, key):
         """Handle event on main menu menu."""
@@ -854,9 +848,9 @@ class Application(ApplicationHandler):
         """Handle event at anytime."""
         if key in ["f10", "Q"]:
             raise ExitMainLoop()
-        elif key == "f4" and len(self.authorized_options) > 0:
+        if key == "f4" and len(self.authorized_options) > 0:
             self._open_main_menu()
-        elif key == "f1" or key == "c":
+        elif key in ("f1", "c"):
             self._switch_next_colormode()
         elif key == "f5":
             self._open_keyboard_selection_menu()
@@ -983,7 +977,7 @@ class Application(ApplicationHandler):
                     if res.status_code == 200:
                         self._draw_progress(30)
                         tmp = Path(keyfile)
-                        with tmp.open('w') as file:
+                        with tmp.open('w', encoding="utf-8") as file:
                             file.write(res.content.decode())
                         self._draw_progress(40)
                         with subprocess.Popen(
@@ -1107,7 +1101,7 @@ class Application(ApplicationHandler):
                 stderr=subprocess.PIPE,
             ) as process:
                 out = process.communicate()[0]
-            if type(out) is bytes:
+            if isinstance(out, bytes):
                 out = out.decode()
         if out == "":
             self.config = {
