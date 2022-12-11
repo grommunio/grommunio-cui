@@ -986,21 +986,21 @@ class Application(ApplicationHandler):
                         with tmp.open('w') as file:
                             file.write(res.content.decode())
                         self._draw_progress(40)
-                        ret_code = subprocess.Popen(
+                        with subprocess.Popen(
                             ["rpm", "--import", keyfile],
                             stderr=subprocess.DEVNULL,
                             stdout=subprocess.DEVNULL,
-                        )
-                        if ret_code.wait() == 0:
-                            self._draw_progress(60)
-                            ret_code = subprocess.Popen(
-                                ["zypper", "--non-interactive", "refresh"],
-                                stderr=subprocess.DEVNULL,
-                                stdout=subprocess.DEVNULL,
-                            )
-                            if ret_code.wait() == 0:
-                                self._draw_progress(100)
-                                got_keyfile = True
+                        ) as ret_code_rpm:
+                            if ret_code_rpm.wait() == 0:
+                                self._draw_progress(60)
+                                with subprocess.Popen(
+                                    ["zypper", "--non-interactive", "refresh"],
+                                    stderr=subprocess.DEVNULL,
+                                    stdout=subprocess.DEVNULL,
+                                ) as ret_code_zypper:
+                                    if ret_code_zypper.wait() == 0:
+                                        self._draw_progress(100)
+                                        got_keyfile = True
                     if got_keyfile:
                         self.message_box(
                             parameter.MsgBoxParams(
@@ -1045,15 +1045,15 @@ class Application(ApplicationHandler):
             util.lineconfig_write(
                 "/etc/systemd/timesyncd.conf", self.timesyncd_vars
             )
-            ret_code = subprocess.Popen(
+            with subprocess.Popen(
                 ["timedatectl", "set-ntp", "true"],
                 stderr=subprocess.DEVNULL,
                 stdout=subprocess.DEVNULL,
-            )
-            res = ret_code.wait() == 0
-            success_msg = T_("was successful")
-            if not res:
-                success_msg = T_("failed")
+            ) as ret_code:
+                res = ret_code.wait() == 0
+                success_msg = T_("was successful")
+                if not res:
+                    success_msg = T_("failed")
             self.message_box(
                 parameter.MsgBoxParams(
                     T_(f"Timesyncd configuration change {success_msg}!"),
@@ -1100,13 +1100,13 @@ class Application(ApplicationHandler):
         exe = "/usr/sbin/grommunio-admin"
         out = ""
         if Path(exe).exists():
-            process = subprocess.Popen(
+            with subprocess.Popen(
                 [exe, "config", "dump"],
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-            )
-            out = process.communicate()[0]
+            ) as process:
+                out = process.communicate()[0]
             if type(out) is bytes:
                 out = out.decode()
         if out == "":
