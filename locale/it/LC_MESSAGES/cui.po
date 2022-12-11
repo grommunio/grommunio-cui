@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2022-12-10 17:31+0100\n"
-"PO-Revision-Date: 2022-12-10 17:04+0000\n"
-"Last-Translator: Mike Williams <mike.williams@grammm.com>\n"
+"PO-Revision-Date: 2022-12-11 16:35+0000\n"
+"Last-Translator: Orkan Eser <orkan.eser@grommunio.com>\n"
 "Language-Team: Italian <https://hosted.weblate.org/projects/grommunio/"
 "grommunio-cui/it/>\n"
 "Language: it\n"
@@ -131,7 +131,7 @@ msgstr ""
 
 #: cui/__init__.py:380
 msgid "Timezone"
-msgstr ""
+msgstr "Fuso orario"
 
 #: cui/__init__.py:383
 msgid "Opens the yast2 configurator for setting country and timezone settings."
