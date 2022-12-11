@@ -6,6 +6,8 @@ import sys
 import time
 from pathlib import Path
 
+import requests
+from getpass import getuser
 from pamela import authenticate, PAMError
 from typing import Any, Dict, List, Tuple, Union, Iterable
 from datetime import datetime
@@ -15,7 +17,11 @@ import platform
 import psutil
 import socket
 import shlex
+
+from requests import Response
+
 import cui
+import urwid
 
 
 def T_(msg):
@@ -78,6 +84,209 @@ def restart_gui():
             env[k] = locale_conf.get(k)
         os.execve(sys.executable, [sys.executable] + sys.argv, env)
     return ret_val
+
+
+def create_application_buttons(app):
+    # Login Dialog
+    app.login_header = urwid.AttrMap(
+        cui.gwidgets.GText(("header", T_("Login")), align="center"), "header"
+    )
+    app.user_edit = cui.gwidgets.GEdit(
+        (T_("Username: "),), edit_text=getuser(), edit_pos=0
+    )
+    app.pass_edit = cui.gwidgets.GEdit(
+        T_("Password: "), edit_text="", edit_pos=0, mask="*"
+    )
+    app.login_body = urwid.Pile(
+        [
+            app.user_edit,
+            app.pass_edit,
+        ]
+    )
+    login_button = cui.button.GBoxButton(T_("Login"), app._check_login)
+    urwid.connect_signal(
+        login_button,
+        "click",
+        lambda button: app.handle_event("login enter"),
+    )
+    app.login_footer = urwid.AttrMap(
+        urwid.Columns([cui.gwidgets.GText(""), login_button, cui.gwidgets.GText("")]), "buttonbar"
+    )
+    # Common OK Button
+    app.ok_button = cui.button.GBoxButton(T_("OK"), app._press_button)
+    urwid.connect_signal(
+        app.ok_button,
+        "click",
+        lambda button: app.handle_event("ok enter"),
+    )
+    app.ok_button = (len(app.ok_button.label) + 6, app.ok_button)
+    app.ok_button_footer = urwid.AttrMap(
+        urwid.Columns(
+            [
+                ("weight", 1, cui.gwidgets.GText("")),
+                (
+                    "weight",
+                    1,
+                    urwid.Columns(
+                        [
+                            ("weight", 1, cui.gwidgets.GText("")),
+                            app.ok_button,
+                            ("weight", 1, cui.gwidgets.GText("")),
+                        ]
+                    ),
+                ),
+                ("weight", 1, cui.gwidgets.GText("")),
+            ]
+        ),
+        "buttonbar",
+    )
+    # Common Cancel Button
+    app.cancel_button = cui.button.GBoxButton(T_("Cancel"), app._press_button)
+    urwid.connect_signal(
+        app.cancel_button,
+        "click",
+        lambda button: app.handle_event("cancel enter"),
+    )
+    app.cancel_button = (len(app.cancel_button.label) + 6, app.cancel_button)
+    app.cancel_button_footer = urwid.GridFlow(
+        [app.cancel_button[1]], 10, 1, 1, "center"
+    )
+    # Common Close Button
+    app.close_button = cui.button.GBoxButton(T_("Close"), app._press_button)
+    urwid.connect_signal(
+        app.close_button,
+        "click",
+        lambda button: app.handle_event("close enter"),
+    )
+    app.close_button = (len(app.close_button.label) + 6, app.close_button)
+    app.close_button_footer = urwid.AttrMap(
+        urwid.Columns(
+            [
+                ("weight", 1, cui.gwidgets.GText("")),
+                (
+                    "weight",
+                    1,
+                    urwid.Columns(
+                        [
+                            ("weight", 1, cui.gwidgets.GText("")),
+                            app.close_button,
+                            ("weight", 1, cui.gwidgets.GText("")),
+                        ]
+                    ),
+                ),
+                ("weight", 1, cui.gwidgets.GText("")),
+            ]
+        ),
+        "buttonbar",
+    )
+    # Common Add Button
+    app.add_button = cui.button.GBoxButton(T_("Add"), app._press_button)
+    urwid.connect_signal(
+        app.add_button,
+        "click",
+        lambda button: app.handle_event("add enter"),
+    )
+    app.add_button = (len(app.add_button.label) + 6, app.add_button)
+    app.add_button_footer = urwid.GridFlow(
+        [app.add_button[1]], 10, 1, 1, "center"
+    )
+    # Common Edit Button
+    app.edit_button = cui.button.GBoxButton(T_("Edit"), app._press_button)
+    urwid.connect_signal(
+        app.edit_button,
+        "click",
+        lambda button: app.handle_event("edit enter"),
+    )
+    app.edit_button = (len(app.edit_button.label) + 6, app.edit_button)
+    app.edit_button_footer = urwid.GridFlow(
+        [app.edit_button[1]], 10, 1, 1, "center"
+    )
+    # Common Details Button
+    app.details_button = cui.button.GBoxButton(T_("Details"), app._press_button)
+    urwid.connect_signal(
+        app.details_button,
+        "click",
+        lambda button: app.handle_event("details enter"),
+    )
+    app.details_button = (len(app.details_button.label) + 6, app.details_button)
+    app.details_button_footer = urwid.GridFlow(
+        [app.details_button[1]], 10, 1, 1, "center"
+    )
+    # Common Toggle Button
+    app.toggle_button = cui.button.GBoxButton(T_("Space to toggle"), app._press_button)
+    app.toggle_button._selectable = False
+    app.toggle_button = (len(app.toggle_button.label) + 6, app.toggle_button)
+    app.toggle_button_footer = urwid.GridFlow(
+        [app.toggle_button[1]], 10, 1, 1, "center"
+    )
+    # Common Apply Button
+    app.apply_button = cui.button.GBoxButton(T_("Apply"), app._press_button)
+    urwid.connect_signal(
+        app.apply_button,
+        "click",
+        lambda button: app.handle_event("apply enter"),
+    )
+    app.apply_button = (len(app.apply_button.label) + 6, app.apply_button)
+    app.apply_button_footer = urwid.GridFlow(
+        [app.apply_button[1]], 10, 1, 1, "center"
+    )
+    # Common Save Button
+    app.save_button = cui.button.GBoxButton(T_("Save"), app._press_button)
+    urwid.connect_signal(
+        app.save_button,
+        "click",
+        lambda button: app.handle_event("save enter"),
+    )
+    app.save_button = (len(app.save_button.label) + 6, app.save_button)
+    app.save_button_footer = urwid.GridFlow(
+        [app.save_button[1]], 10, 1, 1, "center"
+    )
+
+
+def create_main_loop(app):
+    urwid.set_encoding("utf-8")
+    app.screen = urwid.raw_display.Screen()
+    app.old_termios = app.screen.tty_signal_keys()
+    app.blank_termios = ["undefined" for _ in range(0, 5)]
+    app.screen.tty_signal_keys(*app.blank_termios)
+    app._prepare_mainscreen()
+    # Loop
+    return urwid.MainLoop(
+        app._body,
+        get_palette(app._current_colormode),
+        unhandled_input=app.handle_event,
+        screen=app.screen,
+        handle_mouse=False,
+    )
+
+
+def check_repo_dialog(app, height):
+    updateable = False
+    url = 'download.grommunio.com/community/openSUSE_Leap_15.3/' \
+          '?ssl_verify=no'
+    if app.repo_selection_body.base_widget[3].state:
+        # supported selected
+        user = app.repo_selection_body.base_widget[4][1].edit_text
+        password = app.repo_selection_body.base_widget[5][1].edit_text
+        testurl = "https://download.grommunio.com/supported/open" \
+                  "SUSE_Leap_15.3/repodata/repomd.xml"
+        req: Response = requests.get(testurl, auth=(user, password))
+        if req.status_code == 200:
+            url = f'{user}:{password}@download.grommunio.com/supported/open' \
+                  'SUSE_Leap_15.3/?ssl_verify=no'
+            updateable = True
+        else:
+            app.message_box(
+                cui.parameter.MsgBoxParams(
+                    T_('Please check the credentials for "supported"'
+                       '-version or use "community"-version.'),
+                ),
+                size=cui.parameter.Size(height=height + 1)
+            )
+    else:
+        # community selected
+        updateable = True
+    return updateable, url
 
 
 def init_localization(language: Union[str, str, Iterable[Union[str, str]], None] = ''):
@@ -341,13 +550,11 @@ def rebase_list(deep_list):
 
 
 def make_list_gtext(list_wowo_gtext):
-    from cui import GText
-
     wowolist = list_wowo_gtext
     rv = []
     for wowo in wowolist:
-        if not isinstance(wowo, GText):
-            rv += [GText(wowo)]
+        if not isinstance(wowo, cui.gwidgets.GText):
+            rv += [cui.gwidgets.GText(wowo)]
         else:
             rv += [wowo]
     return rv

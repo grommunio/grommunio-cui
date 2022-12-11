@@ -9,7 +9,7 @@ import subprocess
 import sys
 from asyncio.events import AbstractEventLoop
 from pathlib import Path
-from typing import Any, List, Tuple, Dict, Union, Set
+from typing import Any, List, Tuple, Dict, Union, Set, Optional
 import os
 from getpass import getuser
 import requests
@@ -91,7 +91,25 @@ class Application(ApplicationHandler):
     """
     The console UI. Main application class.
     """
-
+    mainframe: Optional[urwid.Frame]
+    vsplitbox: Optional[urwid.Pile]
+    main_top: Optional[cui.scroll.ScrollBar]
+    main_bottom: Optional[cui.scroll.ScrollBar]
+    tb_sysinfo_top: Optional[cui.gwidgets.GText]
+    tb_sysinfo_bottom: Optional[cui.gwidgets.GText]
+    tb_intro: Optional[cui.gwidgets.GText]
+    text_header: List[Union[str, tuple]]
+    old_termios: Optional[Tuple[Any, Any, Any, Any, Any]]
+    blank_termios: Optional[Tuple[Any, Any, Any, Any, Any]]
+    screen: Optional[urwid.raw_display.Screen]
+    ok_button: Optional[cui.button.GBoxButton]
+    save_button: Optional[cui.button.GBoxButton]
+    cancel_button: Optional[cui.button.GBoxButton]
+    user_edit: Optional[cui.gwidgets.GEdit]
+    pass_edit: Optional[cui.gwidgets.GEdit]
+    login_body: Optional[urwid.Widget]
+    login_header: Optional[urwid.Widget]
+    login_footer: Optional[urwid.Widget]
     current_window: str = _MAIN
     last_current_window: str = ""
     current_window_input_box: str = ""
@@ -147,186 +165,10 @@ class Application(ApplicationHandler):
 
     def __init__(self):
         # MAIN Page
-        set_encoding("utf-8")
-        self.screen = raw_display.Screen()
-        self.old_termios = self.screen.tty_signal_keys()
-        self.blank_termios = ["undefined" for _ in range(0, 5)]
-        self.screen.tty_signal_keys(*self.blank_termios)
-        self._prepare_mainscreen()
-
-        # Loop
-        self._loop = MainLoop(
-            self._body,
-            util.get_palette(self._current_colormode),
-            unhandled_input=self.handle_event,
-            screen=self.screen,
-            handle_mouse=False,
-        )
+        self._loop = util.create_main_loop(self)
         self._loop.set_alarm_in(1, self._update_clock)
 
-        # Login Dialog
-        self.login_header = AttrMap(
-            GText(("header", T_("Login")), align="center"), "header"
-        )
-        self.user_edit = GEdit(
-            (T_("Username: "),), edit_text=getuser(), edit_pos=0
-        )
-        self.pass_edit = GEdit(
-            T_("Password: "), edit_text="", edit_pos=0, mask="*"
-        )
-        self.login_body = Pile(
-            [
-                self.user_edit,
-                self.pass_edit,
-            ]
-        )
-        login_button = GBoxButton(T_("Login"), self._check_login)
-        connect_signal(
-            login_button,
-            "click",
-            lambda button: self.handle_event("login enter"),
-        )
-        self.login_footer = AttrMap(
-            Columns([GText(""), login_button, GText("")]), "buttonbar"
-        )
-
-        # Common OK Button
-        self.ok_button = GBoxButton(T_("OK"), self._press_button)
-        connect_signal(
-            self.ok_button,
-            "click",
-            lambda button: self.handle_event("ok enter"),
-        )
-        self.ok_button = (len(self.ok_button.label) + 6, self.ok_button)
-        self.ok_button_footer = AttrMap(
-            Columns(
-                [
-                    ("weight", 1, GText("")),
-                    (
-                        "weight",
-                        1,
-                        Columns(
-                            [
-                                ("weight", 1, GText("")),
-                                self.ok_button,
-                                ("weight", 1, GText("")),
-                            ]
-                        ),
-                    ),
-                    ("weight", 1, GText("")),
-                ]
-            ),
-            "buttonbar",
-        )
-
-        # Common Cancel Button
-        self.cancel_button = GBoxButton(T_("Cancel"), self._press_button)
-        connect_signal(
-            self.cancel_button,
-            "click",
-            lambda button: self.handle_event("cancel enter"),
-        )
-        self.cancel_button = (len(self.cancel_button.label) + 6, self.cancel_button)
-        self.cancel_button_footer = GridFlow(
-            [self.cancel_button[1]], 10, 1, 1, "center"
-        )
-
-        # Common Close Button
-        self.close_button = GBoxButton(T_("Close"), self._press_button)
-        connect_signal(
-            self.close_button,
-            "click",
-            lambda button: self.handle_event("close enter"),
-        )
-        self.close_button = (len(self.close_button.label) + 6, self.close_button)
-        self.close_button_footer = AttrMap(
-            Columns(
-                [
-                    ("weight", 1, GText("")),
-                    (
-                        "weight",
-                        1,
-                        Columns(
-                            [
-                                ("weight", 1, GText("")),
-                                self.close_button,
-                                ("weight", 1, GText("")),
-                            ]
-                        ),
-                    ),
-                    ("weight", 1, GText("")),
-                ]
-            ),
-            "buttonbar",
-        )
-
-        # Common Add Button
-        self.add_button = GBoxButton(T_("Add"), self._press_button)
-        connect_signal(
-            self.add_button,
-            "click",
-            lambda button: self.handle_event("add enter"),
-        )
-        self.add_button = (len(self.add_button.label) + 6, self.add_button)
-        self.add_button_footer = GridFlow(
-            [self.add_button[1]], 10, 1, 1, "center"
-        )
-
-        # Common Edit Button
-        self.edit_button = GBoxButton(T_("Edit"), self._press_button)
-        connect_signal(
-            self.edit_button,
-            "click",
-            lambda button: self.handle_event("edit enter"),
-        )
-        self.edit_button = (len(self.edit_button.label) + 6, self.edit_button)
-        self.edit_button_footer = GridFlow(
-            [self.edit_button[1]], 10, 1, 1, "center"
-        )
-
-        # Common Details Button
-        self.details_button = GBoxButton(T_("Details"), self._press_button)
-        connect_signal(
-            self.details_button,
-            "click",
-            lambda button: self.handle_event("details enter"),
-        )
-        self.details_button = (len(self.details_button.label) + 6, self.details_button)
-        self.details_button_footer = GridFlow(
-            [self.details_button[1]], 10, 1, 1, "center"
-        )
-
-        # Common Toggle Button
-        self.toggle_button = GBoxButton(T_("Space to toggle"), self._press_button)
-        self.toggle_button._selectable = False
-        self.toggle_button = (len(self.toggle_button.label) + 6, self.toggle_button)
-        self.toggle_button_footer = GridFlow(
-            [self.toggle_button[1]], 10, 1, 1, "center"
-        )
-
-        # Common Apply Button
-        self.apply_button = GBoxButton(T_("Apply"), self._press_button)
-        connect_signal(
-            self.apply_button,
-            "click",
-            lambda button: self.handle_event("apply enter"),
-        )
-        self.apply_button = (len(self.apply_button.label) + 6, self.apply_button)
-        self.apply_button_footer = GridFlow(
-            [self.apply_button[1]], 10, 1, 1, "center"
-        )
-
-        # Common Save Button
-        self.save_button = GBoxButton(T_("Save"), self._press_button)
-        connect_signal(
-            self.save_button,
-            "click",
-            lambda button: self.handle_event("save enter"),
-        )
-        self.save_button = (len(self.save_button.label) + 6, self.save_button)
-        self.save_button_footer = GridFlow(
-            [self.save_button[1]], 10, 1, 1, "center"
-        )
+        util.create_application_buttons(self)
 
         self._refresh_main_menu()
 
@@ -906,7 +748,6 @@ class Application(ApplicationHandler):
     def _key_ev_repo_selection(self, key):
         """Handle event on repository selection menu."""
         self._handle_standard_tab_behaviour(key)
-        updateable = False
         keyurl = 'https://download.grommunio.com/RPM-GPG-KEY-grommunio'
         keyfile = '/tmp/RPM-GPG-KEY-grommunio'
         repofile = '/etc/zypp/repos.d/grommunio.repo'
@@ -925,30 +766,7 @@ class Application(ApplicationHandler):
             size=parameter.Size(height=height)
         )
         if button_type in ("ok", "save"):
-            url = 'download.grommunio.com/community/openSUSE_Leap_15.3/' \
-                  '?ssl_verify=no'
-            if self.repo_selection_body.base_widget[3].state:
-                # supported selected
-                user = self.repo_selection_body.base_widget[4][1].edit_text
-                password = self.repo_selection_body.base_widget[5][1].edit_text
-                testurl="https://download.grommunio.com/supported/open" \
-                        "SUSE_Leap_15.3/repodata/repomd.xml"
-                req: Response = requests.get(testurl, auth=(user, password))
-                if req.status_code == 200:
-                    url = f'{user}:{password}@download.grommunio.com/supported/open' \
-                          'SUSE_Leap_15.3/?ssl_verify=no'
-                    updateable = True
-                else:
-                    self.message_box(
-                        parameter.MsgBoxParams(
-                            T_('Please check the credentials for "supported"'
-                               '-version or use "community"-version.'),
-                        ),
-                        size=parameter.Size(height=height+1)
-                    )
-            else:
-                # community selected
-                updateable = True
+            updateable, url = util.check_repo_dialog(self, height)
             if updateable:
                 config['grommunio']['baseurl'] = f'https://{url}'
                 config['grommunio']['type'] = 'rpm-md'
