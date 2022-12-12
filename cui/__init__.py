@@ -2252,31 +2252,34 @@ class Application(ApplicationHandler):
             @param size: The size with width and height.
             @param modal: Dialog is locked / modal until user closes it.
         """
-        (body, header, footer, focus_part, align, width, valign, height) = \
-            (frame.body, frame.header, frame.footer, frame.focus_part, alignment.align,
-             size.width, alignment.valign, size.height)
         # Body
         if isinstance(frame.body, str) and frame.body == "":
-            body_text = GText("No body", align="center")
-            body_filler = Filler(body_text, valign="top")
-            body_padding = Padding(body_filler, left=1, right=1)
-            body = LineBox(body_padding)
+            body = GText(T_("No body"), align="center")
+            body = Filler(body, valign="top")
+            body = Padding(body, left=1, right=1)
+            body = LineBox(body)
+        else:
+            body = frame.body
 
         # Footer
         if isinstance(frame.footer, str) and frame.footer == "":
             footer = GBoxButton("Okay", self._reset_layout())
             footer = AttrWrap(footer, "selectable", "focus")
             footer = GridFlow([footer], 8, 1, 1, "center")
+        else:
+            footer = frame.footer
 
         # Header
         if isinstance(frame.header, str) and frame.header == "":
-            header = GBoxButton("Okay", self._reset_layout())
-            header = AttrWrap(header, "selectable", "focus")
-            header = GridFlow([header], 8, 1, 1, "center")
+            header = GText("No header", align=urwid.CENTER)
+        else:
+            header = frame.header
 
         # Focus
         if frame.focus_part is None:
             focus_part = "footer"
+        else:
+            focus_part = frame.focus_part
 
         # Layout
         if self.layout is not None:
@@ -2291,10 +2294,10 @@ class Application(ApplicationHandler):
         widget = Overlay(
             LineBox(self.layout),
             self._body,
-            align=align,
-            width=width,
-            valign=valign,
-            height=height,
+            align=alignment.align,
+            width=size.width,
+            valign=alignment.valign,
+            height=size.height,
         )
 
         if getattr(self, "_loop", None):
