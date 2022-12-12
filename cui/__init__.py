@@ -1223,6 +1223,9 @@ class Application(ApplicationHandler):
         """Open the change system password Dialog."""
         title = T_("System Password Change")
         msg = T_("Enter the new system password:")
+        self._create_password_dialog(msg, title, _PASSWORD)
+
+    def _create_password_dialog(self, msg, title, current_window):
         width = 60
         input_text = ""
         height = 14
@@ -1233,7 +1236,7 @@ class Application(ApplicationHandler):
         valign = MIDDLE
         self.input_box_caller = self.current_window
         self._input_box_caller_body = self._loop.widget
-        self.current_window = _PASSWORD
+        self.current_window = current_window
         body = LineBox(
             Padding(
                 Filler(
@@ -1251,7 +1254,6 @@ class Application(ApplicationHandler):
             )
         )
         footer = self._create_footer(view_ok, view_cancel)
-
         if title is None:
             title = "Input expected"
         frame: parameter.Frame = parameter.Frame(
@@ -1476,46 +1478,7 @@ class Application(ApplicationHandler):
         """Open reset admin-API password."""
         title = T_("admin-web Password Change")
         msg = T_("Enter the new admin-web password:")
-        width = 60
-        input_text = ""
-        height = 14
-        mask = "*"
-        view_ok = True
-        view_cancel = True
-        align = CENTER
-        valign = MIDDLE
-        self.input_box_caller = self.current_window
-        self._input_box_caller_body = self._loop.widget
-        self.current_window = _ADMIN_WEB_PW
-        body = LineBox(
-            Padding(
-                Filler(
-                    Pile(
-                        [
-                            GText(msg, CENTER),
-                            urwid.Divider(),
-                            GEdit("", input_text, False, CENTER, mask=mask),
-                            urwid.Divider(),
-                            GEdit("", input_text, False, CENTER, mask=mask),
-                        ]
-                    ),
-                    TOP,
-                )
-            )
-        )
-        footer = self._create_footer(view_ok, view_cancel)
-
-        if title is None:
-            title = "Input expected"
-        frame: parameter.Frame = parameter.Frame(
-            body=body,
-            header=GText(title, CENTER),
-            footer=footer,
-            focus_part="body",
-        )
-        alignment: parameter.Alignment = parameter.Alignment(align, valign)
-        size: parameter.Size = parameter.Size(width, height)
-        self.dialog(frame, alignment=alignment, size=size)
+        self._create_password_dialog(msg, title, _ADMIN_WEB_PW)
 
     def _reset_aapi_passwd(self, new_pw: str) -> bool:
         """Reset admin-API password."""
@@ -1540,11 +1503,19 @@ class Application(ApplicationHandler):
         self.current_window = _TIMESYNCD
         header = AttrMap(GText(T_("Timesyncd Configuration"), CENTER), "header")
         self._prepare_timesyncd_config()
+        self._open_conf_dialog(self.timesyncd_body, header, [self.ok_button, self.cancel_button])
+
+    def _open_conf_dialog(
+            self,
+            body_widget: urwid.Widget,
+            header: Any,
+            footer_buttons: List[Tuple[int, GBoxButton]]
+    ):
         footer = AttrMap(
-            Columns([self.ok_button, self.cancel_button]), "buttonbar"
+            Columns(footer_buttons), "buttonbar"
         )
         frame: parameter.Frame = parameter.Frame(
-            body=AttrMap(self.timesyncd_body, "body"),
+            body=AttrMap(body_widget, "body"),
             header=header,
             footer=footer,
             focus_part="body",
@@ -1605,18 +1576,7 @@ class Application(ApplicationHandler):
         self.current_window = _REPO_SELECTION
         header = AttrMap(GText(T_("Software repository selection"), CENTER), "header")
         self._prepare_repo_config()
-        footer = AttrMap(
-            Columns([self.save_button, self.cancel_button]), "buttonbar"
-        )
-        frame: parameter.Frame = parameter.Frame(
-            body=AttrMap(self.repo_selection_body, "body"),
-            header=header,
-            footer=footer,
-            focus_part="body",
-        )
-        alignment: parameter.Alignment = parameter.Alignment(urwid.CENTER, urwid.MIDDLE)
-        size: parameter.Size = parameter.Size(60, 15)
-        self.dialog(frame, alignment=alignment, size=size)
+        self._open_conf_dialog(self.repo_selection_body, header, [self.save_button, self.cancel_button])
 
     def _prepare_repo_config(self):
         """Prepare repository configuration form."""
