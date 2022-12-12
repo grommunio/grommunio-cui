@@ -625,17 +625,13 @@ class Application(ApplicationHandler):
                 self.login_body.focus_position = (
                     0 if getuser() == "" else 1
                 )  # focus on passwd if user detected
-                params = parameter.DialogParams(
+                frame: parameter.Frame = parameter.Frame(
                     body=LineBox(Padding(Filler(self.login_body))),
                     header=self.login_header,
                     footer=self.login_footer,
                     focus_part="body",
-                    align="center",
-                    valign="middle",
-                    width=40,
-                    height=10,
                 )
-                self.dialog(params)
+                self.dialog(frame)
                 self.current_window = _LOGIN
             else:
                 self._open_main_menu()
@@ -981,8 +977,8 @@ class Application(ApplicationHandler):
                         pad = urwid.Padding(self.progressbar)  # do not use pg! use self.progressbar.
                         fil = urwid.Filler(pad)
                         linebox = urwid.LineBox(fil)
-                        params = parameter.DialogParams(linebox, header, footer)
-                        self.dialog(params)
+                        frame: parameter.Frame = parameter.Frame(linebox, header, footer)
+                        self.dialog(frame)
                         self._draw_progress(20)
                         res: Response = requests.get(keyurl)
                         got_keyfile: bool = False
@@ -1257,17 +1253,15 @@ class Application(ApplicationHandler):
 
         if title is None:
             title = "Input expected"
-        params = parameter.DialogParams(
+        frame: parameter.Frame = parameter.Frame(
             body=body,
             header=GText(title, CENTER),
             footer=footer,
             focus_part="body",
-            align=align,
-            width=width,
-            valign=valign,
-            height=height,
         )
-        self.dialog(params)
+        alignment: parameter.Alignment = parameter.Alignment(align, valign)
+        size: parameter.Size = parameter.Size(width, height)
+        self.dialog(frame, alignment=alignment, size=size)
 
     def _reset_system_passwd(self, new_pw: str) -> bool:
         """Reset the system password."""
@@ -1512,17 +1506,15 @@ class Application(ApplicationHandler):
 
         if title is None:
             title = "Input expected"
-        params = parameter.DialogParams(
+        frame: parameter.Frame = parameter.Frame(
             body=body,
             header=GText(title, CENTER),
             footer=footer,
             focus_part="body",
-            align=align,
-            width=width,
-            valign=valign,
-            height=height,
         )
-        self.dialog(params)
+        alignment: parameter.Alignment = parameter.Alignment(align, valign)
+        size: parameter.Size = parameter.Size(width, height)
+        self.dialog(frame, alignment=alignment, size=size)
 
     def _reset_aapi_passwd(self, new_pw: str) -> bool:
         """Reset admin-API password."""
@@ -1550,17 +1542,15 @@ class Application(ApplicationHandler):
         footer = AttrMap(
             Columns([self.ok_button, self.cancel_button]), "buttonbar"
         )
-        params = parameter.DialogParams(
+        frame: parameter.Frame = parameter.Frame(
             body=AttrMap(self.timesyncd_body, "body"),
             header=header,
             footer=footer,
             focus_part="body",
-            align=CENTER,
-            width=60,
-            valign=MIDDLE,
-            height=15,
         )
-        self.dialog(params)
+        alignment: parameter.Alignment = parameter.Alignment(urwid.CENTER, urwid.MIDDLE)
+        size: parameter.Size = parameter.Size(60, 15)
+        self.dialog(frame, alignment=alignment, size=size)
 
     def _prepare_timesyncd_config(self):
         """Prepare timesyncd configuration form."""
@@ -1617,17 +1607,15 @@ class Application(ApplicationHandler):
         footer = AttrMap(
             Columns([self.save_button, self.cancel_button]), "buttonbar"
         )
-        params = parameter.DialogParams(
+        frame: parameter.Frame = parameter.Frame(
             body=AttrMap(self.repo_selection_body, "body"),
             header=header,
             footer=footer,
             focus_part="body",
-            align=CENTER,
-            width=60,
-            valign=MIDDLE,
-            height=15,
         )
-        self.dialog(params)
+        alignment: parameter.Alignment = parameter.Alignment(urwid.CENTER, urwid.MIDDLE)
+        size: parameter.Size = parameter.Size(60, 15)
+        self.dialog(frame, alignment=alignment, size=size)
 
     def _prepare_repo_config(self):
         """Prepare repository configuration form."""
@@ -1805,17 +1793,15 @@ class Application(ApplicationHandler):
         header = None
         self._prepare_kbd_config()
         footer = None
-        params = parameter.DialogParams(
+        frame: parameter.Frame = parameter.Frame(
             body=AttrMap(self.keyboard_switch_body, "body"),
             header=header,
             footer=footer,
             focus_part="body",
-            align=CENTER,
-            width=30,
-            valign=MIDDLE,
-            height=10,
         )
-        self.dialog(params)
+        alignment: parameter.Alignment = parameter.Alignment(urwid.CENTER, urwid.MIDDLE)
+        size: parameter.Size = parameter.Size(30, 10)
+        self.dialog(frame, alignment=alignment, size=size)
 
     def _prepare_kbd_config(self):
         """Prepare keyboard config form."""
@@ -2014,18 +2000,15 @@ class Application(ApplicationHandler):
 
         if title is None:
             title = "Message"
-        params = parameter.DialogParams(
+        frame: parameter.Frame = parameter.Frame(
             body=body,
             header=GText(title, CENTER),
             footer=footer,
             focus_part="footer",
-            align=align,
-            width=width,
-            valign=valign,
-            height=height,
-            modal=modal,
         )
-        self.dialog(params)
+        alignment: parameter.Alignment = parameter.Alignment(align, valign)
+        size: parameter.Size = parameter.Size(width, height)
+        self.dialog(frame, alignment=alignment, size=size, modal=modal)
 
     def input_box(
         self,
@@ -2097,18 +2080,15 @@ class Application(ApplicationHandler):
 
         if title is None:
             title = T_("Input expected")
-        params = parameter.DialogParams(
+        frame: parameter.Frame = parameter.Frame(
             body=body,
             header=GText(title, CENTER),
             footer=footer,
             focus_part="body",
-            align=align,
-            width=width,
-            valign=valign,
-            height=height,
-            modal=modal,
         )
-        self.dialog(params)
+        alignment: parameter.Alignment = parameter.Alignment(align, valign)
+        size: parameter.Size = parameter.Size(width, height)
+        self.dialog(frame, alignment=alignment, size=size, modal=modal)
 
     def _create_footer(self, view_ok: bool = True, view_cancel: bool = False):
         """Create and return footer."""
@@ -2297,7 +2277,10 @@ class Application(ApplicationHandler):
             self.screen.tty_signal_keys(*self.old_termios)
 
     def dialog(
-        self, params: parameter.DialogParams
+            self, frame: parameter.Frame,
+            alignment: parameter.Alignment=parameter.Alignment(),
+            size: parameter.Size=parameter.Size(),
+            modal: bool = False
     ):
         """
         Overlays a dialog box on top of the console UI
@@ -2313,30 +2296,30 @@ class Application(ApplicationHandler):
             valign (str): Vertical align.
             height (int): The height of the box.
         """
-        (body, header, footer, focus_part, align, width, valign, height, modal) = \
-            (params.body, params.header, params.footer, params.focus_part, params.align,
-             params.width, params.valign, params.height, params.modal)
+        (body, header, footer, focus_part, align, width, valign, height) = \
+            (frame.body, frame.header, frame.footer, frame.focus_part, alignment.align,
+             size.width, alignment.valign, size.height)
         # Body
-        if isinstance(params.body, str) and params.body == "":
+        if isinstance(frame.body, str) and frame.body == "":
             body_text = GText("No body", align="center")
             body_filler = Filler(body_text, valign="top")
             body_padding = Padding(body_filler, left=1, right=1)
             body = LineBox(body_padding)
 
         # Footer
-        if isinstance(params.footer, str) and params.footer == "":
+        if isinstance(frame.footer, str) and frame.footer == "":
             footer = GBoxButton("Okay", self._reset_layout())
             footer = AttrWrap(footer, "selectable", "focus")
             footer = GridFlow([footer], 8, 1, 1, "center")
 
         # Header
-        if isinstance(params.header, str) and params.header == "":
+        if isinstance(frame.header, str) and frame.header == "":
             header = GBoxButton("Okay", self._reset_layout())
             header = AttrWrap(header, "selectable", "focus")
             header = GridFlow([header], 8, 1, 1, "center")
 
         # Focus
-        if params.focus_part is None:
+        if frame.focus_part is None:
             focus_part = "footer"
 
         # Layout

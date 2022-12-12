@@ -17,7 +17,14 @@ def namedtuple_defaults(typename, field_names, default_values=()):
     return T
 
 
-dialog_params = ["body", "header", "footer", "focus_part",
-                 "align", "width", "valign", "height", "modal"]
-dialog_defaults = (None, None, None, None, urwid.CENTER, 40, urwid.MIDDLE, 10, False)
-DialogParams = namedtuple_defaults("DialogParams", dialog_params, dialog_defaults)
+alignment_params = ["align", "valign"]
+alignment_defaults = (urwid.CENTER, urwid.MIDDLE)
+Alignment = namedtuple_defaults("Alignment", alignment_params, alignment_defaults)
+
+size_params = ["width", "height"]
+size_defaults = (40, 10)
+Size = namedtuple_defaults("Size", size_params, size_defaults)
+
+frame_params = ["body", "header", "footer", "focus_part"]
+frame_defaults = (None, None, None, None)
+Frame = namedtuple_defaults("Frame", frame_params, frame_defaults)
