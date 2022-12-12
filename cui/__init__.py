@@ -118,7 +118,6 @@ class Application(ApplicationHandler):
     header: urwid.AttrMap
     log_viewer: urwid.LineBox
     repo_selection_body: urwid.LineBox
-    loaded_kbd: str
     keyboard_rb: List
     keyboard_content: List
     keyboard_list: ScrollBar
@@ -272,7 +271,7 @@ class Application(ApplicationHandler):
         self.header: Header = Header()
         self.main_frame: MainFrame = MainFrame(self)
         self.header.refresh_header()
-        self.vsplitbox = urwid.Pile(
+        self.main_frame.vsplitbox = urwid.Pile(
             [
                 ("weight", 50, urwid.AttrMap(self.main_frame.main_top, "body")),
                 ("weight", 50, self.main_frame.main_bottom),
@@ -280,7 +279,7 @@ class Application(ApplicationHandler):
         )
         self.footer = urwid.Pile(self.footer_content)
         frame = urwid.Frame(
-            urwid.AttrMap(self.vsplitbox, "reverse"),
+            urwid.AttrMap(self.main_frame.vsplitbox, "reverse"),
             header=self.header.info.header,
             footer=self.footer,
         )
@@ -354,8 +353,8 @@ class Application(ApplicationHandler):
         elif key == "l" and not PRODUCTION:
             self._open_main_menu()
         elif key == "tab":
-            self.vsplitbox.focus_position = (
-                0 if self.vsplitbox.focus_position == 1 else 1
+            self.main_frame.vsplitbox.focus_position = (
+                0 if self.main_frame.vsplitbox.focus_position == 1 else 1
             )
 
     def _key_ev_mbox(self, key):
@@ -1408,7 +1407,7 @@ class Application(ApplicationHandler):
         _ = [
             keyboard_list.append(kbd)
             for kbd in sorted(keyboards)
-            if kbd != self.loaded_kbd
+            if kbd != self.header.get_kbdlayout()
         ]
         self.keyboard_rb = []
         self.keyboard_content = []
@@ -1418,7 +1417,7 @@ class Application(ApplicationHandler):
                     urwid.RadioButton(
                         self.keyboard_rb, kbd, "first True", sub_press
                     ),
-                    "focus" if kbd == self.loaded_kbd else "selectable",
+                    "focus" if kbd == self.header.get_kbdlayout() else "selectable",
                 )
             )
         self.keyboard_list = ScrollBar(Scrollable(urwid.Pile(self.keyboard_content)))
