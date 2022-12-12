@@ -18,7 +18,6 @@ import yaml
 # from pudb.remote import set_trace
 from yaml import SafeLoader
 from systemd import journal
-from urwid.widget import SPACE
 import urwid
 from cui.gwidgets import GText, GEdit
 from cui import util, parameter
@@ -294,12 +293,12 @@ class Application(ApplicationHandler):
             T_("If you need help, press the 'L' key to view logs."),
             "\n",
         ]
-        self.tb_intro = GText(text_intro, align=urwid.CENTER, wrap=SPACE)
+        self.tb_intro = GText(text_intro, align=urwid.CENTER, wrap=urwid.SPACE)
         text_sysinfo_top = util.get_system_info("top")
-        self.tb_sysinfo_top = GText(text_sysinfo_top, align=urwid.LEFT, wrap=SPACE)
+        self.tb_sysinfo_top = GText(text_sysinfo_top, align=urwid.LEFT, wrap=urwid.SPACE)
         text_sysinfo_bottom = util.get_system_info("bottom")
         self.tb_sysinfo_bottom = GText(
-            text_sysinfo_bottom, align=urwid.LEFT, wrap=SPACE
+            text_sysinfo_bottom, align=urwid.LEFT, wrap=urwid.SPACE
         )
         self.main_top = ScrollBar(
             Scrollable(
@@ -340,7 +339,7 @@ class Application(ApplicationHandler):
                 authorized_options="",
             ),
             align=urwid.CENTER,
-            wrap=SPACE,
+            wrap=urwid.SPACE,
         )
         self._refresh_header(colormode, self._current_kbdlayout, "")
         self.vsplitbox = urwid.Pile(
@@ -399,7 +398,7 @@ class Application(ApplicationHandler):
         key: str = str(event)
         if self.log_finished and self.current_window != _LOG_VIEWER:
             self.log_finished = False
-        (func, option) = {
+        (func, var) = {
             _MAIN: (self._key_ev_main, None),
             _MESSAGE_BOX: (self._key_ev_mbox, None),
             _INPUT_BOX: (self._key_ev_ibox, None),
@@ -416,8 +415,8 @@ class Application(ApplicationHandler):
             _REPO_SELECTION: (self._key_ev_repo_selection, None),
             _KEYBOARD_SWITCH: (self._key_ev_kbd_switch, None),
         }.get(self.current_window)
-        if key:
-            func(key)
+        if var:
+            func(var)
         else:
             func()
         self._key_ev_anytime(key)
@@ -1262,20 +1261,20 @@ class Application(ApplicationHandler):
         )
         ntp_server = ntp_from_file.split(" ")
         fallback_server = fallback_from_file.split(" ")
-        text = T_("Insert the NTP servers separated by <SPACE> char.")
+        text = T_("Insert the NTP servers separated by <urwid.SPACE> char.")
         self.timesyncd_body = urwid.LineBox(
             urwid.Padding(
                 urwid.Filler(
                     urwid.Pile(
                         [
-                            GText(text, urwid.LEFT, wrap=SPACE),
+                            GText(text, urwid.LEFT, wrap=urwid.SPACE),
                             GEdit(
-                                (15, "NTP: "), " ".join(ntp_server), wrap=SPACE
+                                (15, "NTP: "), " ".join(ntp_server), wrap=urwid.SPACE
                             ),
                             GEdit(
                                 (15, "FallbackNTP: "),
                                 " ".join(fallback_server),
-                                wrap=SPACE,
+                                wrap=urwid.SPACE,
                             ),
                         ]
                     ),
