@@ -22,6 +22,7 @@ import urwid
 from cui.gwidgets import GText, GEdit
 from cui import util, parameter
 import cui.parser
+import cui.appclass
 from cui.scroll import ScrollBar, Scrollable
 from cui.button import GButton, GBoxButton
 from cui.menu import MenuItem, MultiMenuItem
@@ -68,10 +69,7 @@ class Application(ApplicationHandler):
     vsplitbox: Optional[urwid.Pile]
     main_top: Optional[cui.scroll.ScrollBar]
     main_bottom: Optional[cui.scroll.ScrollBar]
-    tb_sysinfo_top: Optional[cui.gwidgets.GText]
-    tb_sysinfo_bottom: Optional[cui.gwidgets.GText]
-    tb_intro: Optional[cui.gwidgets.GText]
-    text_header: List[Union[str, tuple]]
+    header: Optional[cui.appclass.Header]
     old_termios: Optional[Tuple[Any, Any, Any, Any, Any]]
     blank_termios: Optional[Tuple[Any, Any, Any, Any, Any]]
     screen: Optional[urwid.raw_display.Screen]
@@ -125,7 +123,6 @@ class Application(ApplicationHandler):
     _hidden_pos: int = 0
     _body: urwid.Widget
     tb_header: GText
-    authorized_options: str
     footer: urwid.Pile
     header: urwid.AttrMap
     log_viewer: urwid.LineBox
@@ -282,31 +279,14 @@ class Application(ApplicationHandler):
     def _prepare_mainscreen(self):
         """Prepare main screen."""
         colormode: str = self._current_colormode
-        self.text_header = [T_("grommunio console user interface")]
-        self.text_header += ["\n"]
-        self.text_header += [
-            T_("Active keyboard layout: {kbd}; color set: {colormode}.")
-        ]
-        self.authorized_options = ""
-        text_intro = [
-            "\n",
-            T_("If you need help, press the 'L' key to view logs."),
-            "\n",
-        ]
-        self.tb_intro = GText(text_intro, align=urwid.CENTER, wrap=urwid.SPACE)
-        text_sysinfo_top = util.get_system_info("top")
-        self.tb_sysinfo_top = GText(text_sysinfo_top, align=urwid.LEFT, wrap=urwid.SPACE)
-        text_sysinfo_bottom = util.get_system_info("bottom")
-        self.tb_sysinfo_bottom = GText(
-            text_sysinfo_bottom, align=urwid.LEFT, wrap=urwid.SPACE
-        )
+        self.header = cui.appclass.Header()
         self.main_top = ScrollBar(
             Scrollable(
                 urwid.Pile(
                     [
-                        urwid.Padding(self.tb_intro, left=2, right=2, min_width=20),
+                        urwid.Padding(self.header.tb_intro, left=2, right=2, min_width=20),
                         urwid.Padding(
-                            self.tb_sysinfo_top,
+                            self.header.tb_sysinfo_top,
                             align=urwid.LEFT,
                             left=6,
                             width=("relative", 80),
@@ -321,7 +301,7 @@ class Application(ApplicationHandler):
                     [
                         urwid.AttrMap(
                             urwid.Padding(
-                                self.tb_sysinfo_bottom,
+                                self.header.tb_sysinfo_bottom,
                                 align=urwid.LEFT,
                                 left=6,
                                 width=("relative", 80),
@@ -333,7 +313,7 @@ class Application(ApplicationHandler):
             )
         )
         self.tb_header = GText(
-            "".join(self.text_header).format(
+            "".join(self.header.text_header).format(
                 colormode=colormode,
                 kbd=self._current_kbdlayout,
                 authorized_options="",
@@ -368,7 +348,7 @@ class Application(ApplicationHandler):
     def _refresh_head_text(self, colormode, kbd, authorized_options):
         """Refresh head text."""
         self.tb_header.set_text(
-            "".join(self.text_header).format(
+            "".join(self.header.text_header).format(
                 colormode=colormode,
                 kbd=kbd,
                 authorized_options=authorized_options,
@@ -399,21 +379,21 @@ class Application(ApplicationHandler):
         if self.log_finished and self.current_window != _LOG_VIEWER:
             self.log_finished = False
         (func, var) = {
-            _MAIN: (self._key_ev_main, None),
-            _MESSAGE_BOX: (self._key_ev_mbox, None),
-            _INPUT_BOX: (self._key_ev_ibox, None),
-            _TERMINAL: (self._key_ev_term, None),
-            _PASSWORD: (self._key_ev_pass, None),
-            _LOGIN: (self._key_ev_login, None),
-            _REBOOT: (self._key_ev_reboot, None),
-            _SHUTDOWN: (self._key_ev_shutdown, None),
-            _MAIN_MENU: (self._key_ev_mainmenu, None),
-            _LOG_VIEWER: (self._key_ev_logview, None),
-            _UNSUPPORTED: (self._key_ev_unsupp, None),
-            _ADMIN_WEB_PW: (self._key_ev_aapi, None),
-            _TIMESYNCD: (self._key_ev_timesyncd, None),
-            _REPO_SELECTION: (self._key_ev_repo_selection, None),
-            _KEYBOARD_SWITCH: (self._key_ev_kbd_switch, None),
+            _MAIN: (self._key_ev_main, key),
+            _MESSAGE_BOX: (self._key_ev_mbox, key),
+            _INPUT_BOX: (self._key_ev_ibox, key),
+            _TERMINAL: (self._key_ev_term, key),
+            _PASSWORD: (self._key_ev_pass, key),
+            _LOGIN: (self._key_ev_login, key),
+            _REBOOT: (self._key_ev_reboot, key),
+            _SHUTDOWN: (self._key_ev_shutdown, key),
+            _MAIN_MENU: (self._key_ev_mainmenu, key),
+            _LOG_VIEWER: (self._key_ev_logview, key),
+            _UNSUPPORTED: (self._key_ev_unsupp, key),
+            _ADMIN_WEB_PW: (self._key_ev_aapi, key),
+            _TIMESYNCD: (self._key_ev_timesyncd, key),
+            _REPO_SELECTION: (self._key_ev_repo_selection, key),
+            _KEYBOARD_SWITCH: (self._key_ev_kbd_switch, key),
         }.get(self.current_window)
         if var:
             func(var)
@@ -648,7 +628,7 @@ class Application(ApplicationHandler):
         """Handle event at anytime."""
         if key in ["f10", "Q"]:
             raise urwid.ExitMainLoop()
-        if key == "f4" and len(self.authorized_options) > 0:
+        if key == "f4" and len(self.header.authorized_options) > 0:
             self._open_main_menu()
         elif key in ("f1", "c"):
             self._switch_next_colormode()
@@ -1352,7 +1332,7 @@ class Application(ApplicationHandler):
         self._reset_layout()
         self.print(T_("Login successful"))
         self.current_window = _MAIN_MENU
-        self.authorized_options = T_(", <F4> for Main-Menu")
+        self.header.authorized_options = T_(", <F4> for Main-Menu")
         self._prepare_mainscreen()
         self._body = self.main_menu
         self._loop.widget = self._body
@@ -1437,7 +1417,7 @@ class Application(ApplicationHandler):
         palette = util.get_palette(color_name)
         show_next = color_name
         self._refresh_header(
-            show_next, self._current_kbdlayout, self.authorized_options
+            show_next, self._current_kbdlayout, self.header.authorized_options
         )
         self._loop.screen.register_palette(palette)
         self._loop.screen.clear()
@@ -1455,7 +1435,7 @@ class Application(ApplicationHandler):
         self._refresh_head_text(
             self._current_colormode,
             self._current_kbdlayout,
-            self.authorized_options,
+            self.header.authorized_options,
         )
 
     def _open_keyboard_selection_menu(self):
