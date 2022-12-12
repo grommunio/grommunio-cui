@@ -2100,7 +2100,7 @@ class Application(ApplicationHandler):
         :returns: The id of the selected menu item. (>=1)
         :rtype: int
         """
-        self.current_menu_focus = super(Application, self).get_focused_menu(
+        self.current_menu_focus = super().get_focused_menu(
             menu, event
         )
         if not self.last_menu_focus == self.current_menu_focus:
