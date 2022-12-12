@@ -1675,7 +1675,7 @@ class Application(ApplicationHandler):
         self._prepare_mainscreen()
         self._loop.widget = self._body
 
-    def _check_login(self, widget: Widget = None):
+    def _check_login(self):
         """
         Checks login data and switch to authenticate on if successful.
         """
@@ -1791,7 +1791,7 @@ class Application(ApplicationHandler):
 
     def _prepare_kbd_config(self):
         """Prepare keyboard config form."""
-        def sub_press(button, is_set=True, **kwargs):
+        def sub_press(button, is_set=True):
             if is_set:
                 layout = button.label
                 self._set_kbd_layout(layout)
@@ -1899,14 +1899,13 @@ class Application(ApplicationHandler):
                 ("", f" on {self.current_window}"),
             ]
         )
-        mainwidth = self.screen.get_cols_rows()[0]
         footer_elements = [clock, footerbar, avg_load]
         if not self.quiet:
             footer_elements += [gstring]
         content = []
         rest = []
         for elem in footer_elements:
-            if glen([content, elem]) < mainwidth:
+            if glen([content, elem]) < self.screen.get_cols_rows()[0]:
                 content.append(elem)
             else:
                 rest.append(elem)
