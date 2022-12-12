@@ -65,25 +65,12 @@ class Application(ApplicationHandler):
     """
     The console UI. Main application class.
     """
-    main_frame: Optional[MainFrame]
-    header: Optional[Header]
-    gscreen: Optional[GScreen]
-    button_store: Optional[ButtonStore] = ButtonStore()
+    main_frame: Optional[cui.appclass.MainFrame]
+    header: Optional[cui.appclass.Header]
+    gscreen: Optional[cui.appclass.GScreen]
+    button_store: Optional[cui.appclass.ButtonStore] = cui.appclass.ButtonStore()
     login_window: Optional[cui.appclass.LoginWindow] = cui.appclass.LoginWindow()
-    current_window: str = _MAIN
-    last_current_window: str = ""
-    current_window_input_box: str = ""
-    message_box_caller: str = ""
-    _message_box_caller_body: urwid.Widget = None
-    last_pressed_button: str = ""
-    input_box_caller: str = ""
-    _input_box_caller_body: urwid.Widget = None
-    last_input_box_value: str = ""
-    log_file_caller: str = ""
-    _log_file_caller_body: urwid.Widget = None
-    current_event = ""
-    current_bottom_info = T_("Idle")
-    menu_items: List[str] = []
+    app_control: Optional[cui.appclass.ApplicationControl] = cui.appclass.ApplicationControl(_MAIN)
     layout: urwid.Frame = None
     old_layout: urwid.Frame = None
     debug: bool = False

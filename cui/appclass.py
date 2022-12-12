@@ -195,3 +195,23 @@ class LoginWindow:
     login_body: Optional[urwid.Widget]
     login_header: Optional[urwid.Widget]
     login_footer: Optional[urwid.Widget]
+
+
+class ApplicationControl:
+    current_window: str
+    last_current_window: str = ""
+    current_window_input_box: str = ""
+    message_box_caller: str = ""
+    _message_box_caller_body: urwid.Widget = None
+    last_pressed_button: str = ""
+    input_box_caller: str = ""
+    _input_box_caller_body: urwid.Widget = None
+    last_input_box_value: str = ""
+    log_file_caller: str = ""
+    _log_file_caller_body: urwid.Widget = None
+    current_event = ""
+    current_bottom_info = T_("Idle")
+    menu_items: List[str] = []
+
+    def __init__(self, initial_window):
+        self.current_window = initial_window
