@@ -723,9 +723,11 @@ class Application(ApplicationHandler):
         if key.lower().endswith("enter") or key in ["esc", "enter"]:
             self.current_window = self.input_box_caller
             self.message_box(
-                T_(f"System password reset {success_msg}!"),
-                T_("System password reset"),
-                height=10,
+                parameter.MsgBoxParams(
+                    T_(f"System password reset {success_msg}!"),
+                    T_("System password reset"),
+                ),
+                size=parameter.Size(height=10)
             )
 
     def _key_ev_login(self, key):
@@ -902,9 +904,11 @@ class Application(ApplicationHandler):
         if key.lower().endswith("enter") or key in ["esc", "enter"]:
             self.current_window = self.input_box_caller
             self.message_box(
-                T_(f"Admin password reset {success_msg}!"),
-                T_("Admin password reset"),
-                height=10,
+                parameter.MsgBoxParams(
+                    T_(f"Admin password reset {success_msg}!"),
+                    T_("Admin password reset"),
+                ),
+                size=parameter.Size(height=10)
             )
 
     def _key_ev_repo_selection(self, key):
@@ -929,8 +933,10 @@ class Application(ApplicationHandler):
                 button_type = T_("Cancel").lower()
             if button_type == T_("Cancel").lower():
                 self.message_box(
-                    T_('Software repository selection has been canceled.'),
-                    height=height
+                    parameter.MsgBoxParams(
+                        T_('Software repository selection has been canceled.')
+                    ),
+                    size=parameter.Size(height=height)
                 )
             else:
                 url = 'download.grommunio.com/community/openSUSE_Leap_15.3/' \
@@ -948,9 +954,11 @@ class Application(ApplicationHandler):
                         updateable = True
                     else:
                         self.message_box(
-                            T_('Please check the credentials for "supported"'
-                               '-version or use "community"-version.'),
-                            height=height+1
+                            parameter.MsgBoxParams(
+                                T_('Please check the credentials for "supported"'
+                                   '-version or use "community"-version.'),
+                            ),
+                            size=parameter.Size(height=height+1)
                         )
                 else:
                     # community selected
@@ -962,8 +970,10 @@ class Application(ApplicationHandler):
                     config.write()
                     if config == config2:
                         self.message_box(
-                            T_('The repo file has not been changed.'),
-                            height=height-1
+                            parameter.MsgBoxParams(
+                                T_('The repo file has not been changed.')
+                            ),
+                            size=parameter.Size(height=height-1)
                         )
                     else:
                         # self.message_box(
@@ -1006,22 +1016,28 @@ class Application(ApplicationHandler):
                                     got_keyfile = True
                         if got_keyfile:
                             self.message_box(
-                                T_('Software repository selection has been '
-                                   'updated.'),
-                                height=height
+                                parameter.MsgBoxParams(
+                                    T_('Software repository selection has been '
+                                       'updated.'),
+                                ),
+                                size=parameter.Size(height=height)
                             )
                         else:
                             self.message_box(
-                                T_('Software repository selection has not been '
-                                   'updated. Something went wrong while importing '
-                                   'key file.'),
-                                height=height+1
+                                parameter.MsgBoxParams(
+                                    T_('Software repository selection has not been '
+                                       'updated. Something went wrong while importing '
+                                       'key file.'),
+                                ),
+                                size=parameter.Size(height=height+1)
                             )
         elif key == 'esc':
             self._open_main_menu()
             self.message_box(
-                T_('Software repository selection has been canceled.'),
-                height=height
+                parameter.MsgBoxParams(
+                    T_('Software repository selection has been canceled.'),
+                ),
+                size=parameter.Size(height=height)
             )
 
     def _key_ev_timesyncd(self, key):
@@ -1062,9 +1078,11 @@ class Application(ApplicationHandler):
             self._open_main_menu()
         if key.lower().endswith("enter") or key in ["esc", "enter"]:
             self.message_box(
-                T_(f"Timesyncd configuration change {success_msg}!"),
-                T_("Timesyncd Configuration"),
-                height=10,
+                parameter.MsgBoxParams(
+                    T_(f"Timesyncd configuration change {success_msg}!"),
+                    T_("Timesyncd Configuration"),
+                ),
+                size=parameter.Size(height=10)
             )
 
     def _key_ev_kbd_switch(self, key: str):
@@ -1197,7 +1215,9 @@ class Application(ApplicationHandler):
         title = T_("Reboot")
         self.current_window = _REBOOT
         self.message_box(
-            msg, title, width=80, height=10, view_ok=True, view_cancel=True
+            parameter.MsgBoxParams(msg, title),
+            size=parameter.Size(width=80, height=10),
+            view_buttons=parameter.ViewOkCancel(view_ok=True, view_cancel=True)
         )
 
     def _shutdown_confirm(self):
@@ -1208,7 +1228,9 @@ class Application(ApplicationHandler):
         title = T_("Shutdown")
         self.current_window = _SHUTDOWN
         self.message_box(
-            msg, title, width=80, height=10, view_ok=True, view_cancel=True
+            parameter.MsgBoxParams(msg, title),
+            size=parameter.Size(width=80, height=10),
+            view_buttons=parameter.ViewOkCancel(view_ok=True, view_cancel=True)
         )
 
     def _open_change_password(self):
@@ -1659,7 +1681,8 @@ class Application(ApplicationHandler):
         """
         if self.user_edit.get_edit_text() != getuser() and os.getegid() != 0:
             self.message_box(
-                T_("You need root privileges to use another user."), height=10
+                parameter.MsgBoxParams(T_("You need root privileges to use another user.")),
+                size=parameter.Size(height=10)
             )
             return
         msg = T_("checking user %s with pass ") % self.user_edit.get_edit_text()
@@ -1671,8 +1694,10 @@ class Application(ApplicationHandler):
                 self._open_main_menu()
             else:
                 self.message_box(
-                    T_("Incorrect credentials. Access denied!"),
-                    T_("Password verification"),
+                    parameter.MsgBoxParams(
+                        T_("Incorrect credentials. Access denied!"),
+                        T_("Password verification"),
+                    )
                 )
                 self.print(T_("Login wrong! (%s)") % msg)
 
@@ -1915,16 +1940,11 @@ class Application(ApplicationHandler):
         self._loop.draw_screen()
 
     def message_box(
-        self,
-        msg: Any,
-        title: str = None,
-        align: str = CENTER,
-        width: int = 45,
-        valign: str = MIDDLE,
-        height: int = 9,
-        view_ok: bool = True,
-        view_cancel: bool = False,
-        modal: bool = True,
+            self,
+            mb_params: parameter.MsgBoxParams = parameter.MsgBoxParams(None, None, True),
+            alignment: parameter.Alignment = parameter.Alignment(urwid.CENTER, urwid.MIDDLE),
+            size: parameter.Size = parameter.Size(45, 9),
+            view_buttons: parameter.ViewOkCancel = parameter.ViewOkCancel(True, False)
     ):
         """
         Creates a message box dialog with an optional title. The message also
@@ -1940,36 +1960,30 @@ class Application(ApplicationHandler):
                     self._body = self._message_box_caller_body
                     self.reset_layout()
 
-        :param msg: List or one element of urwid formatted tuple containing
-                    the message content.
-        :type: Any
-        :param title: Optional title as simple string.
-        :param align: Horizontal align.
-        :param width: The width of the box.
-        :param valign: Vertical align.
-        :param height: The height of the box.
-        :param view_ok: Should the OK button be visible?
-        :param view_cancel: Should the Cancel button be visible?
-        :param modal: Should the dialog be modal or not?
+        Args:
+            @param mb_params: Messagebox parameters like msg, title and modal.
+            @param alignment: The alignment in align and valign.
+            @param size: The size in width and height.
+            @param view_buttons: The viewed buttons ok or cancel.
         """
         if self.current_window != _MESSAGE_BOX:
             self.message_box_caller = self.current_window
             self._message_box_caller_body = self._loop.widget
             self.current_window = _MESSAGE_BOX
-        body = LineBox(Padding(Filler(Pile([GText(msg, CENTER)]), TOP)))
-        footer = self._create_footer(view_ok, view_cancel)
+        body = LineBox(Padding(Filler(Pile([GText(mb_params.msg, CENTER)]), TOP)))
+        footer = self._create_footer(view_buttons.view_ok, view_buttons.view_cancel)
 
-        if title is None:
-            title = "Message"
+        if mb_params.title is None:
+            title = T_("Message")
+        else:
+            title = mb_params.title
         frame: parameter.Frame = parameter.Frame(
             body=body,
             header=GText(title, CENTER),
             footer=footer,
             focus_part="footer",
         )
-        alignment: parameter.Alignment = parameter.Alignment(align, valign)
-        size: parameter.Size = parameter.Size(width, height)
-        self.dialog(frame, alignment=alignment, size=size, modal=modal)
+        self.dialog(frame, alignment=alignment, size=size, modal=mb_params.modal)
 
     def input_box(
         self,

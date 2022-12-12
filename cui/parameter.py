@@ -36,3 +36,15 @@ Size = namedtuple_defaults("Size", size_params, size_defaults)
 frame_params = ["body", "header", "footer", "focus_part"]
 frame_defaults = (None, None, None, None)
 Frame = namedtuple_defaults("Frame", frame_params, frame_defaults)
+
+view_ok_cancel_params = ["view_ok", "view_cancel"]
+view_ok_cancel_defaults = (True, False)
+ViewOkCancel = namedtuple_defaults("ViewOkCancel", view_ok_cancel_params, view_ok_cancel_defaults)
+
+msgbox_params = ["msg", "title", "modal"]
+msgbox_defaults = (None, None, True)
+MsgBoxParams = namedtuple_defaults("MsgBoxParams", msgbox_params, msgbox_defaults)
+
+inputbox_params = ["msg", "title", "modal"]
+inputbox_defaults = (None, None, True)
+InputBoxParams = namedtuple_defaults("InputBoxParams", inputbox_params, inputbox_defaults)
