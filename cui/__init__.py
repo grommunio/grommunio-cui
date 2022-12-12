@@ -1196,7 +1196,7 @@ class Application(ApplicationHandler):
         self.current_window = _REPO_SELECTION
         header = urwid.AttrMap(GText(T_("Software repository selection"), urwid.CENTER), "header")
         self._prepare_repo_config()
-        self._open_conf_dialog(self.repo_selection_body, header, [self.save_button, self.button_store.cancel_button])
+        self._open_conf_dialog(self.repo_selection_body, header, [self.button_store.save_button, self.button_store.cancel_button])
 
     def _prepare_repo_config(self):
         """Prepare repository configuration form."""
