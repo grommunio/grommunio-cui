@@ -82,11 +82,11 @@ class Header:
         """Set the main app"""
         self.info.app = application
 
-    def setkbdlayout(self, kbdlayout):
+    def set_kbdlayout(self, kbdlayout):
         """Set the keyboard layout"""
         self.info.kbdlayout = kbdlayout
 
-    def getkbdlayout(self):
+    def get_kbdlayout(self):
         """Return the current keyboard layout"""
         return self.info.kbdlayout
 
