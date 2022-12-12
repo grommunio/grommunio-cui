@@ -2200,8 +2200,7 @@ class Application(ApplicationHandler):
                     if part.base_widget.widget_list[new_focus].selectable():
                         part.base_widget.focus_position = new_focus
                         break
-                    else:
-                        new_focus += move
+                    new_focus += move
         # self.print(f"key is {key}")
         if key.endswith("tab") or key.endswith("down") or key.endswith('up'):
             current_part = self.layout.focus_part
