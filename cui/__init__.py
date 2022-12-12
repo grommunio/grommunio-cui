@@ -43,7 +43,6 @@ from urwid import (
     set_encoding,
     TOP,
     RadioButton,
-    raw_display,
     RELATIVE_100,
 )
 from cui.gwidgets import GText, GEdit
@@ -747,6 +746,78 @@ class Application(ApplicationHandler):
 
     def _key_ev_repo_selection(self, key):
         """Handle event on repository selection menu."""
+        height = 10
+        repo_res = self._init_repo_selection(key, height)
+        if repo_res.get("button_type", None) in ("ok", "save"):
+            updateable, url = util.check_repo_dialog(self, height)
+            if updateable:
+                repo_res.get("config", None)['grommunio']['baseurl'] = f'https://{url}'
+                repo_res.get("config", None)['grommunio']['type'] = 'rpm-md'
+                config2 = cui.parser.ConfigParser(infile=repo_res.get("repofile", None))
+                repo_res.get("config", None).write()
+                if repo_res.get("config", None) == config2:
+                    self.message_box(
+                        parameter.MsgBoxParams(
+                            T_('The repo file has not been changed.')
+                        ),
+                        size=parameter.Size(height=height-1)
+                    )
+                else:
+                    self._process_changed_repo_config(height, repo_res)
+
+    def _process_changed_repo_config(self, height, repo_res):
+        header = GText(T_("One moment, please ..."))
+        footer = GText(T_('Fetching GPG-KEY file and refreshing '
+                          'repositories. This may take a while ...'))
+        self.progressbar = self._create_progress_bar()
+        pad = urwid.Padding(self.progressbar)  # do not use pg! use self.progressbar.
+        fil = urwid.Filler(pad)
+        linebox = urwid.LineBox(fil)
+        frame: parameter.Frame = parameter.Frame(linebox, header, footer)
+        self.dialog(frame)
+        self._draw_progress(20)
+        res: Response = requests.get(repo_res.get("keyurl", None))
+        got_keyfile: bool = False
+        if res.status_code == 200:
+            self._draw_progress(30)
+            tmp = Path(repo_res.get("keyfile", None))
+            with tmp.open('w', encoding="utf-8") as file:
+                file.write(res.content.decode())
+            self._draw_progress(40)
+            with subprocess.Popen(
+                    ["rpm", "--import", repo_res.get("keyfile", None)],
+                    stderr=subprocess.DEVNULL,
+                    stdout=subprocess.DEVNULL,
+            ) as ret_code_rpm:
+                if ret_code_rpm.wait() == 0:
+                    self._draw_progress(60)
+                    with subprocess.Popen(
+                            ["zypper", "--non-interactive", "refresh"],
+                            stderr=subprocess.DEVNULL,
+                            stdout=subprocess.DEVNULL,
+                    ) as ret_code_zypper:
+                        if ret_code_zypper.wait() == 0:
+                            self._draw_progress(100)
+                            got_keyfile = True
+        if got_keyfile:
+            self.message_box(
+                parameter.MsgBoxParams(
+                    T_('Software repository selection has been '
+                       'updated.'),
+                ),
+                size=parameter.Size(height=height)
+            )
+        else:
+            self.message_box(
+                parameter.MsgBoxParams(
+                    T_('Software repository selection has not been '
+                       'updated. Something went wrong while importing '
+                       'key file.'),
+                ),
+                size=parameter.Size(height=height + 1)
+            )
+
+    def _init_repo_selection(self, key, height):
         self._handle_standard_tab_behaviour(key)
         keyurl = 'https://download.grommunio.com/RPM-GPG-KEY-grommunio'
         keyfile = '/tmp/RPM-GPG-KEY-grommunio'
@@ -757,7 +828,6 @@ class Application(ApplicationHandler):
             config['grommunio'] = {}
             config['grommunio']['enabled'] = 1
             config['grommunio']['auorefresh'] = 1
-        height = 10
         button_type = util.get_button_type(
             key,
             self._open_main_menu,
@@ -765,71 +835,13 @@ class Application(ApplicationHandler):
             T_('Software repository selection has been canceled.'),
             size=parameter.Size(height=height)
         )
-        if button_type in ("ok", "save"):
-            updateable, url = util.check_repo_dialog(self, height)
-            if updateable:
-                config['grommunio']['baseurl'] = f'https://{url}'
-                config['grommunio']['type'] = 'rpm-md'
-                config2 = cui.parser.ConfigParser(infile=repofile)
-                config.write()
-                if config == config2:
-                    self.message_box(
-                        parameter.MsgBoxParams(
-                            T_('The repo file has not been changed.')
-                        ),
-                        size=parameter.Size(height=height-1)
-                    )
-                else:
-                    header = GText(T_("One moment, please ..."))
-                    footer = GText(T_('Fetching GPG-KEY file and refreshing '
-                                      'repositories. This may take a while ...'))
-                    self.progressbar = self._create_progress_bar()
-                    pad = urwid.Padding(self.progressbar)  # do not use pg! use self.progressbar.
-                    fil = urwid.Filler(pad)
-                    linebox = urwid.LineBox(fil)
-                    frame: parameter.Frame = parameter.Frame(linebox, header, footer)
-                    self.dialog(frame)
-                    self._draw_progress(20)
-                    res: Response = requests.get(keyurl)
-                    got_keyfile: bool = False
-                    if res.status_code == 200:
-                        self._draw_progress(30)
-                        tmp = Path(keyfile)
-                        with tmp.open('w', encoding="utf-8") as file:
-                            file.write(res.content.decode())
-                        self._draw_progress(40)
-                        with subprocess.Popen(
-                            ["rpm", "--import", keyfile],
-                            stderr=subprocess.DEVNULL,
-                            stdout=subprocess.DEVNULL,
-                        ) as ret_code_rpm:
-                            if ret_code_rpm.wait() == 0:
-                                self._draw_progress(60)
-                                with subprocess.Popen(
-                                    ["zypper", "--non-interactive", "refresh"],
-                                    stderr=subprocess.DEVNULL,
-                                    stdout=subprocess.DEVNULL,
-                                ) as ret_code_zypper:
-                                    if ret_code_zypper.wait() == 0:
-                                        self._draw_progress(100)
-                                        got_keyfile = True
-                    if got_keyfile:
-                        self.message_box(
-                            parameter.MsgBoxParams(
-                                T_('Software repository selection has been '
-                                   'updated.'),
-                            ),
-                            size=parameter.Size(height=height)
-                        )
-                    else:
-                        self.message_box(
-                            parameter.MsgBoxParams(
-                                T_('Software repository selection has not been '
-                                   'updated. Something went wrong while importing '
-                                   'key file.'),
-                            ),
-                            size=parameter.Size(height=height+1)
-                        )
+        return {
+            "button_type": button_type,
+            "config": config,
+            "keyfile": keyfile,
+            "keyurl": keyurl,
+            "repofile": repofile
+        }
 
     def _key_ev_timesyncd(self, key):
         """Handle event on timesyncd menu."""
