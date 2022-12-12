@@ -245,17 +245,18 @@ def create_application_buttons(app):
 
 def create_main_loop(app):
     urwid.set_encoding("utf-8")
-    app.screen = urwid.raw_display.Screen()
-    app.old_termios = app.screen.tty_signal_keys()
-    app.blank_termios = ["undefined" for _ in range(0, 5)]
-    app.screen.tty_signal_keys(*app.blank_termios)
+    app.gscreen = cui.appclass.GScreen()
+    app.gscreen.screen = urwid.raw_display.Screen()
+    app.gscreen.old_termios = app.gscreen.screen.tty_signal_keys()
+    app.gscreen.blank_termios = ["undefined" for _ in range(0, 5)]
+    app.gscreen.screen.tty_signal_keys(*app.gscreen.blank_termios)
     app.prepare_mainscreen()
     # Loop
     return urwid.MainLoop(
         app._body,
         get_palette(app.header.get_colormode()),
         unhandled_input=app.handle_event,
-        screen=app.screen,
+        screen=app.gscreen.screen,
         handle_mouse=False,
     )
 

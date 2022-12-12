@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # SPDX-FileCopyrightText: 2022 grommunio GmbH
 """In this module all application classes are hold."""
-from typing import Optional, List, Union
+from typing import Optional, List, Union, Tuple, Any
 
 import urwid
 
@@ -169,3 +169,9 @@ class MainFrame:
                 )
             )
         )
+
+
+class GScreen:
+    old_termios: Optional[Tuple[Any, Any, Any, Any, Any]]
+    blank_termios: Optional[Tuple[Any, Any, Any, Any, Any]]
+    screen: Optional[urwid.raw_display.Screen]

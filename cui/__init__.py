@@ -22,7 +22,7 @@ import urwid
 from cui.gwidgets import GText, GEdit
 from cui import util, parameter
 import cui.parser
-from cui.appclass import Header, MainFrame
+from cui.appclass import Header, MainFrame, GScreen
 from cui.scroll import ScrollBar, Scrollable
 from cui.button import GButton, GBoxButton
 from cui.menu import MenuItem, MultiMenuItem
@@ -67,9 +67,7 @@ class Application(ApplicationHandler):
     """
     main_frame: Optional[MainFrame]
     header: Optional[Header]
-    old_termios: Optional[Tuple[Any, Any, Any, Any, Any]]
-    blank_termios: Optional[Tuple[Any, Any, Any, Any, Any]]
-    screen: Optional[urwid.raw_display.Screen]
+    gscreen: Optional[GScreen]
     ok_button: Optional[cui.button.GBoxButton]
     save_button: Optional[cui.button.GBoxButton]
     cancel_button: Optional[cui.button.GBoxButton]
@@ -233,9 +231,9 @@ class Application(ApplicationHandler):
                     ),
                 ]
             ),
-            T_("urwid.Terminal"): urwid.Pile(
+            T_("Terminal"): urwid.Pile(
                 [
-                    GText(T_("urwid.Terminal"), urwid.CENTER),
+                    GText(T_("Terminal"), urwid.CENTER),
                     GText(""),
                     GText(
                         T_("Starts terminal for advanced system configuration.")
@@ -457,7 +455,7 @@ class Application(ApplicationHandler):
             "ok"
         ):
             self._loop.stop()
-            self.screen.tty_signal_keys(*self.old_termios)
+            self.gscreen.screen.tty_signal_keys(*self.gscreen.old_termios)
             os.system("reboot")
             raise urwid.ExitMainLoop()
         self.current_window = _MAIN_MENU
@@ -469,7 +467,7 @@ class Application(ApplicationHandler):
             "ok"
         ):
             self._loop.stop()
-            self.screen.tty_signal_keys(*self.old_termios)
+            self.gscreen.screen.tty_signal_keys(*self.gscreen.old_termios)
             os.system("poweroff")
             raise urwid.ExitMainLoop()
         self.current_window = _MAIN_MENU
@@ -866,7 +864,7 @@ class Application(ApplicationHandler):
         Jump to a shell prompt
         """
         self._loop.stop()
-        self.screen.tty_signal_keys(*self.old_termios)
+        self.gscreen.screen.tty_signal_keys(*self.gscreen.old_termios)
         print("\x1b[K")
         print(
             "\x1b[K \x1b[36m▼\x1b[0m",
@@ -876,7 +874,7 @@ class Application(ApplicationHandler):
         # We have no environment, and so need su instead of just bash to launch
         # a proper PAM session and set $HOME, etc.
         os.system("/usr/bin/su -l")
-        self.screen.tty_signal_keys(*self.blank_termios)
+        self.gscreen.screen.tty_signal_keys(*self.gscreen.blank_termios)
         self._loop.start()
 
     def _reboot_confirm(self):
@@ -1093,7 +1091,7 @@ class Application(ApplicationHandler):
     def _run_yast_module(self, modulename: str):
         """Run yast module `modulename`."""
         self._loop.stop()
-        self.screen.tty_signal_keys(*self.old_termios)
+        self.gscreen.screen.tty_signal_keys(*self.gscreen.old_termios)
         print("\x1b[K")
         print(
             "\x1b[K \x1b[36m▼\x1b[0m",
@@ -1101,19 +1099,19 @@ class Application(ApplicationHandler):
         )
         print("\x1b[J")
         os.system(f"yast2 {modulename}")
-        self.screen.tty_signal_keys(*self.blank_termios)
+        self.gscreen.screen.tty_signal_keys(*self.gscreen.blank_termios)
         self._loop.start()
 
     def _run_zypper(self, subcmd: str):
         """Run zypper modul `subcmd`."""
         self._loop.stop()
-        self.screen.tty_signal_keys(*self.old_termios)
+        self.gscreen.screen.tty_signal_keys(*self.gscreen.old_termios)
         print("\x1b[K")
         print("\x1b[K \x1b[36m▼\x1b[0m Please wait while zypper is invoked.")
         print("\x1b[J")
         os.system(f"zypper {subcmd}")
         input("\n \x1b[36m▼\x1b[0m Press ENTER to return to the CUI.")
-        self.screen.tty_signal_keys(*self.blank_termios)
+        self.gscreen.screen.tty_signal_keys(*self.gscreen.blank_termios)
         self._loop.start()
 
     def _open_reset_aapi_pw(self):
@@ -1249,12 +1247,12 @@ class Application(ApplicationHandler):
     def _open_setup_wizard(self):
         """Open grommunio setup wizard."""
         self._loop.stop()
-        self.screen.tty_signal_keys(*self.old_termios)
+        self.gscreen.screen.tty_signal_keys(*self.gscreen.old_termios)
         if Path("/usr/sbin/grommunio-setup").exists():
             os.system("/usr/sbin/grommunio-setup")
         else:
             os.system("/usr/sbin/grammm-setup")
-        self.screen.tty_signal_keys(*self.blank_termios)
+        self.gscreen.screen.tty_signal_keys(*self.gscreen.blank_termios)
         self._loop.start()
 
     def _open_main_menu(self):
@@ -1498,7 +1496,7 @@ class Application(ApplicationHandler):
         content = []
         rest = []
         for elem in footer_elements:
-            if glen([content, elem]) < self.screen.get_cols_rows()[0]:
+            if glen([content, elem]) < self.gscreen.screen.get_cols_rows()[0]:
                 content.append(elem)
             else:
                 rest.append(elem)
@@ -1826,8 +1824,8 @@ class Application(ApplicationHandler):
         # set_trace(term_size=(129, 18))
         # set_trace()
         self._loop.run()
-        if self.old_termios is not None:
-            self.screen.tty_signal_keys(*self.old_termios)
+        if self.gscreen.old_termios is not None:
+            self.gscreen.screen.tty_signal_keys(*self.gscreen.old_termios)
 
     def dialog(
             self, frame: parameter.Frame,
