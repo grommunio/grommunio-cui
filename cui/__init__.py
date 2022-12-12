@@ -21,8 +21,6 @@ from systemd import journal
 from urwid.widget import SPACE
 import urwid
 from urwid import (
-    AttrWrap,
-    ExitMainLoop,
     Padding,
     Columns,
     ListBox,
@@ -345,7 +343,7 @@ class Application(ApplicationHandler):
             Scrollable(
                 Pile(
                     [
-                        AttrWrap(
+                        urwid.AttrMap(
                             Padding(
                                 self.tb_sysinfo_bottom,
                                 align=LEFT,
@@ -424,24 +422,27 @@ class Application(ApplicationHandler):
         key: str = str(event)
         if self.log_finished and self.current_window != _LOG_VIEWER:
             self.log_finished = False
-        func = {
-            _MAIN: self._key_ev_main,
-            _MESSAGE_BOX: self._key_ev_mbox,
-            _INPUT_BOX: self._key_ev_ibox,
-            _TERMINAL: self._key_ev_term,
-            _PASSWORD: self._key_ev_pass,
-            _LOGIN: self._key_ev_login,
-            _REBOOT: self._key_ev_reboot,
-            _SHUTDOWN: self._key_ev_shutdown,
-            _MAIN_MENU: self._key_ev_mainmenu,
-            _LOG_VIEWER: self._key_ev_logview,
-            _UNSUPPORTED: self._key_ev_unsupp,
-            _ADMIN_WEB_PW: self._key_ev_aapi,
-            _TIMESYNCD: self._key_ev_timesyncd,
-            _REPO_SELECTION: self._key_ev_repo_selection,
-            _KEYBOARD_SWITCH: self._key_ev_kbd_switch,
+        (func, option) = {
+            _MAIN: (self._key_ev_main, None),
+            _MESSAGE_BOX: (self._key_ev_mbox, None),
+            _INPUT_BOX: (self._key_ev_ibox, None),
+            _TERMINAL: (self._key_ev_term, None),
+            _PASSWORD: (self._key_ev_pass, None),
+            _LOGIN: (self._key_ev_login, None),
+            _REBOOT: (self._key_ev_reboot, None),
+            _SHUTDOWN: (self._key_ev_shutdown, None),
+            _MAIN_MENU: (self._key_ev_mainmenu, None),
+            _LOG_VIEWER: (self._key_ev_logview, None),
+            _UNSUPPORTED: (self._key_ev_unsupp, None),
+            _ADMIN_WEB_PW: (self._key_ev_aapi, None),
+            _TIMESYNCD: (self._key_ev_timesyncd, None),
+            _REPO_SELECTION: (self._key_ev_repo_selection, None),
+            _KEYBOARD_SWITCH: (self._key_ev_kbd_switch, None),
         }.get(self.current_window)
-        func(key)
+        if key:
+            func(key)
+        else:
+            func()
         self._key_ev_anytime(key)
 
     def _key_ev_main(self, key):
@@ -509,7 +510,7 @@ class Application(ApplicationHandler):
         """Handle event on terminal."""
         self._handle_standard_tab_behaviour(key)
         if key == "f10":
-            raise ExitMainLoop()
+            raise urwid.ExitMainLoop()
         self._open_main_menu()
 
     def _key_ev_pass(self, key):
@@ -570,7 +571,7 @@ class Application(ApplicationHandler):
             self._loop.stop()
             self.screen.tty_signal_keys(*self.old_termios)
             os.system("reboot")
-            raise ExitMainLoop()
+            raise urwid.ExitMainLoop()
         self.current_window = _MAIN_MENU
 
     def _key_ev_shutdown(self, key):
@@ -582,7 +583,7 @@ class Application(ApplicationHandler):
             self._loop.stop()
             self.screen.tty_signal_keys(*self.old_termios)
             os.system("poweroff")
-            raise ExitMainLoop()
+            raise urwid.ExitMainLoop()
         self.current_window = _MAIN_MENU
 
     def _key_ev_mainmenu(self, key):
@@ -595,7 +596,7 @@ class Application(ApplicationHandler):
                 util.T_ = util.restart_gui()
 
         def exit_main_loop():
-            raise ExitMainLoop()
+            raise urwid.ExitMainLoop()
 
         menu_selected: int = self._handle_standard_menu_behaviour(
             self.main_menu_list, key, self.main_menu.base_widget.body[1]
@@ -670,7 +671,7 @@ class Application(ApplicationHandler):
     def _key_ev_anytime(self, key):
         """Handle event at anytime."""
         if key in ["f10", "Q"]:
-            raise ExitMainLoop()
+            raise urwid.ExitMainLoop()
         if key == "f4" and len(self.authorized_options) > 0:
             self._open_main_menu()
         elif key in ("f1", "c"):
@@ -1974,7 +1975,7 @@ class Application(ApplicationHandler):
         # Footer
         if isinstance(frame.footer, str) and frame.footer == "":
             footer = GBoxButton("Okay", self._reset_layout())
-            footer = AttrWrap(footer, "selectable", "focus")
+            footer = urwid.AttrMap(footer, "selectable", "focus")
             footer = GridFlow([footer], 8, 1, 1, "center")
         else:
             footer = frame.footer
