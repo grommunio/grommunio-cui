@@ -189,3 +189,9 @@ class ButtonStore:
     apply_button: Optional[cui.button.GBoxButton]
     user_edit: Optional[cui.gwidgets.GEdit]
     pass_edit: Optional[cui.gwidgets.GEdit]
+
+
+class LoginWindow:
+    login_body: Optional[urwid.Widget]
+    login_header: Optional[urwid.Widget]
+    login_footer: Optional[urwid.Widget]

@@ -69,9 +69,7 @@ class Application(ApplicationHandler):
     header: Optional[Header]
     gscreen: Optional[GScreen]
     button_store: Optional[ButtonStore] = ButtonStore()
-    login_body: Optional[urwid.Widget]
-    login_header: Optional[urwid.Widget]
-    login_footer: Optional[urwid.Widget]
+    login_window: Optional[cui.appclass.LoginWindow] = cui.appclass.LoginWindow()
     current_window: str = _MAIN
     last_current_window: str = ""
     current_window_input_box: str = ""
@@ -331,13 +329,13 @@ class Application(ApplicationHandler):
         """Handle event on mainframe."""
         if key == "f2":
             if util.check_if_password_is_set(getuser()):
-                self.login_body.focus_position = (
+                self.login_window.login_body.focus_position = (
                     0 if getuser() == "" else 1
                 )  # focus on passwd if user detected
                 frame: parameter.Frame = parameter.Frame(
-                    body=urwid.LineBox(urwid.Padding(urwid.Filler(self.login_body))),
-                    header=self.login_header,
-                    footer=self.login_footer,
+                    body=urwid.LineBox(urwid.Padding(urwid.Filler(self.login_window.login_body))),
+                    header=self.login_window.login_header,
+                    footer=self.login_window.login_footer,
                     focus_part="body",
                 )
                 self.dialog(frame)

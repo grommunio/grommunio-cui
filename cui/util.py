@@ -88,7 +88,7 @@ def restart_gui():
 
 def create_application_buttons(app):
     # Login Dialog
-    app.login_header = urwid.AttrMap(
+    app.login_window.login_header = urwid.AttrMap(
         cui.gwidgets.GText(("header", T_("Login")), align="center"), "header"
     )
     app.button_store.user_edit = cui.gwidgets.GEdit(
@@ -97,7 +97,7 @@ def create_application_buttons(app):
     app.button_store.pass_edit = cui.gwidgets.GEdit(
         T_("Password: "), edit_text="", edit_pos=0, mask="*"
     )
-    app.login_body = urwid.Pile(
+    app.login_window.login_body = urwid.Pile(
         [
             app.button_store.user_edit,
             app.button_store.pass_edit,
@@ -109,7 +109,7 @@ def create_application_buttons(app):
         "click",
         lambda button: app.handle_event("login enter"),
     )
-    app.login_footer = urwid.AttrMap(
+    app.login_window.login_footer = urwid.AttrMap(
         urwid.Columns([cui.gwidgets.GText(""), login_button, cui.gwidgets.GText("")]), "buttonbar"
     )
     # Common OK Button
