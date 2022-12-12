@@ -20,29 +20,6 @@ from yaml import SafeLoader
 from systemd import journal
 from urwid.widget import SPACE
 import urwid
-from urwid import (
-    Padding,
-    Columns,
-    ListBox,
-    Frame,
-    LineBox,
-    SimpleListWalker,
-    MainLoop,
-    LEFT,
-    Filler,
-    Pile,
-    connect_signal,
-    AttrMap,
-    GridFlow,
-    Overlay,
-    Widget,
-    Terminal,
-    SimpleFocusListWalker,
-    set_encoding,
-    TOP,
-    RadioButton,
-    RELATIVE_100,
-)
 from cui.gwidgets import GText, GEdit
 from cui import util, parameter
 import cui.parser
@@ -111,18 +88,18 @@ class Application(ApplicationHandler):
     last_current_window: str = ""
     current_window_input_box: str = ""
     message_box_caller: str = ""
-    _message_box_caller_body: Widget = None
+    _message_box_caller_body: urwid.Widget = None
     last_pressed_button: str = ""
     input_box_caller: str = ""
-    _input_box_caller_body: Widget = None
+    _input_box_caller_body: urwid.Widget = None
     last_input_box_value: str = ""
     log_file_caller: str = ""
-    _log_file_caller_body: Widget = None
+    _log_file_caller_body: urwid.Widget = None
     current_event = ""
     current_bottom_info = T_("Idle")
     menu_items: List[str] = []
-    layout: Frame = None
-    old_layout: Frame = None
+    layout: urwid.Frame = None
+    old_layout: urwid.Frame = None
     debug: bool = False
     quiet: bool = False
     current_menu_state: int = -1
@@ -147,13 +124,13 @@ class Application(ApplicationHandler):
     # The hidden input string
     _hidden_input: str = ""
     _hidden_pos: int = 0
-    _body: Widget
+    _body: urwid.Widget
     tb_header: GText
     authorized_options: str
-    footer: Pile
-    header: AttrMap
-    log_viewer: LineBox
-    repo_selection_body: LineBox
+    footer: urwid.Pile
+    header: urwid.AttrMap
+    log_viewer: urwid.LineBox
+    repo_selection_body: urwid.LineBox
     loaded_kbd: str
     keyboard_rb: List
     keyboard_content: List
@@ -191,15 +168,15 @@ class Application(ApplicationHandler):
     def _refresh_main_menu(self):
         """Refresh main menu."""
         # The common menu description column
-        self.menu_description = Pile(
+        self.menu_description = urwid.Pile(
             [
                 GText(T_("Main Menu"), urwid.CENTER),
-                GText(T_("Here you can do the main actions"), LEFT),
+                GText(T_("Here you can do the main actions"), urwid.LEFT),
             ]
         )
         # Main Menu
         items = {
-            T_("Language configuration"): Pile(
+            T_("Language configuration"): urwid.Pile(
                 [
                     GText(T_("Language"), urwid.CENTER),
                     GText(""),
@@ -208,14 +185,14 @@ class Application(ApplicationHandler):
                     ),
                 ]
             ),
-            T_("Change system password"): Pile(
+            T_("Change system password"): urwid.Pile(
                 [
                     GText(T_("Password change"), urwid.CENTER),
                     GText(""),
                     GText(T_("Opens a dialog for changing the password of the system root user. When a password is set, you can login via ssh and rerun grommunio-cui.")),
                 ]
             ),
-            T_("Network interface configuration"): Pile(
+            T_("Network interface configuration"): urwid.Pile(
                 [
                     GText(T_("Configuration of network"), urwid.CENTER),
                     GText(""),
@@ -224,7 +201,7 @@ class Application(ApplicationHandler):
                     ),
                 ]
             ),
-            T_("Timezone configuration"): Pile(
+            T_("Timezone configuration"): urwid.Pile(
                 [
                     GText(T_("Timezone"), urwid.CENTER),
                     GText(""),
@@ -233,7 +210,7 @@ class Application(ApplicationHandler):
                     ),
                 ]
             ),
-            T_("timesyncd configuration"): Pile(
+            T_("timesyncd configuration"): urwid.Pile(
                 [
                     GText(T_("timesyncd"), urwid.CENTER),
                     GText(""),
@@ -242,17 +219,17 @@ class Application(ApplicationHandler):
                     ),
                 ]
             ),
-            T_("Select software repositories"): Pile([
+            T_("Select software repositories"): urwid.Pile([
                 GText(T_("Software repositories selection"), urwid.CENTER),
                 GText(""),
                 GText(T_("Opens dialog for choosing software repositories.")),
             ]),
-            T_("Update the system"): Pile([
+            T_("Update the system"): urwid.Pile([
                 GText(T_("System update"), urwid.CENTER),
                 GText(""),
                 GText(T_("Executes the system package manager for the installation of newer component versions.")),
             ]),
-            T_("grommunio setup wizard"): Pile(
+            T_("grommunio setup wizard"): urwid.Pile(
                 [
                     GText(T_("Setup wizard"), urwid.CENTER),
                     GText(""),
@@ -261,7 +238,7 @@ class Application(ApplicationHandler):
                     ),
                 ]
             ),
-            T_("Change admin-web password"): Pile(
+            T_("Change admin-web password"): urwid.Pile(
                 [
                     GText(T_("Password change"), urwid.CENTER),
                     GText(""),
@@ -270,19 +247,19 @@ class Application(ApplicationHandler):
                     ),
                 ]
             ),
-            T_("Terminal"): Pile(
+            T_("urwid.Terminal"): urwid.Pile(
                 [
-                    GText(T_("Terminal"), urwid.CENTER),
+                    GText(T_("urwid.Terminal"), urwid.CENTER),
                     GText(""),
                     GText(
                         T_("Starts terminal for advanced system configuration.")
                     ),
                 ]
             ),
-            T_("Reboot"): Pile(
+            T_("Reboot"): urwid.Pile(
                 [GText(T_("Reboot system."), urwid.CENTER), GText(""), GText("")]
             ),
-            T_("Shutdown"): Pile(
+            T_("Shutdown"): urwid.Pile(
                 [
                     GText(T_("Shutdown system."), urwid.CENTER),
                     GText(""),
@@ -291,7 +268,7 @@ class Application(ApplicationHandler):
             ),
         }
         if os.getppid() != 1:
-            items["Exit"] = Pile([GText(T_("Exit CUI"), urwid.CENTER)])
+            items["Exit"] = urwid.Pile([GText(T_("Exit CUI"), urwid.CENTER)])
         self.main_menu_list = self._prepare_menu_list(items)
         if self.current_window == _MAIN_MENU and self.current_menu_focus > 0:
             off: int = 1
@@ -319,19 +296,19 @@ class Application(ApplicationHandler):
         ]
         self.tb_intro = GText(text_intro, align=urwid.CENTER, wrap=SPACE)
         text_sysinfo_top = util.get_system_info("top")
-        self.tb_sysinfo_top = GText(text_sysinfo_top, align=LEFT, wrap=SPACE)
+        self.tb_sysinfo_top = GText(text_sysinfo_top, align=urwid.LEFT, wrap=SPACE)
         text_sysinfo_bottom = util.get_system_info("bottom")
         self.tb_sysinfo_bottom = GText(
-            text_sysinfo_bottom, align=LEFT, wrap=SPACE
+            text_sysinfo_bottom, align=urwid.LEFT, wrap=SPACE
         )
         self.main_top = ScrollBar(
             Scrollable(
-                Pile(
+                urwid.Pile(
                     [
-                        Padding(self.tb_intro, left=2, right=2, min_width=20),
-                        Padding(
+                        urwid.Padding(self.tb_intro, left=2, right=2, min_width=20),
+                        urwid.Padding(
                             self.tb_sysinfo_top,
-                            align=LEFT,
+                            align=urwid.LEFT,
                             left=6,
                             width=("relative", 80),
                         ),
@@ -341,12 +318,12 @@ class Application(ApplicationHandler):
         )
         self.main_bottom = ScrollBar(
             Scrollable(
-                Pile(
+                urwid.Pile(
                     [
                         urwid.AttrMap(
-                            Padding(
+                            urwid.Padding(
                                 self.tb_sysinfo_bottom,
-                                align=LEFT,
+                                align=urwid.LEFT,
                                 left=6,
                                 width=("relative", 80),
                             ),
@@ -366,15 +343,15 @@ class Application(ApplicationHandler):
             wrap=SPACE,
         )
         self._refresh_header(colormode, self._current_kbdlayout, "")
-        self.vsplitbox = Pile(
+        self.vsplitbox = urwid.Pile(
             [
-                ("weight", 50, AttrMap(self.main_top, "body")),
+                ("weight", 50, urwid.AttrMap(self.main_top, "body")),
                 ("weight", 50, self.main_bottom),
             ]
         )
-        self.footer = Pile(self.footer_content)
-        frame = Frame(
-            AttrMap(self.vsplitbox, "reverse"),
+        self.footer = urwid.Pile(self.footer_content)
+        frame = urwid.Frame(
+            urwid.AttrMap(self.vsplitbox, "reverse"),
             header=self.header,
             footer=self.footer,
         )
@@ -385,7 +362,7 @@ class Application(ApplicationHandler):
     def _refresh_header(self, colormode, kbd, auth_options):
         """Refresh header"""
         self._refresh_head_text(colormode, kbd, auth_options)
-        self.header = AttrMap(Padding(self.tb_header, align=urwid.CENTER), "header")
+        self.header = urwid.AttrMap(urwid.Padding(self.tb_header, align=urwid.CENTER), "header")
         if getattr(self, "footer", None):
             self._refresh_main_menu()
 
@@ -453,7 +430,7 @@ class Application(ApplicationHandler):
                     0 if getuser() == "" else 1
                 )  # focus on passwd if user detected
                 frame: parameter.Frame = parameter.Frame(
-                    body=LineBox(Padding(Filler(self.login_body))),
+                    body=urwid.LineBox(urwid.Padding(urwid.Filler(self.login_body))),
                     header=self.login_header,
                     footer=self.login_footer,
                     focus_part="body",
@@ -964,9 +941,9 @@ class Application(ApplicationHandler):
             return parts[1]
         return label
 
-    def handle_click(self, creator: Widget, option: bool = False):
+    def handle_click(self, creator: urwid.Widget, option: bool = False):
         """
-        Handles RadioButton clicks.
+        Handles urwid.RadioButton clicks.
 
         :param creator: The widget creating calling the function.
         :param option: On if True, off otherwise.
@@ -1039,10 +1016,10 @@ class Application(ApplicationHandler):
         self.input_box_caller = self.current_window
         self._input_box_caller_body = self._loop.widget
         self.current_window = current_window
-        body = LineBox(
-            Padding(
-                Filler(
-                    Pile(
+        body = urwid.LineBox(
+            urwid.Padding(
+                urwid.Filler(
+                    urwid.Pile(
                         [
                             GText(msg, urwid.CENTER),
                             urwid.Divider(),
@@ -1051,7 +1028,7 @@ class Application(ApplicationHandler):
                             GEdit("", input_text, False, urwid.CENTER, mask=mask),
                         ]
                     ),
-                    TOP,
+                    urwid.TOP,
                 )
             )
         )
@@ -1070,9 +1047,9 @@ class Application(ApplicationHandler):
 
     def _prepare_password_dialog(self):
         """Prepare the QuickNDirty password dialog."""
-        self.password = Terminal(["passwd"])
-        self.password_frame = LineBox(
-            Pile(
+        self.password = urwid.Terminal(["passwd"])
+        self.password_frame = urwid.LineBox(
+            urwid.Pile(
                 [
                     ("weight", 70, self.password),
                 ]
@@ -1129,27 +1106,27 @@ class Application(ApplicationHandler):
                 else:
                     post.append(src[:-8])
         header = (
-            T_("Use the arrow keys to switch between logfiles. <LEFT> and <RIGHT> switch the logfile, while <+> and <-> changes the line count to view. (%s)") % self.log_line_count
+            T_("Use the arrow keys to switch between logfiles. <urwid.LEFT> and <RIGHT> switch the logfile, while <+> and <-> changes the line count to view. (%s)") % self.log_line_count
         )
-        self.log_viewer = LineBox(
-            AttrMap(
-                Pile(
+        self.log_viewer = urwid.LineBox(
+            urwid.AttrMap(
+                urwid.Pile(
                     [
                         (
                             2,
-                            Filler(
-                                Padding(
+                            urwid.Filler(
+                                urwid.Padding(
                                     GText(("body", header), urwid.CENTER),
                                     urwid.CENTER,
-                                    RELATIVE_100,
+                                    urwid.RELATIVE_100,
                                 )
                             ),
                         ),
                         (
                             1,
-                            Columns(
+                            urwid.Columns(
                                 [
-                                    Filler(
+                                    urwid.Filler(
                                         GText(
                                             [
                                                 ("body", "*** "),
@@ -1170,10 +1147,10 @@ class Application(ApplicationHandler):
                                 ]
                             ),
                         ),
-                        AttrMap(
+                        urwid.AttrMap(
                             ScrollBar(
                                 Scrollable(
-                                    Pile(
+                                    urwid.Pile(
                                         [
                                             GText(line)
                                             for line in self.log_file_content
@@ -1239,7 +1216,7 @@ class Application(ApplicationHandler):
         self._reset_layout()
         self.print(T_("Opening timesyncd configuration"))
         self.current_window = _TIMESYNCD
-        header = AttrMap(GText(T_("Timesyncd Configuration"), urwid.CENTER), "header")
+        header = urwid.AttrMap(GText(T_("Timesyncd Configuration"), urwid.CENTER), "header")
         self._prepare_timesyncd_config()
         self._open_conf_dialog(self.timesyncd_body, header, [self.ok_button, self.cancel_button])
 
@@ -1249,11 +1226,11 @@ class Application(ApplicationHandler):
             header: Any,
             footer_buttons: List[Tuple[int, GBoxButton]]
     ):
-        footer = AttrMap(
-            Columns(footer_buttons), "buttonbar"
+        footer = urwid.AttrMap(
+            urwid.Columns(footer_buttons), "buttonbar"
         )
         frame: parameter.Frame = parameter.Frame(
-            body=AttrMap(body_widget, "body"),
+            body=urwid.AttrMap(body_widget, "body"),
             header=header,
             footer=footer,
             focus_part="body",
@@ -1286,12 +1263,12 @@ class Application(ApplicationHandler):
         ntp_server = ntp_from_file.split(" ")
         fallback_server = fallback_from_file.split(" ")
         text = T_("Insert the NTP servers separated by <SPACE> char.")
-        self.timesyncd_body = LineBox(
-            Padding(
-                Filler(
-                    Pile(
+        self.timesyncd_body = urwid.LineBox(
+            urwid.Padding(
+                urwid.Filler(
+                    urwid.Pile(
                         [
-                            GText(text, LEFT, wrap=SPACE),
+                            GText(text, urwid.LEFT, wrap=SPACE),
                             GEdit(
                                 (15, "NTP: "), " ".join(ntp_server), wrap=SPACE
                             ),
@@ -1302,7 +1279,7 @@ class Application(ApplicationHandler):
                             ),
                         ]
                     ),
-                    TOP,
+                    urwid.TOP,
                 )
             )
         )
@@ -1312,7 +1289,7 @@ class Application(ApplicationHandler):
         self._reset_layout()
         self.print(T_("Opening repository selection"))
         self.current_window = _REPO_SELECTION
-        header = AttrMap(GText(T_("Software repository selection"), urwid.CENTER), "header")
+        header = urwid.AttrMap(GText(T_("Software repository selection"), urwid.CENTER), "header")
         self._prepare_repo_config()
         self._open_conf_dialog(self.repo_selection_body, header, [self.save_button, self.cancel_button])
 
@@ -1356,7 +1333,7 @@ class Application(ApplicationHandler):
                 vblank, GEdit(T_('Password: '), edit_text=default_pw), vblank
             ])
         ]
-        self.repo_selection_body = LineBox(Padding(Filler(Pile(body_content), TOP)))
+        self.repo_selection_body = urwid.LineBox(urwid.Padding(urwid.Filler(urwid.Pile(body_content), urwid.TOP)))
 
     def _open_setup_wizard(self):
         """Open grommunio setup wizard."""
@@ -1417,14 +1394,14 @@ class Application(ApplicationHandler):
                 )
                 self.print(T_("Login wrong! (%s)") % msg)
 
-    def _press_button(self, button: Widget, *args, **kwargs):
+    def _press_button(self, button: urwid.Widget, *args, **kwargs):
         """
         Handles general events if a button is pressed.
 
         :param button: The button been clicked.
         """
         label: str = T_("UNKNOWN LABEL")
-        if isinstance(button, (GButton, RadioButton, WidgetDrawer)):
+        if isinstance(button, (GButton, urwid.RadioButton, WidgetDrawer)):
             label = button.label
         self.last_pressed_button = label
         if self.current_window not in [_MAIN]:
@@ -1434,25 +1411,25 @@ class Application(ApplicationHandler):
             )
             self.handle_event(f"{label} enter")
 
-    def _prepare_menu_list(self, items: Dict[str, Widget]) -> ListBox:
+    def _prepare_menu_list(self, items: Dict[str, urwid.Widget]) -> urwid.ListBox:
         """
         Prepare general menu list.
 
         :param items: A dictionary of widgets representing the menu items.
-        :return: ListBox containing menu items.
+        :return: urwid.ListBox containing menu items.
         """
         menu_items: List[MenuItem] = self._create_menu_items(items)
-        return ListBox(SimpleFocusListWalker(menu_items))
+        return urwid.ListBox(urwid.SimpleFocusListWalker(menu_items))
 
-    def _menu_to_frame(self, listbox: ListBox):
-        """Put menu(ListBox) into a Frame."""
+    def _menu_to_frame(self, listbox: urwid.ListBox):
+        """Put menu(urwid.ListBox) into a urwid.Frame."""
         fopos: int = listbox.focus_position
-        menu = Columns([
-            AttrMap(listbox, "body"), AttrMap(ListBox(SimpleListWalker([
+        menu = urwid.Columns([
+            urwid.AttrMap(listbox, "body"), urwid.AttrMap(urwid.ListBox(urwid.SimpleListWalker([
                 listbox.body[fopos].original_widget.get_description()
             ])), "reverse",),
         ])
-        return Frame(menu, header=self.header, footer=self.footer)
+        return urwid.Frame(menu, header=self.header, footer=self.footer)
 
     def _switch_next_colormode(self):
         """Switch to next color scheme."""
@@ -1492,7 +1469,7 @@ class Application(ApplicationHandler):
         self._prepare_kbd_config()
         footer = None
         frame: parameter.Frame = parameter.Frame(
-            body=AttrMap(self.keyboard_switch_body, "body"),
+            body=urwid.AttrMap(self.keyboard_switch_body, "body"),
             header=header,
             footer=footer,
             focus_part="body",
@@ -1532,14 +1509,14 @@ class Application(ApplicationHandler):
         self.keyboard_content = []
         for kbd in keyboard_list:
             self.keyboard_content.append(
-                AttrMap(
+                urwid.AttrMap(
                     urwid.RadioButton(
                         self.keyboard_rb, kbd, "first True", sub_press
                     ),
                     "focus" if kbd == self.loaded_kbd else "selectable",
                 )
             )
-        self.keyboard_list = ScrollBar(Scrollable(Pile(self.keyboard_content)))
+        self.keyboard_list = ScrollBar(Scrollable(urwid.Pile(self.keyboard_content)))
         self.keyboard_switch_body = self.keyboard_list
 
     def redraw(self):
@@ -1559,19 +1536,19 @@ class Application(ApplicationHandler):
             self._loop.widget = self._body
             self._loop.draw_screen()
 
-    def _create_menu_items(self, items: Dict[str, Widget]) -> List[MenuItem]:
+    def _create_menu_items(self, items: Dict[str, urwid.Widget]) -> List[MenuItem]:
         """
         Takes a dictionary with menu labels as keys and widget(lists) as
         content and creates a list of menu items.
 
-        :param items: Dictionary in the form {'label': Widget}.
+        :param items: Dictionary in the form {'label': urwid.Widget}.
         :return: List of MenuItems.
         """
         menu_items: List[MenuItem] = []
         for idx, caption in enumerate(items.keys(), 1):
             item = MenuItem(idx, caption, items.get(caption), self)
-            connect_signal(item, "activate", self.handle_event)
-            menu_items.append(AttrMap(item, "selectable", "focus"))
+            urwid.connect_signal(item, "activate", self.handle_event)
+            menu_items.append(urwid.AttrMap(item, "selectable", "focus"))
         return menu_items
 
     def print(self, string="", align="left"):
@@ -1621,13 +1598,13 @@ class Application(ApplicationHandler):
                 content.append(elem)
             else:
                 rest.append(elem)
-        col_list = [Columns([(len(elem), elem) for elem in content])]
+        col_list = [urwid.Columns([(len(elem), elem) for elem in content])]
         if len(rest) > 0:
-            col_list += [Columns([(len(elem), elem) for elem in rest])]
+            col_list += [urwid.Columns([(len(elem), elem) for elem in rest])]
         if self.debug:
-            col_list += [Columns([gdebug])]
+            col_list += [urwid.Columns([gdebug])]
         self.footer_content = col_list
-        self.footer = AttrMap(Pile(self.footer_content), "footer")
+        self.footer = urwid.AttrMap(urwid.Pile(self.footer_content), "footer")
         swap_widget = getattr(self, "_body", None)
         if swap_widget:
             swap_widget.footer = self.footer
@@ -1681,7 +1658,7 @@ class Application(ApplicationHandler):
             self.message_box_caller = self.current_window
             self._message_box_caller_body = self._loop.widget
             self.current_window = _MESSAGE_BOX
-        body = LineBox(Padding(Filler(Pile([GText(mb_params.msg, urwid.CENTER)]), TOP)))
+        body = urwid.LineBox(urwid.Padding(urwid.Filler(urwid.Pile([GText(mb_params.msg, urwid.CENTER)]), urwid.TOP)))
         footer = self._create_footer(view_buttons.view_ok, view_buttons.view_cancel)
 
         if mb_params.title is None:
@@ -1734,10 +1711,10 @@ class Application(ApplicationHandler):
         self.input_box_caller = self.current_window
         self._input_box_caller_body = self._loop.widget
         self.current_window = _INPUT_BOX
-        body = LineBox(
-            Padding(
-                Filler(
-                    Pile(
+        body = urwid.LineBox(
+            urwid.Padding(
+                urwid.Filler(
+                    urwid.Pile(
                         [
                             GText(ib_params.msg, urwid.CENTER),
                             GEdit(
@@ -1745,7 +1722,7 @@ class Application(ApplicationHandler):
                             ),
                         ]
                     ),
-                    TOP,
+                    urwid.TOP,
                 )
             )
         )
@@ -1771,7 +1748,7 @@ class Application(ApplicationHandler):
                 (
                     "weight",
                     1,
-                    Columns(
+                    urwid.Columns(
                         [
                             ("weight", 1, GText("")),
                             self.ok_button,
@@ -1785,7 +1762,7 @@ class Application(ApplicationHandler):
                 (
                     "weight",
                     1,
-                    Columns(
+                    urwid.Columns(
                         [
                             ("weight", 1, GText("")),
                             self.cancel_button,
@@ -1795,17 +1772,17 @@ class Application(ApplicationHandler):
                 )
             ]
         cols += [("weight", 1, GText(""))]
-        footer = AttrMap(Columns(cols), "buttonbar")
+        footer = urwid.AttrMap(urwid.Columns(cols), "buttonbar")
         return footer
 
-    def get_focused_menu(self, menu: ListBox, event: Any) -> int:
+    def get_focused_menu(self, menu: urwid.ListBox, event: Any) -> int:
         """
         Returns id of focused menu item. Returns current id on enter or 1-9 or
         click, and returns the next id if
         key is up or down.
 
         :param menu: The menu from which you want to know the id.
-        :type: ListBox
+        :type: urwid.ListBox
         :param event: The event passed to the menu.
         :type: Any
         :returns: The id of the selected menu item. (>=1)
@@ -1817,8 +1794,8 @@ class Application(ApplicationHandler):
         if not self.last_menu_focus == self.current_menu_focus:
             cid: int = self.last_menu_focus - 1
             nid: int = self.current_menu_focus - 1
-            current_widget: Widget = menu.body[cid].base_widget
-            next_widget: Widget = menu.body[nid].base_widget
+            current_widget: urwid.Widget = menu.body[cid].base_widget
+            next_widget: urwid.Widget = menu.body[nid].base_widget
             if isinstance(current_widget, MultiMenuItem) and isinstance(next_widget, MultiMenuItem):
                 cmmi: MultiMenuItem = current_widget
                 nmmi: MultiMenuItem = next_widget
@@ -1829,14 +1806,14 @@ class Application(ApplicationHandler):
         return self.current_menu_focus
 
     def _handle_standard_menu_behaviour(
-        self, menu: ListBox, event: Any, description_box: ListBox = None
+        self, menu: urwid.ListBox, event: Any, description_box: urwid.ListBox = None
     ) -> int:
         """
         Handles standard menu behaviour and returns the focused id, if any.
 
         :param menu: The menu to be handled.
         :param event: The event to be handled.
-        :param description_box: The ListBox containing the menu content that
+        :param description_box: The urwid.ListBox containing the menu content that
         may be refreshed with the next description.
         :return: The id of the menu having the focus (1+)
         """
@@ -1928,7 +1905,7 @@ class Application(ApplicationHandler):
         """
         self.debug = yes
 
-    def _update_clock(self, cb_loop: MainLoop, data: Any = None):
+    def _update_clock(self, cb_loop: urwid.MainLoop, data: Any = None):
         """
         Updates taskbar every second.
 
@@ -1955,7 +1932,7 @@ class Application(ApplicationHandler):
             modal: bool = False
     ):
         """
-        Overlays a dialog box on top of the console UI
+        urwid.Overlays a dialog box on top of the console UI
 
         Args:
             @param frame: The frame with body, footer, header and focus_part.
@@ -1966,9 +1943,9 @@ class Application(ApplicationHandler):
         # Body
         if isinstance(frame.body, str) and frame.body == "":
             body = GText(T_("No body"), align="center")
-            body = Filler(body, valign="top")
-            body = Padding(body, left=1, right=1)
-            body = LineBox(body)
+            body = urwid.Filler(body, valign="top")
+            body = urwid.Padding(body, left=1, right=1)
+            body = urwid.LineBox(body)
         else:
             body = frame.body
 
@@ -1976,7 +1953,7 @@ class Application(ApplicationHandler):
         if isinstance(frame.footer, str) and frame.footer == "":
             footer = GBoxButton("Okay", self._reset_layout())
             footer = urwid.AttrMap(footer, "selectable", "focus")
-            footer = GridFlow([footer], 8, 1, 1, "center")
+            footer = urwid.GridFlow([footer], 8, 1, 1, "center")
         else:
             footer = frame.footer
 
@@ -1996,14 +1973,14 @@ class Application(ApplicationHandler):
         if self.layout is not None:
             self.old_layout = self.layout
 
-        self.layout = Frame(
+        self.layout = urwid.Frame(
             body, header=header, footer=footer, focus_part=focus_part
         )
 
         # self._body = body
 
-        widget = Overlay(
-            LineBox(self.layout),
+        widget = urwid.Overlay(
+            urwid.LineBox(self.layout),
             self._body,
             align=alignment.align,
             width=size.width,
@@ -2019,7 +1996,7 @@ class Application(ApplicationHandler):
 
 def create_application() -> Tuple[Union[Application, None], bool]:
     """Creates and returns the main application"""
-    set_encoding("utf-8")
+    urwid.set_encoding("utf-8")
     production = True
     if "--help" in sys.argv:
         print(T_("Usage: {%s} [OPTIONS]") % sys.argv[0])

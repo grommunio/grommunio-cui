@@ -2,24 +2,14 @@
 # SPDX-FileCopyrightText: 2021 grommunio GmbH
 
 from typing import Any, List, Dict
-from urwid import (
-    AttrMap,
-    Columns,
-    ListBox,
-    RadioButton,
-    Widget,
-    connect_signal,
-    emit_signal,
-    register_signal,
-    CompositeCanvas,
-)
+import urwid
 from cui.interface import ApplicationHandler, WidgetDrawer
 from gwidgets import GText
 
 
 class MenuItem(GText):
     """
-    Standard MenuItem enhances Text Widget by signal 'activate'
+    Standard MenuItem enhances Text urwid.Widget by signal 'activate'
     """
 
     application: ApplicationHandler = None
@@ -34,12 +24,12 @@ class MenuItem(GText):
         GText.__init__(self, caption)
         self.id = menu_id
         self.description = description
-        register_signal(self.__class__, ["activate"])
+        urwid.register_signal(self.__class__, ["activate"])
         self.application = app
 
     def keypress(self, _, key: str = "") -> str:
         if key == "enter":
-            emit_signal(self, "activate", key)
+            urwid.emit_signal(self, "activate", key)
         else:
             if self.application is not None:
                 if key not in ["c", "f1", "f5", "esc"]:
@@ -56,26 +46,26 @@ class MenuItem(GText):
         return True
 
 
-class MultiRadioButton(RadioButton):
+class MultiRadioButton(urwid.RadioButton):
     """
-    Enhances RadioButton with content columns and ability to have a parent.
+    Enhances urwid.RadioButton with content columns and ability to have a parent.
     """
 
     _parent: WidgetDrawer = None
 
     def __init__(
         self,
-        group: List[Widget],
+        group: List[urwid.Widget],
         radio_id: int,
         label: Any,
-        column_content: List[Widget],
+        column_content: List[urwid.Widget],
         state: bool = "first True",
         on_state_change: Any = None,
         user_data: Any = None,
     ):
         self.id = radio_id
         self.column_content = column_content
-        # register_signal(self.__class__, ['activate'])
+        # urwid.register_signal(self.__class__, ['activate'])
         super(MultiRadioButton, self).__init__(
             group, label, state, on_state_change, user_data
         )
@@ -86,7 +76,7 @@ class MultiRadioButton(RadioButton):
     def get_id(self) -> int:
         return self.id
 
-    def get_column_content(self) -> List[Widget]:
+    def get_column_content(self) -> List[urwid.Widget]:
         return self.column_content
 
     def trigger_multi_menu_item_redraw(self, event):
@@ -107,12 +97,12 @@ class MultiRadioButton(RadioButton):
 
 class MultiMenuItem(WidgetDrawer):
     """
-    Enhanced MultiRadioButton with focus handling etc.
+    Enhanced Multiurwid.RadioButton with focus handling etc.
     """
 
     application: ApplicationHandler = None
     dirty: bool = True
-    parent_listbox: ListBox = None
+    parent_listbox: urwid.ListBox = None
     last_focus: int = -1
     current_focus: int = 0
     _state: bool = False
@@ -122,7 +112,7 @@ class MultiMenuItem(WidgetDrawer):
         group: List[MultiRadioButton],
         menu_id: int,
         label: Any,
-        column_content: List[Widget],
+        column_content: List[urwid.Widget],
         state: Any = "first True",
         on_state_change: Any = None,
         user_data: Any = None,
@@ -157,15 +147,15 @@ class MultiMenuItem(WidgetDrawer):
             self._user_data,
         )
         self._hidden_widget.parent = self
-        connect_signal(self._hidden_widget, "change", self.handle_changed)
+        urwid.connect_signal(self._hidden_widget, "change", self.handle_changed)
         self.display_widget = self._create_display_widget()
         super(MultiMenuItem, self).__init__(self.display_widget)
-        register_signal(self.__class__, ["change", "postchange"])
-        connect_signal(self, "change", self.mark_as_dirty)
+        urwid.register_signal(self.__class__, ["change", "postchange"])
+        urwid.connect_signal(self, "change", self.mark_as_dirty)
 
-    def _create_display_widget(self, event: Any = None) -> Columns:
+    def _create_display_widget(self, event: Any = None) -> urwid.Columns:
         """
-        Returns the Columns Widget needed to draw the wrapped Widget every event.
+        Returns the urwid.Columns urwid.Widget needed to draw the wrapped urwid.Widget every event.
 
         :param event: The event to be drawn by.
         :return: The columns to be rendered.
@@ -176,16 +166,16 @@ class MultiMenuItem(WidgetDrawer):
         else:
             self._focus = False
         color: str = "MMI.focus" if self._focus else "MMI.selectable"
-        self.display_widget: Columns = Columns(
+        self.display_widget: urwid.Columns = urwid.Columns(
             [
                 (
                     "weight",
                     1,
-                    AttrMap(
+                    urwid.AttrMap(
                         self._hidden_widget, "MMI.selectable", "MMI.focus"
                     ),
                 ),
-                ("weight", 4, AttrMap(self._column_content, color, color)),
+                ("weight", 4, urwid.AttrMap(self._column_content, color, color)),
             ]
         )
         return self.display_widget
@@ -236,7 +226,7 @@ class MultiMenuItem(WidgetDrawer):
                 # self._hidden_widget.keypress(size, key)
                 # self.refresh_content(key)
                 self.redraw(key)
-                # emit_signal(self, 'activate', key)
+                # urwid.emit_signal(self, 'activate', key)
         else:
             if self.application is not None:
                 if not key == "esc":
@@ -259,7 +249,7 @@ class MultiMenuItem(WidgetDrawer):
         """
         Gives the selected item back.
 
-        :return: The selected MultioRadioButton.
+        :return: The selected Multiourwid.RadioButton.
         """
         mrb = None
         for mrb in self._group:
@@ -304,7 +294,7 @@ class MultiMenuItem(WidgetDrawer):
 
     def redraw_triggered(self, event):
         """
-        Redraws on event. Method triggers all groups MultiRadioButtons trigger_multi_menu_item_redraw methods.
+        Redraws on event. Method triggers all groups Multiurwid.RadioButtons trigger_multi_menu_item_redraw methods.
 
         :param event: The event to redraw.
         """
@@ -314,11 +304,11 @@ class MultiMenuItem(WidgetDrawer):
         for mrb in group_clone:
             mrb.trigger_multi_menu_item_redraw(event)
 
-    def set_parent_listbox(self, parent: ListBox):
+    def set_parent_listbox(self, parent: urwid.ListBox):
         """
-        Sets the parent ListBox containing this item.
+        Sets the parent urwid.ListBox containing this item.
 
-        :param parent: Parent ListBox
+        :param parent: Parent urwid.ListBox
         """
         self.parent_listbox = parent
         userdata: Dict = {
@@ -326,14 +316,14 @@ class MultiMenuItem(WidgetDrawer):
                 lambda: self.parent_listbox.focus_position
             )
         }
-        connect_signal(
+        urwid.connect_signal(
             self.parent_listbox.body,
             "modified",
             self.handle_modified,
             user_args=[self.parent_listbox.body, userdata],
         )
 
-    def render(self, size: Any, focus: bool = False) -> CompositeCanvas:
+    def render(self, size: Any, focus: bool = False) -> urwid.CompositeCanvas:
         """
         Renders the widget.
 
@@ -393,7 +383,7 @@ class MultiMenuItem(WidgetDrawer):
         Is called additionally if item is changed (???).
         TODO Check what this does exactly.  or when it is called
 
-        :param item: The calling MWidget.
+        :param item: The calling Murwid.Widget.
         :param state: The new state.
         :param args: Optional user_args.
         :param kwargs: Optional keyword args

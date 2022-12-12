@@ -2,21 +2,13 @@
 # SPDX-FileCopyrightText: 2021 grommunio GmbH
 
 from typing import Any
-from urwid import (
-    AttrMap,
-    Button,
-    Padding,
-    Pile,
-    Text,
-    connect_signal,
-    register_signal,
-)
+import urwid
 from interface import ApplicationHandler, WidgetDrawer
 
 
-class GButton(Button):
+class GButton(urwid.Button):
     """
-    Extended Button class with custom left and right sign.
+    Extended urwid.Button class with custom left and right sign.
     """
 
     _selectable = True
@@ -30,13 +22,13 @@ class GButton(Button):
         left_end: str = "<",
         right_end: str = ">",
     ):
-        self.button_left = Text(left_end)
-        self.button_right = Text(right_end)
+        self.button_left = urwid.Text(left_end)
+        self.button_right = urwid.Text(right_end)
         super(GButton, self).__init__(label, on_press, user_data)
 
-    def wrap(self, left_pad: int = 4, right_pad: int = 4) -> Padding:
-        button = AttrMap(self, "buttn", "buttnf")
-        button = Padding(button, left=left_pad, right=right_pad)
+    def wrap(self, left_pad: int = 4, right_pad: int = 4) -> urwid.Padding:
+        button = urwid.AttrMap(self, "buttn", "buttnf")
+        button = urwid.Padding(button, left=left_pad, right=right_pad)
         return button
 
     def set_application(self, app: ApplicationHandler):
@@ -45,7 +37,7 @@ class GButton(Button):
 
 class GBoxButton(WidgetDrawer):
     """
-    Extended Button class with surrounding lines. Drawing by unicode chars.
+    Extended urwid.Button class with surrounding lines. Drawing by unicode chars.
     """
 
     _selectable = True
@@ -68,22 +60,22 @@ class GBoxButton(WidgetDrawer):
             f"{self._bottom_left_char}{border}{self._bottom_right_char}"
         )
 
-        self.widget = Pile(
+        self.widget = urwid.Pile(
             [
-                Text(self.top),
-                Text(self.middle),
-                Text(self.bottom),
+                urwid.Text(self.top),
+                urwid.Text(self.middle),
+                urwid.Text(self.bottom),
             ]
         )
         self._label = label
         self.label = label
-        self.widget = AttrMap(self.widget, "buttn", "buttnf")
+        self.widget = urwid.AttrMap(self.widget, "buttn", "buttnf")
         self._hidden_button: GButton = GButton(
             "hidden %s" % label, on_press, user_data
         )
         super(GBoxButton, self).__init__(self.widget)
-        register_signal(self.__class__, ["click"])
-        connect_signal(self, "click", on_press)
+        urwid.register_signal(self.__class__, ["click"])
+        urwid.connect_signal(self, "click", on_press)
 
     def selectable(self):
         return True

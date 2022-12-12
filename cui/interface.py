@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: 2021 grommunio GmbH
 
 from typing import Any
-from urwid import ListBox, WidgetWrap
+import urwid
 import cui
 
 
@@ -32,17 +32,17 @@ class ApplicationHandler(object):
             f"and has to be implemented in sub classes."
         )
 
-    def get_focused_menu(self, menu: ListBox, event: Any) -> int:
+    def get_focused_menu(self, menu: urwid.ListBox, event: Any) -> int:
         """
         Returns id of focused menu item. Returns current id on enter or 1-9 or click, and returns the next id if
         key is up or down.
 
         - **Parameters**:
 
-            The menu as a ListBox combined with any event to resolve the current id.
+            The menu as a urwid.ListBox combined with any event to resolve the current id.
 
             :param menu: The menu from which you want to know the id.
-            :type: ListBox
+            :type: urwid.ListBox
             :param event: The event passed to the menu. The event can be a keystroke also as a mouse click.
             :type: Any
             :returns: The id of the selected menu item. (>=1)
@@ -90,7 +90,7 @@ class ApplicationHandler(object):
         )
 
 
-class WidgetDrawer(WidgetWrap):
+class WidgetDrawer(urwid.WidgetWrap):
     """
     Super class for custom wrapped widgets to simplify redraw issues.
     """
