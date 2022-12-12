@@ -45,6 +45,6 @@ msgbox_params = ["msg", "title", "modal"]
 msgbox_defaults = (None, None, True)
 MsgBoxParams = namedtuple_defaults("MsgBoxParams", msgbox_params, msgbox_defaults)
 
-inputbox_params = ["msg", "title", "modal"]
-inputbox_defaults = (None, None, True)
+inputbox_params = ["msg", "title", "input_text", "multiline", "mask", "modal"]
+inputbox_defaults = (None, None, "", False, None, True)
 InputBoxParams = namedtuple_defaults("InputBoxParams", inputbox_params, inputbox_defaults)

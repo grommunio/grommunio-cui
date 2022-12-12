@@ -1986,19 +1986,11 @@ class Application(ApplicationHandler):
         self.dialog(frame, alignment=alignment, size=size, modal=mb_params.modal)
 
     def input_box(
-        self,
-        msg: Any,
-        title: str = None,
-        input_text: str = "",
-        multiline: bool = False,
-        align: str = CENTER,
-        width: int = 45,
-        valign: str = MIDDLE,
-        height: int = 9,
-        mask: Union[bytes, str] = None,
-        view_ok: bool = True,
-        view_cancel: bool = False,
-        modal: bool = False,
+            self,
+            ib_params: parameter.InputBoxParams = parameter.InputBoxParams(None, None, "", False, None, True),
+            alignment: parameter.Alignment = parameter.Alignment(urwid.CENTER, urwid.MIDDLE),
+            size: parameter.Size = parameter.Size(45, 9),
+            view_buttons: parameter.ViewOkCancel = parameter.ViewOkCancel(True, False)
     ):
         """Creates an input box dialog with an optional title and a default
         value.
@@ -2018,20 +2010,15 @@ class Application(ApplicationHandler):
                     self.current_window = self.input_box_caller  # here you
                                          # have to set the current window
 
-        :param msg: List or one element of urwid formatted tuple containing
-                    the message content.
-        :type: Any
-        :param title: Optional title as simple string.
-        :param input_text: Default text as input text.
-        :param multiline: If True then inputs can have more than one line.
-        :param align: Horizontal align.
-        :param width: The width of the box.
-        :param valign: Vertical align.
-        :param height: The height of the box.
-        :param mask: hide text entered by this character. If None, mask will
-                     be disabled.
-        :param view_ok: Should the OK button be visible?
-        :param view_cancel: Should the Cancel button be visible?
+        Args:
+            @param ib_params: Messagebox parameters like msg, title and modal and also
+                input_text: Default text as input text.
+                multiline: If True then inputs can have more than one line.
+                mask: hide text entered by this character. If None, mask will
+                 be disabled.
+            @param alignment: The alignment in align and valign.
+            @param size: The size in width and height.
+            @param view_buttons: The viewed buttons ok or cancel.
         """
         self.input_box_caller = self.current_window
         self._input_box_caller_body = self._loop.widget
@@ -2041,9 +2028,9 @@ class Application(ApplicationHandler):
                 Filler(
                     Pile(
                         [
-                            GText(msg, CENTER),
+                            GText(ib_params.msg, CENTER),
                             GEdit(
-                                "", input_text, multiline, CENTER, mask=mask
+                                "", ib_params.input_text, ib_params.multiline, CENTER, mask=ib_params.mask
                             ),
                         ]
                     ),
@@ -2051,19 +2038,19 @@ class Application(ApplicationHandler):
                 )
             )
         )
-        footer = self._create_footer(view_ok, view_cancel)
+        footer = self._create_footer(view_buttons.view_ok, view_buttons.view_cancel)
 
-        if title is None:
+        if ib_params.title is None:
             title = T_("Input expected")
+        else:
+            title = ib_params.title
         frame: parameter.Frame = parameter.Frame(
             body=body,
             header=GText(title, CENTER),
             footer=footer,
             focus_part="body",
         )
-        alignment: parameter.Alignment = parameter.Alignment(align, valign)
-        size: parameter.Size = parameter.Size(width, height)
-        self.dialog(frame, alignment=alignment, size=size, modal=modal)
+        self.dialog(frame, alignment=alignment, size=size, modal=ib_params.modal)
 
     def _create_footer(self, view_ok: bool = True, view_cancel: bool = False):
         """Create and return footer."""
