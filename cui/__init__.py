@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # SPDX-FileCopyrightText: 2021 grommunio GmbH
+"""The main module of grommunio-cui."""
 import datetime
 import time
 import re
@@ -2278,23 +2279,18 @@ class Application(ApplicationHandler):
 
     def dialog(
             self, frame: parameter.Frame,
-            alignment: parameter.Alignment=parameter.Alignment(),
-            size: parameter.Size=parameter.Size(),
+            alignment: parameter.Alignment = parameter.Alignment(),
+            size: parameter.Size = parameter.Size(),
             modal: bool = False
     ):
         """
         Overlays a dialog box on top of the console UI
 
         Args:
-            body (Widget): The center widget.
-            header (Widget): The header widget.
-            footer (Widget): The footer widget.
-            focus_part (str): The part getting the focus. ('header', 'body'
-                              or 'footer')
-            align (str): Horizontal align.
-            width (int): The width of the box.
-            valign (str): Vertical align.
-            height (int): The height of the box.
+            @param frame: The frame with body, footer, header and focus_part.
+            @param alignment: The alignment in align and valign.
+            @param size: The size with width and height.
+            @param modal: Dialog is locked / modal until user closes it.
         """
         (body, header, footer, focus_part, align, width, valign, height) = \
             (frame.body, frame.header, frame.footer, frame.focus_part, alignment.align,
