@@ -1708,11 +1708,7 @@ class Application(ApplicationHandler):
         :param button: The button been clicked.
         """
         label: str = T_("UNKNOWN LABEL")
-        if (
-            isinstance(button, RadioButton)
-            or isinstance(button, WidgetDrawer)
-            or isinstance(button, GButton)
-        ):
+        if isinstance(button, (GButton, RadioButton, WidgetDrawer)):
             label = button.label
         self.last_pressed_button = label
         if self.current_window not in [_MAIN]:
