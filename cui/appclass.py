@@ -7,6 +7,7 @@ import urwid
 
 import cui
 import cui.scroll
+import cui.button
 from cui.interface import ApplicationHandler
 
 T_ = cui.util.init_localization()
@@ -175,3 +176,16 @@ class GScreen:
     old_termios: Optional[Tuple[Any, Any, Any, Any, Any]]
     blank_termios: Optional[Tuple[Any, Any, Any, Any, Any]]
     screen: Optional[urwid.raw_display.Screen]
+
+
+class ButtonStore:
+    ok_button: Optional[cui.button.GBoxButton]
+    add_button: Optional[cui.button.GBoxButton]
+    edit_button: Optional[cui.button.GBoxButton]
+    save_button: Optional[cui.button.GBoxButton]
+    close_button: Optional[cui.button.GBoxButton]
+    cancel_button: Optional[cui.button.GBoxButton]
+    details_button: Optional[cui.button.GBoxButton]
+    apply_button: Optional[cui.button.GBoxButton]
+    user_edit: Optional[cui.gwidgets.GEdit]
+    pass_edit: Optional[cui.gwidgets.GEdit]

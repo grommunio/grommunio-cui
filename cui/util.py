@@ -91,16 +91,16 @@ def create_application_buttons(app):
     app.login_header = urwid.AttrMap(
         cui.gwidgets.GText(("header", T_("Login")), align="center"), "header"
     )
-    app.user_edit = cui.gwidgets.GEdit(
+    app.button_store.user_edit = cui.gwidgets.GEdit(
         (T_("Username: "),), edit_text=getuser(), edit_pos=0
     )
-    app.pass_edit = cui.gwidgets.GEdit(
+    app.button_store.pass_edit = cui.gwidgets.GEdit(
         T_("Password: "), edit_text="", edit_pos=0, mask="*"
     )
     app.login_body = urwid.Pile(
         [
-            app.user_edit,
-            app.pass_edit,
+            app.button_store.user_edit,
+            app.button_store.pass_edit,
         ]
     )
     login_button = cui.button.GBoxButton(T_("Login"), app._check_login)
@@ -113,13 +113,13 @@ def create_application_buttons(app):
         urwid.Columns([cui.gwidgets.GText(""), login_button, cui.gwidgets.GText("")]), "buttonbar"
     )
     # Common OK Button
-    app.ok_button = cui.button.GBoxButton(T_("OK"), app._press_button)
+    app.button_store.ok_button = cui.button.GBoxButton(T_("OK"), app._press_button)
     urwid.connect_signal(
-        app.ok_button,
+        app.button_store.ok_button,
         "click",
         lambda button: app.handle_event("ok enter"),
     )
-    app.ok_button = (len(app.ok_button.label) + 6, app.ok_button)
+    app.button_store.ok_button = (len(app.button_store.ok_button.label) + 6, app.button_store.ok_button)
     app.ok_button_footer = urwid.AttrMap(
         urwid.Columns(
             [
@@ -130,7 +130,7 @@ def create_application_buttons(app):
                     urwid.Columns(
                         [
                             ("weight", 1, cui.gwidgets.GText("")),
-                            app.ok_button,
+                            app.button_store.ok_button,
                             ("weight", 1, cui.gwidgets.GText("")),
                         ]
                     ),
@@ -141,24 +141,24 @@ def create_application_buttons(app):
         "buttonbar",
     )
     # Common Cancel Button
-    app.cancel_button = cui.button.GBoxButton(T_("Cancel"), app._press_button)
+    app.button_store.cancel_button = cui.button.GBoxButton(T_("Cancel"), app._press_button)
     urwid.connect_signal(
-        app.cancel_button,
+        app.button_store.cancel_button,
         "click",
         lambda button: app.handle_event("cancel enter"),
     )
-    app.cancel_button = (len(app.cancel_button.label) + 6, app.cancel_button)
+    app.button_store.cancel_button = (len(app.button_store.cancel_button.label) + 6, app.button_store.cancel_button)
     app.cancel_button_footer = urwid.GridFlow(
-        [app.cancel_button[1]], 10, 1, 1, "center"
+        [app.button_store.cancel_button[1]], 10, 1, 1, "center"
     )
     # Common Close Button
-    app.close_button = cui.button.GBoxButton(T_("Close"), app._press_button)
+    app.button_store.close_button = cui.button.GBoxButton(T_("Close"), app._press_button)
     urwid.connect_signal(
-        app.close_button,
+        app.button_store.close_button,
         "click",
         lambda button: app.handle_event("close enter"),
     )
-    app.close_button = (len(app.close_button.label) + 6, app.close_button)
+    app.button_store.close_button = (len(app.button_store.close_button.label) + 6, app.button_store.close_button)
     app.close_button_footer = urwid.AttrMap(
         urwid.Columns(
             [
@@ -169,7 +169,7 @@ def create_application_buttons(app):
                     urwid.Columns(
                         [
                             ("weight", 1, cui.gwidgets.GText("")),
-                            app.close_button,
+                            app.button_store.close_button,
                             ("weight", 1, cui.gwidgets.GText("")),
                         ]
                     ),
@@ -180,37 +180,37 @@ def create_application_buttons(app):
         "buttonbar",
     )
     # Common Add Button
-    app.add_button = cui.button.GBoxButton(T_("Add"), app._press_button)
+    app.button_store.add_button = cui.button.GBoxButton(T_("Add"), app._press_button)
     urwid.connect_signal(
-        app.add_button,
+        app.button_store.add_button,
         "click",
         lambda button: app.handle_event("add enter"),
     )
-    app.add_button = (len(app.add_button.label) + 6, app.add_button)
+    app.button_store.add_button = (len(app.button_store.add_button.label) + 6, app.button_store.add_button)
     app.add_button_footer = urwid.GridFlow(
-        [app.add_button[1]], 10, 1, 1, "center"
+        [app.button_store.add_button[1]], 10, 1, 1, "center"
     )
     # Common Edit Button
-    app.edit_button = cui.button.GBoxButton(T_("Edit"), app._press_button)
+    app.button_store.edit_button = cui.button.GBoxButton(T_("Edit"), app._press_button)
     urwid.connect_signal(
-        app.edit_button,
+        app.button_store.edit_button,
         "click",
         lambda button: app.handle_event("edit enter"),
     )
-    app.edit_button = (len(app.edit_button.label) + 6, app.edit_button)
+    app.button_store.edit_button = (len(app.button_store.edit_button.label) + 6, app.button_store.edit_button)
     app.edit_button_footer = urwid.GridFlow(
-        [app.edit_button[1]], 10, 1, 1, "center"
+        [app.button_store.edit_button[1]], 10, 1, 1, "center"
     )
     # Common Details Button
-    app.details_button = cui.button.GBoxButton(T_("Details"), app._press_button)
+    app.button_store.details_button = cui.button.GBoxButton(T_("Details"), app._press_button)
     urwid.connect_signal(
-        app.details_button,
+        app.button_store.details_button,
         "click",
         lambda button: app.handle_event("details enter"),
     )
-    app.details_button = (len(app.details_button.label) + 6, app.details_button)
+    app.button_store.details_button = (len(app.button_store.details_button.label) + 6, app.button_store.details_button)
     app.details_button_footer = urwid.GridFlow(
-        [app.details_button[1]], 10, 1, 1, "center"
+        [app.button_store.details_button[1]], 10, 1, 1, "center"
     )
     # Common Toggle Button
     app.toggle_button = cui.button.GBoxButton(T_("Space to toggle"), app._press_button)
@@ -220,15 +220,15 @@ def create_application_buttons(app):
         [app.toggle_button[1]], 10, 1, 1, "center"
     )
     # Common Apply Button
-    app.apply_button = cui.button.GBoxButton(T_("Apply"), app._press_button)
+    app.button_store.apply_button = cui.button.GBoxButton(T_("Apply"), app._press_button)
     urwid.connect_signal(
-        app.apply_button,
+        app.button_store.apply_button,
         "click",
         lambda button: app.handle_event("apply enter"),
     )
-    app.apply_button = (len(app.apply_button.label) + 6, app.apply_button)
+    app.button_store.apply_button = (len(app.button_store.apply_button.label) + 6, app.button_store.apply_button)
     app.apply_button_footer = urwid.GridFlow(
-        [app.apply_button[1]], 10, 1, 1, "center"
+        [app.button_store.apply_button[1]], 10, 1, 1, "center"
     )
     # Common Save Button
     app.save_button = cui.button.GBoxButton(T_("Save"), app._press_button)

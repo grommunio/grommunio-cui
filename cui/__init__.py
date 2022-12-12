@@ -22,7 +22,7 @@ import urwid
 from cui.gwidgets import GText, GEdit
 from cui import util, parameter
 import cui.parser
-from cui.appclass import Header, MainFrame, GScreen
+from cui.appclass import Header, MainFrame, GScreen, ButtonStore
 from cui.scroll import ScrollBar, Scrollable
 from cui.button import GButton, GBoxButton
 from cui.menu import MenuItem, MultiMenuItem
@@ -68,11 +68,7 @@ class Application(ApplicationHandler):
     main_frame: Optional[MainFrame]
     header: Optional[Header]
     gscreen: Optional[GScreen]
-    ok_button: Optional[cui.button.GBoxButton]
-    save_button: Optional[cui.button.GBoxButton]
-    cancel_button: Optional[cui.button.GBoxButton]
-    user_edit: Optional[cui.gwidgets.GEdit]
-    pass_edit: Optional[cui.gwidgets.GEdit]
+    button_store: Optional[ButtonStore] = ButtonStore()
     login_body: Optional[urwid.Widget]
     login_header: Optional[urwid.Widget]
     login_footer: Optional[urwid.Widget]
@@ -1127,7 +1123,7 @@ class Application(ApplicationHandler):
         self.current_window = _TIMESYNCD
         header = urwid.AttrMap(GText(T_("Timesyncd Configuration"), urwid.CENTER), "header")
         self._prepare_timesyncd_config()
-        self._open_conf_dialog(self.timesyncd_body, header, [self.ok_button, self.cancel_button])
+        self._open_conf_dialog(self.timesyncd_body, header, [self.button_store.ok_button, self.button_store.cancel_button])
 
     def _open_conf_dialog(
             self,
@@ -1200,7 +1196,7 @@ class Application(ApplicationHandler):
         self.current_window = _REPO_SELECTION
         header = urwid.AttrMap(GText(T_("Software repository selection"), urwid.CENTER), "header")
         self._prepare_repo_config()
-        self._open_conf_dialog(self.repo_selection_body, header, [self.save_button, self.cancel_button])
+        self._open_conf_dialog(self.repo_selection_body, header, [self.save_button, self.button_store.cancel_button])
 
     def _prepare_repo_config(self):
         """Prepare repository configuration form."""
@@ -1281,18 +1277,18 @@ class Application(ApplicationHandler):
         """
         Checks login data and switch to authenticate on if successful.
         """
-        if self.user_edit.get_edit_text() != getuser() and os.getegid() != 0:
+        if self.button_store.user_edit.get_edit_text() != getuser() and os.getegid() != 0:
             self.message_box(
                 parameter.MsgBoxParams(T_("You need root privileges to use another user.")),
                 size=parameter.Size(height=10)
             )
             return
-        msg = T_("checking user %s with pass ") % self.user_edit.get_edit_text()
+        msg = T_("checking user %s with pass ") % self.button_store.user_edit.get_edit_text()
         if self.current_window == _LOGIN:
             if util.authenticate_user(
-                self.user_edit.get_edit_text(), self.pass_edit.get_edit_text()
+                self.button_store.user_edit.get_edit_text(), self.button_store.pass_edit.get_edit_text()
             ):
-                self.pass_edit.set_edit_text("")
+                self.button_store.pass_edit.set_edit_text("")
                 self._open_main_menu()
             else:
                 self.message_box(
@@ -1653,7 +1649,7 @@ class Application(ApplicationHandler):
                     urwid.Columns(
                         [
                             ("weight", 1, GText("")),
-                            self.ok_button,
+                            self.button_store.ok_button,
                             ("weight", 1, GText("")),
                         ]
                     ),
@@ -1667,7 +1663,7 @@ class Application(ApplicationHandler):
                     urwid.Columns(
                         [
                             ("weight", 1, GText("")),
-                            self.cancel_button,
+                            self.button_store.cancel_button,
                             ("weight", 1, GText("")),
                         ]
                     ),
