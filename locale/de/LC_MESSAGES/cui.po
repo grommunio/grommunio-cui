@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: grommunio CUI Deutsch\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2022-11-04 19:11+0100\n"
-"PO-Revision-Date: 2022-12-11 11:14+0000\n"
-"Last-Translator: Orkan Eser <orkan.eser@grommunio.com>\n"
+"PO-Revision-Date: 2022-12-13 01:49+0000\n"
+"Last-Translator: J. Lavoie <j.lavoie@net-c.ca>\n"
 "Language-Team: German <https://hosted.weblate.org/projects/grommunio/"
 "grommunio-cui/de/>\n"
 "Language: de\n"
@@ -452,11 +452,11 @@ msgstr "Benutze das \"supported\" Repository"
 
 #: cui/__init__.py:1727
 msgid "Login successful"
-msgstr "Login erfolgreich"
+msgstr "Anmeldung erfolgreich"
 
 #: cui/__init__.py:1729
 msgid ", <F4> for Main-Menu"
-msgstr ", <F4> für Hauptmenu"
+msgstr ", <F4> für Hauptmenü"
 
 #: cui/__init__.py:1739
 msgid "Returning to main screen."
@@ -585,16 +585,16 @@ msgstr "Es ist generell NICHT ratsam localhost als Rechnername zu verwenden."
 #: cui/util.py:510
 msgid "There are still some tasks missing to run/use grommunio."
 msgstr ""
-"Es sind immer noch einige Aufgaben zu erledigen um grommunio zu benutzen."
+"Es sind immer noch einige Aufgaben zu erledigen, um grommunio zu benutzen."
 
 #: cui/util.py:519
 msgid "Boot Time: "
-msgstr "Boot Zeit: "
+msgstr "Startzeit: "
 
 #: cui/util.py:524
 #, python-format
 msgid "Last login time: {%s}"
-msgstr "Letzte Login Zeit: {%s}"
+msgstr "Letzte Anmeldezeit: {%s}"
 
 #: cui/util.py:527
 msgid "Oops!"
