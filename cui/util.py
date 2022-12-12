@@ -249,11 +249,11 @@ def create_main_loop(app):
     app.old_termios = app.screen.tty_signal_keys()
     app.blank_termios = ["undefined" for _ in range(0, 5)]
     app.screen.tty_signal_keys(*app.blank_termios)
-    app._prepare_mainscreen()
+    app.prepare_mainscreen()
     # Loop
     return urwid.MainLoop(
         app._body,
-        get_palette(app._current_colormode),
+        get_palette(app.header.get_colormode()),
         unhandled_input=app.handle_event,
         screen=app.screen,
         handle_mouse=False,

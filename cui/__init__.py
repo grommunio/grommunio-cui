@@ -22,7 +22,7 @@ import urwid
 from cui.gwidgets import GText, GEdit
 from cui import util, parameter
 import cui.parser
-import cui.appclass
+from cui.appclass import Header, MainFrame
 from cui.scroll import ScrollBar, Scrollable
 from cui.button import GButton, GBoxButton
 from cui.menu import MenuItem, MultiMenuItem
@@ -65,11 +65,8 @@ class Application(ApplicationHandler):
     """
     The console UI. Main application class.
     """
-    mainframe: Optional[urwid.Frame]
-    vsplitbox: Optional[urwid.Pile]
-    main_top: Optional[cui.scroll.ScrollBar]
-    main_bottom: Optional[cui.scroll.ScrollBar]
-    header: Optional[cui.appclass.Header]
+    main_frame: Optional[MainFrame]
+    header: Optional[Header]
     old_termios: Optional[Tuple[Any, Any, Any, Any, Any]]
     blank_termios: Optional[Tuple[Any, Any, Any, Any, Any]]
     screen: Optional[urwid.raw_display.Screen]
@@ -113,16 +110,10 @@ class Application(ApplicationHandler):
     key_counter: Dict[str, int] = {}
     progressbar: urwid.ProgressBar
 
-    _current_kbdlayout = util.get_current_kbdlayout()
-
-    # The default color palette
-    _current_colormode: str = "light"
-
     # The hidden input string
     _hidden_input: str = ""
     _hidden_pos: int = 0
     _body: urwid.Widget
-    tb_header: GText
     footer: urwid.Pile
     header: urwid.AttrMap
     log_viewer: urwid.LineBox
@@ -140,7 +131,7 @@ class Application(ApplicationHandler):
 
         util.create_application_buttons(self)
 
-        self._refresh_main_menu()
+        self.refresh_main_menu()
 
         # Password Dialog
         self._prepare_password_dialog()
@@ -161,7 +152,7 @@ class Application(ApplicationHandler):
         MultiMenuItem.application = self
         GButton.application = self
 
-    def _refresh_main_menu(self):
+    def refresh_main_menu(self):
         """Refresh main menu."""
         # The common menu description column
         self.menu_description = urwid.Pile(
@@ -276,84 +267,26 @@ class Application(ApplicationHandler):
             self._loop.widget = self.main_menu
             self._body = self.main_menu
 
-    def _prepare_mainscreen(self):
+    def prepare_mainscreen(self):
         """Prepare main screen."""
-        colormode: str = self._current_colormode
-        self.header = cui.appclass.Header()
-        self.main_top = ScrollBar(
-            Scrollable(
-                urwid.Pile(
-                    [
-                        urwid.Padding(self.header.tb_intro, left=2, right=2, min_width=20),
-                        urwid.Padding(
-                            self.header.tb_sysinfo_top,
-                            align=urwid.LEFT,
-                            left=6,
-                            width=("relative", 80),
-                        ),
-                    ]
-                )
-            )
-        )
-        self.main_bottom = ScrollBar(
-            Scrollable(
-                urwid.Pile(
-                    [
-                        urwid.AttrMap(
-                            urwid.Padding(
-                                self.header.tb_sysinfo_bottom,
-                                align=urwid.LEFT,
-                                left=6,
-                                width=("relative", 80),
-                            ),
-                            "reverse",
-                        )
-                    ]
-                )
-            )
-        )
-        self.tb_header = GText(
-            "".join(self.header.text_header).format(
-                colormode=colormode,
-                kbd=self._current_kbdlayout,
-                authorized_options="",
-            ),
-            align=urwid.CENTER,
-            wrap=urwid.SPACE,
-        )
-        self._refresh_header(colormode, self._current_kbdlayout, "")
+        self.header: Header = Header()
+        self.main_frame: MainFrame = MainFrame(self)
+        self.header.refresh_header()
         self.vsplitbox = urwid.Pile(
             [
-                ("weight", 50, urwid.AttrMap(self.main_top, "body")),
-                ("weight", 50, self.main_bottom),
+                ("weight", 50, urwid.AttrMap(self.main_frame.main_top, "body")),
+                ("weight", 50, self.main_frame.main_bottom),
             ]
         )
         self.footer = urwid.Pile(self.footer_content)
         frame = urwid.Frame(
             urwid.AttrMap(self.vsplitbox, "reverse"),
-            header=self.header,
+            header=self.header.info.header,
             footer=self.footer,
         )
-        self.mainframe = frame
-        self._body = self.mainframe
+        self.main_frame.mainframe = frame
+        self._body = self.main_frame.mainframe
         # self.print(T_("Idle"))
-
-    def _refresh_header(self, colormode, kbd, auth_options):
-        """Refresh header"""
-        self._refresh_head_text(colormode, kbd, auth_options)
-        self.header = urwid.AttrMap(urwid.Padding(self.tb_header, align=urwid.CENTER), "header")
-        if getattr(self, "footer", None):
-            self._refresh_main_menu()
-
-    def _refresh_head_text(self, colormode, kbd, authorized_options):
-        """Refresh head text."""
-        self.tb_header.set_text(
-            "".join(self.header.text_header).format(
-                colormode=colormode,
-                kbd=kbd,
-                authorized_options=authorized_options,
-            )
-        )
 
     def handle_event(self, event: Any):
         """
@@ -628,7 +561,7 @@ class Application(ApplicationHandler):
         """Handle event at anytime."""
         if key in ["f10", "Q"]:
             raise urwid.ExitMainLoop()
-        if key == "f4" and len(self.header.authorized_options) > 0:
+        if key == "f4" and len(self.header.get_authorized_options()) > 0:
             self._open_main_menu()
         elif key in ("f1", "c"):
             self._switch_next_colormode()
@@ -1332,8 +1265,8 @@ class Application(ApplicationHandler):
         self._reset_layout()
         self.print(T_("Login successful"))
         self.current_window = _MAIN_MENU
-        self.header.authorized_options = T_(", <F4> for Main-Menu")
-        self._prepare_mainscreen()
+        self.header.set_authorized_options(T_(", <F4> for Main-Menu"))
+        self.prepare_mainscreen()
         self._body = self.main_menu
         self._loop.widget = self._body
 
@@ -1344,7 +1277,7 @@ class Application(ApplicationHandler):
         self._reset_layout()
         self.print(T_("Returning to main screen."))
         self.current_window = _MAIN
-        self._prepare_mainscreen()
+        self.prepare_mainscreen()
         self._loop.widget = self._body
 
     def _check_login(self):
@@ -1408,20 +1341,18 @@ class Application(ApplicationHandler):
                 listbox.body[fopos].original_widget.get_description()
             ])), "reverse",),
         ])
-        return urwid.Frame(menu, header=self.header, footer=self.footer)
+        return urwid.Frame(menu, header=self.header.info.header, footer=self.footer)
 
     def _switch_next_colormode(self):
         """Switch to next color scheme."""
-        original = self._current_colormode
+        original = self.header.get_colormode()
         color_name = util.get_next_palette_name(original)
         palette = util.get_palette(color_name)
         show_next = color_name
-        self._refresh_header(
-            show_next, self._current_kbdlayout, self.header.authorized_options
-        )
+        self.header.set_colormode(show_next)
+        self.header.refresh_header()
         self._loop.screen.register_palette(palette)
         self._loop.screen.clear()
-        self._current_colormode = show_next
 
     def _set_kbd_layout(self, layout):
         """Set and save selected keyboard layout."""
@@ -1431,12 +1362,8 @@ class Application(ApplicationHandler):
         var["KEYMAP"] = layout
         util.minishell_write(file, var)
         os.system("systemctl restart systemd-vconsole-setup")
-        self._current_kbdlayout = layout
-        self._refresh_head_text(
-            self._current_colormode,
-            self._current_kbdlayout,
-            self.header.authorized_options,
-        )
+        self.header.set_kbdlayout(layout)
+        self.header.refresh_head_text()
 
     def _open_keyboard_selection_menu(self):
         """Open keyboard selection menu form."""
@@ -1477,8 +1404,7 @@ class Application(ApplicationHandler):
             for kbd in all_kbds
             if re.match("^[a-z][a-z]$", kbd)
         ]
-        self.loaded_kbd = util.get_current_kbdlayout()
-        keyboard_list = [self.loaded_kbd]
+        keyboard_list = [util.get_current_kbdlayout()]
         _ = [
             keyboard_list.append(kbd)
             for kbd in sorted(keyboards)

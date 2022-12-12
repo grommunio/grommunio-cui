@@ -15,6 +15,7 @@ class ApplicationHandler(object):
     last_menu_focus: int = -2
     current_menu_state: int = -1
     maybe_menu_state: int = -1
+    header: Any
 
     def handle_event(self, event: Any):
         """
@@ -27,6 +28,13 @@ class ApplicationHandler(object):
                 represented value like 'enter', 'up', 'down', etc.
             :type: Any
         """
+        raise NotImplementedError(
+            f"{self.__class__}.handle_event() must not be called directly in {self.__name__} "
+            f"and has to be implemented in sub classes."
+        )
+
+    def refresh_main_menu(self):
+        """Refresh main menu."""
         raise NotImplementedError(
             f"{self.__class__}.handle_event() must not be called directly in {self.__name__} "
             f"and has to be implemented in sub classes."
