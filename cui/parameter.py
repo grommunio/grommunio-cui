@@ -1,20 +1,28 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # SPDX-FileCopyrightText: 2021 grommunio GmbH
+"""Module containing different parameter classes to reduce needed parameter per call."""
 
 import collections
-
+from typing import Type
 import urwid
 
 
-def namedtuple_defaults(typename, field_names, default_values=()):
-    T = collections.namedtuple(typename, field_names)
-    T.__new__.__defaults__ = (None, ) * len(T._fields)
+def namedtuple_defaults(typename, field_names, default_values=()) -> Type[tuple]:
+    """Creates a namedtuple but with default values.
+
+    @param typename: The class name of the named tuple.
+    @param field_names: The field names of the named tuple class.
+    @param default_values: The default values of the named tuple object.
+    @return: A namedtuple
+    """
+    _namedtuple = collections.namedtuple(typename, field_names)
+    _namedtuple.__new__.__defaults__ = (None, ) * len(_namedtuple._fields)
     if isinstance(default_values, collections.Mapping):
-        proto = T(**default_values)
+        proto = _namedtuple(**default_values)
     else:
-        proto = T(*default_values)
-    T.__new__.__defaults__ = tuple(proto)
-    return T
+        proto = _namedtuple(*default_values)
+    _namedtuple.__new__.__defaults__ = tuple(proto)
+    return _namedtuple
 
 
 alignment_params = ["align", "valign"]
