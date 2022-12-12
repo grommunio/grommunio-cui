@@ -41,7 +41,7 @@ def reset_states():
 def get_button_type(key, open_func_on_ok, mb_func, cancel_msgbox_params, size):
     def open_cancel_msg(msg_params, mb_size):
         mb_func(
-            cui.parameter.MsgBoxParams(msg_params),
+            msg_params,
             size=mb_size
         )
 

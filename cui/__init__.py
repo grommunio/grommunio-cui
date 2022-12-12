@@ -424,36 +424,24 @@ class Application(ApplicationHandler):
         key: str = str(event)
         if self.log_finished and self.current_window != _LOG_VIEWER:
             self.log_finished = False
-        if self.current_window == _MAIN:
-            self._key_ev_main(key)
-        elif self.current_window == _MESSAGE_BOX:
-            self._key_ev_mbox(key)
-        elif self.current_window == _INPUT_BOX:
-            self._key_ev_ibox(key)
-        elif self.current_window == _TERMINAL:
-            self._key_ev_term(key)
-        elif self.current_window == _PASSWORD:
-            self._key_ev_pass(key)
-        elif self.current_window == _LOGIN:
-            self._key_ev_login(key)
-        elif self.current_window == _REBOOT:
-            self._key_ev_reboot(key)
-        elif self.current_window == _SHUTDOWN:
-            self._key_ev_shutdown(key)
-        elif self.current_window == _MAIN_MENU:
-            self._key_ev_mainmenu(key)
-        elif self.current_window == _LOG_VIEWER:
-            self._key_ev_logview(key)
-        elif self.current_window == _UNSUPPORTED:
-            self._key_ev_unsupp(key)
-        elif self.current_window == _ADMIN_WEB_PW:
-            self._key_ev_aapi(key)
-        elif self.current_window == _TIMESYNCD:
-            self._key_ev_timesyncd(key)
-        elif self.current_window == _REPO_SELECTION:
-            self._key_ev_repo_selection(key)
-        elif self.current_window == _KEYBOARD_SWITCH:
-            self._key_ev_kbd_switch(key)
+        func = {
+            _MAIN: self._key_ev_main,
+            _MESSAGE_BOX: self._key_ev_mbox,
+            _INPUT_BOX: self._key_ev_ibox,
+            _TERMINAL: self._key_ev_term,
+            _PASSWORD: self._key_ev_pass,
+            _LOGIN: self._key_ev_login,
+            _REBOOT: self._key_ev_reboot,
+            _SHUTDOWN: self._key_ev_shutdown,
+            _MAIN_MENU: self._key_ev_mainmenu,
+            _LOG_VIEWER: self._key_ev_logview,
+            _UNSUPPORTED: self._key_ev_unsupp,
+            _ADMIN_WEB_PW: self._key_ev_aapi,
+            _TIMESYNCD: self._key_ev_timesyncd,
+            _REPO_SELECTION: self._key_ev_repo_selection,
+            _KEYBOARD_SWITCH: self._key_ev_kbd_switch,
+        }.get(self.current_window)
+        func(key)
         self._key_ev_anytime(key)
 
     def _key_ev_main(self, key):
@@ -599,41 +587,39 @@ class Application(ApplicationHandler):
 
     def _key_ev_mainmenu(self, key):
         """Handle event on main menu menu."""
+        def menu_language():
+            pre = cui.parser.ConfigParser(infile='/etc/locale.conf')
+            self._run_yast_module("language")
+            post = cui.parser.ConfigParser(infile='/etc/locale.conf')
+            if pre != post:
+                util.T_ = util.restart_gui()
+
+        def exit_main_loop():
+            raise ExitMainLoop()
+
         menu_selected: int = self._handle_standard_menu_behaviour(
             self.main_menu_list, key, self.main_menu.base_widget.body[1]
         )
         if key.endswith("enter") or key in range(ord("1"), ord("9") + 1):
-            if menu_selected == 1:
-                pre = cui.parser.ConfigParser(infile='/etc/locale.conf')
-                self._run_yast_module("language")
-                post = cui.parser.ConfigParser(infile='/etc/locale.conf')
-                if pre != post:
-                    util.T_ = util.restart_gui()
-            elif menu_selected == 2:
-                self._open_change_password()
-            elif menu_selected == 3:
-                self._run_yast_module("lan")
-            elif menu_selected == 4:
-                self._run_yast_module("timezone")
-            elif menu_selected == 5:
-                self._open_timesyncd_conf()
-            elif menu_selected == 6:
-                self._open_repo_conf()
-            elif menu_selected == 7:
-                self._run_zypper("up")
-            elif menu_selected == 8:
-                self._open_setup_wizard()
-            elif menu_selected == 9:
-                self._open_reset_aapi_pw()
-            elif menu_selected == 10:
-                self._open_terminal()
-            elif menu_selected == 11:
-                self._reboot_confirm()
-            elif menu_selected == 12:
-                self._shutdown_confirm()
-            elif menu_selected == 13:
-                # Exit, not always visible
-                raise ExitMainLoop()
+            (func, val) = {
+                1: (menu_language, None),
+                2: (self._open_change_password, None),
+                3: (self._run_yast_module, "lan"),
+                4: (self._run_yast_module, "timezone"),
+                5: (self._open_timesyncd_conf, None),
+                6: (self._open_repo_conf, None),
+                7: (self._run_zypper, "up"),
+                8: (self._open_setup_wizard, None),
+                9: (self._open_reset_aapi_pw, None),
+                10: (self._open_terminal, None),
+                11: (self._reboot_confirm, None),
+                12: (self._shutdown_confirm, None),
+                13: (exit_main_loop, None),
+            }.get(menu_selected)
+            if val:
+                func(val)
+            else:
+                func()
         elif key == "esc":
             self._open_mainframe()
 
@@ -645,22 +631,18 @@ class Application(ApplicationHandler):
             self._reset_layout()
             self.log_finished = True
         elif key in ["left", "right", "+", "-"]:
-            if key == "-":
-                self.log_line_count -= 100
-            elif key == "+":
-                self.log_line_count += 100
-            elif key == "left":
-                self.current_log_unit -= 1
-            elif key == "right":
-                self.current_log_unit += 1
-            if self.log_line_count < 200:
-                self.log_line_count = 200
-            elif self.log_line_count > 10000:
-                self.log_line_count = 10000
-            if self.current_log_unit < 0:
-                self.current_log_unit = 0
-            elif self.current_log_unit >= len(self.log_units):
-                self.current_log_unit = len(self.log_units) - 1
+            line_offset = {
+                "-": -100,
+                "+": +100,
+            }.get(key, 0)
+            self.log_line_count += line_offset
+            unit_offset = {
+                "left": -1,
+                "right": +1,
+            }.get(key, 0)
+            self.current_log_unit += unit_offset
+            self.log_line_count = max(min(self.log_line_count, 10000), 200)
+            self.current_log_unit = max(min(self.current_log_unit, len(self.log_units) - 1), 0)
             self._open_log_viewer(
                 self._get_log_unit_by_id(self.current_log_unit),
                 self.log_line_count,
