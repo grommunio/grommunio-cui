@@ -178,6 +178,8 @@ class GScreen:
     screen: Optional[urwid.raw_display.Screen]
     layout: urwid.Frame = None
     old_layout: urwid.Frame = None
+    debug: bool = False
+    quiet: bool = False
 
 
 class ButtonStore:

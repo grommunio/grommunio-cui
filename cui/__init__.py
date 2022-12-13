@@ -71,8 +71,6 @@ class Application(ApplicationHandler):
     button_store: Optional[cui.appclass.ButtonStore] = cui.appclass.ButtonStore()
     login_window: Optional[cui.appclass.LoginWindow] = cui.appclass.LoginWindow()
     app_control: Optional[cui.appclass.ApplicationControl] = cui.appclass.ApplicationControl(_MAIN)
-    debug: bool = False
-    quiet: bool = False
     current_menu_state: int = -1
     maybe_menu_state: int = -1
     active_device: str = "lo"
@@ -1470,7 +1468,7 @@ class Application(ApplicationHandler):
             ]
         )
         footer_elements = [clock, footerbar, avg_load]
-        if not self.quiet:
+        if not self.gscreen.quiet:
             footer_elements += [gstring]
         content = []
         rest = []
@@ -1482,7 +1480,7 @@ class Application(ApplicationHandler):
         col_list = [urwid.Columns([(len(elem), elem) for elem in content])]
         if len(rest) > 0:
             col_list += [urwid.Columns([(len(elem), elem) for elem in rest])]
-        if self.debug:
+        if self.gscreen.debug:
             col_list += [urwid.Columns([gdebug])]
         self.footer_content = col_list
         self.footer = urwid.AttrMap(urwid.Pile(self.footer_content), "footer")
@@ -1784,7 +1782,7 @@ class Application(ApplicationHandler):
 
         :param yes: True for on and False for off.
         """
-        self.debug = yes
+        self.gscreen.debug = yes
 
     def _update_clock(self, cb_loop: urwid.MainLoop, data: Any = None):
         """
@@ -1891,7 +1889,7 @@ def create_application() -> Tuple[Union[Application, None], bool]:
     else:
         app.set_debug(False)
 
-    app.quiet = True
+    app.gscreen.quiet = True
 
     if "--hidden-login" in sys.argv:
         production = False
@@ -1904,7 +1902,7 @@ def main_app():
     # application, PRODUCTION = create_application()
     application = create_application()[0]
     # application.set_debug(True)
-    # application.quiet = False
+    # application.gscreen.quiet = False
     # # PRODUCTION = False
     application.start()
     print("\n\x1b[J")
