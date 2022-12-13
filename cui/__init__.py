@@ -73,8 +73,6 @@ class Application(ApplicationHandler):
     app_control: Optional[cui.appclass.ApplicationControl] = cui.appclass.ApplicationControl(_MAIN)
     current_menu_state: int = -1
     maybe_menu_state: int = -1
-    timesyncd_vars: Dict[str, str] = {}
-    admin_api_config: Dict[str, Any] = {}
     log_control: cui.appclass.LogControl = cui.appclass.LogControl()
     footer_content = []
     key_counter: Dict[str, int] = {}
@@ -87,11 +85,8 @@ class Application(ApplicationHandler):
     footer: urwid.Pile
     header: urwid.AttrMap
     log_viewer: urwid.LineBox
-    repo_selection_body: urwid.LineBox
-    keyboard_rb: List
-    keyboard_content: List
-    keyboard_list: ScrollBar
-    keyboard_switch_body: ScrollBar
+    admin_api_config: Dict[str, Any] = {}
+    menu_control: cui.appclass.MenuControl = cui.appclass.MenuControl()
 
     def __init__(self):
         # MAIN Page
@@ -701,14 +696,14 @@ class Application(ApplicationHandler):
         success_msg = T_("NOTHING")
         if button_type == "ok":
             # Save config and return to mainmenu
-            self.timesyncd_vars["NTP"] = self.timesyncd_body.base_widget[
+            self.menu_control.timesyncd_vars["NTP"] = self.timesyncd_body.base_widget[
                 1
             ].edit_text
-            self.timesyncd_vars[
+            self.menu_control.timesyncd_vars[
                 "FallbackNTP"
             ] = self.timesyncd_body.base_widget[2].edit_text
             util.lineconfig_write(
-                "/etc/systemd/timesyncd.conf", self.timesyncd_vars
+                "/etc/systemd/timesyncd.conf", self.menu_control.timesyncd_vars
             )
             with subprocess.Popen(
                 ["timedatectl", "set-ntp", "true"],
@@ -731,13 +726,13 @@ class Application(ApplicationHandler):
         """Handle event on keyboard switch."""
         self._handle_standard_tab_behaviour(key)
         menu_id = self._handle_standard_menu_behaviour(
-            self.keyboard_switch_body, key
+            self.menu_control.keyboard_switch_body, key
         )
         stay = False
         if (
             key.lower().endswith("enter") and key.lower().startswith("hidden")
         ) or key.lower() in ["space"]:
-            kbd = self.keyboard_content[menu_id - 1]
+            kbd = self.menu_control.keyboard_content[menu_id - 1]
             self._set_kbd_layout(kbd)
         elif key.lower() == "esc":
             print()
@@ -1134,11 +1129,11 @@ class Application(ApplicationHandler):
             "2.opensuse.pool.ntp.org",
             "3.opensuse.pool.ntp.org",
         ]
-        self.timesyncd_vars = util.lineconfig_read(
+        self.menu_control.timesyncd_vars = util.lineconfig_read(
             "/etc/systemd/timesyncd.conf"
         )
-        ntp_from_file = self.timesyncd_vars.get("NTP", " ".join(ntp_server))
-        fallback_from_file = self.timesyncd_vars.get(
+        ntp_from_file = self.menu_control.timesyncd_vars.get("NTP", " ".join(ntp_server))
+        fallback_from_file = self.menu_control.timesyncd_vars.get(
             "FallbackNTP", " ".join(fallback_server)
         )
         ntp_server = ntp_from_file.split(" ")
@@ -1172,7 +1167,7 @@ class Application(ApplicationHandler):
         self.app_control.current_window = _REPO_SELECTION
         header = urwid.AttrMap(GText(T_("Software repository selection"), urwid.CENTER), "header")
         self._prepare_repo_config()
-        self._open_conf_dialog(self.repo_selection_body, header, [self.button_store.save_button, self.button_store.cancel_button])
+        self._open_conf_dialog(self.menu_control.repo_selection_body, header, [self.button_store.save_button, self.button_store.cancel_button])
 
     def _prepare_repo_config(self):
         """Prepare repository configuration form."""
@@ -1214,7 +1209,7 @@ class Application(ApplicationHandler):
                 vblank, GEdit(T_('Password: '), edit_text=default_pw), vblank
             ])
         ]
-        self.repo_selection_body = urwid.LineBox(urwid.Padding(urwid.Filler(urwid.Pile(body_content), urwid.TOP)))
+        self.menu_control.repo_selection_body = urwid.LineBox(urwid.Padding(urwid.Filler(urwid.Pile(body_content), urwid.TOP)))
 
     def _open_setup_wizard(self):
         """Open grommunio setup wizard."""
@@ -1344,7 +1339,7 @@ class Application(ApplicationHandler):
         self._prepare_kbd_config()
         footer = None
         frame: parameter.Frame = parameter.Frame(
-            body=urwid.AttrMap(self.keyboard_switch_body, "body"),
+            body=urwid.AttrMap(self.menu_control.keyboard_switch_body, "body"),
             header=header,
             footer=footer,
             focus_part="body",
@@ -1379,19 +1374,19 @@ class Application(ApplicationHandler):
             for kbd in sorted(keyboards)
             if kbd != self.header.get_kbdlayout()
         ]
-        self.keyboard_rb = []
-        self.keyboard_content = []
+        self.menu_control.keyboard_rb = []
+        self.menu_control.keyboard_content = []
         for kbd in keyboard_list:
-            self.keyboard_content.append(
+            self.menu_control.keyboard_content.append(
                 urwid.AttrMap(
                     urwid.RadioButton(
-                        self.keyboard_rb, kbd, "first True", sub_press
+                        self.menu_control.keyboard_rb, kbd, "first True", sub_press
                     ),
                     "focus" if kbd == self.header.get_kbdlayout() else "selectable",
                 )
             )
-        self.keyboard_list = ScrollBar(Scrollable(urwid.Pile(self.keyboard_content)))
-        self.keyboard_switch_body = self.keyboard_list
+        self.menu_control.keyboard_list = ScrollBar(Scrollable(urwid.Pile(self.menu_control.keyboard_content)))
+        self.menu_control.keyboard_switch_body = self.menu_control.keyboard_list
 
     def redraw(self):
         """

@@ -265,10 +265,10 @@ def check_repo_dialog(app, height):
     updateable = False
     url = 'download.grommunio.com/community/openSUSE_Leap_15.3/' \
           '?ssl_verify=no'
-    if app.repo_selection_body.base_widget[3].state:
+    if app.menu_control.repo_selection_body.base_widget[3].state:
         # supported selected
-        user = app.repo_selection_body.base_widget[4][1].edit_text
-        password = app.repo_selection_body.base_widget[5][1].edit_text
+        user = app.menu_control.repo_selection_body.base_widget[4][1].edit_text
+        password = app.menu_control.repo_selection_body.base_widget[5][1].edit_text
         testurl = "https://download.grommunio.com/supported/open" \
                   "SUSE_Leap_15.3/repodata/repomd.xml"
         req: Response = requests.get(testurl, auth=(user, password))

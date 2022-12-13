@@ -221,6 +221,15 @@ class ApplicationControl:
         self.current_window = initial_window
 
 
+class MenuControl:
+    repo_selection_body: urwid.LineBox
+    timesyncd_vars: Dict[str, str] = {}
+    keyboard_rb: List
+    keyboard_content: List
+    keyboard_list: cui.scroll.ScrollBar
+    keyboard_switch_body: cui.scroll.ScrollBar
+
+
 class LogControl:
     log_units: Dict[str, Dict[str, str]] = {}
     current_log_unit: int = 0
