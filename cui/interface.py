@@ -11,11 +11,10 @@ class ApplicationHandler(object):
     Interface for accessing the Application object.
     """
 
-    current_menu_focus: int = -1
-    last_menu_focus: int = -2
-    current_menu_state: int = -1
-    maybe_menu_state: int = -1
     header: Any
+    main_footer: Any
+    main_frame: Any
+    top_main_menu: Any
 
     def handle_event(self, event: Any):
         """

@@ -172,6 +172,13 @@ class MainFrame:
         )
 
 
+class MainMenu:
+    current_menu_state: int = -1
+    maybe_menu_state: int = -1
+    current_menu_focus: int = -1
+    last_menu_focus: int = -2
+
+
 class GScreen:
     old_termios: Optional[Tuple[Any, Any, Any, Any, Any]]
     blank_termios: Optional[Tuple[Any, Any, Any, Any, Any]]

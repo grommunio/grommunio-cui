@@ -67,12 +67,11 @@ class Application(ApplicationHandler):
     """
     main_frame: Optional[cui.appclass.MainFrame]
     header: Optional[cui.appclass.Header]
+    top_main_menu: cui.appclass.MainMenu = cui.appclass.MainMenu()
     gscreen: Optional[cui.appclass.GScreen]
     button_store: Optional[cui.appclass.ButtonStore] = cui.appclass.ButtonStore()
     login_window: Optional[cui.appclass.LoginWindow] = cui.appclass.LoginWindow()
     app_control: Optional[cui.appclass.ApplicationControl] = cui.appclass.ApplicationControl(_MAIN)
-    current_menu_state: int = -1
-    maybe_menu_state: int = -1
     log_control: cui.appclass.LogControl = cui.appclass.LogControl()
     footer_content = []
     key_counter: Dict[str, int] = {}
@@ -83,7 +82,6 @@ class Application(ApplicationHandler):
     _hidden_pos: int = 0
     _body: urwid.Widget
     footer: urwid.Pile
-    header: urwid.AttrMap
     log_viewer: urwid.LineBox
     admin_api_config: Dict[str, Any] = {}
     menu_control: cui.appclass.MenuControl = cui.appclass.MenuControl()
@@ -221,11 +219,11 @@ class Application(ApplicationHandler):
         if os.getppid() != 1:
             items["Exit"] = urwid.Pile([GText(T_("Exit CUI"), urwid.CENTER)])
         self.main_menu_list = self._prepare_menu_list(items)
-        if self.app_control.current_window == _MAIN_MENU and self.current_menu_focus > 0:
+        if self.app_control.current_window == _MAIN_MENU and self.top_main_menu.current_menu_focus > 0:
             off: int = 1
             if self.app_control.last_current_window == _MAIN_MENU:
                 off = 1
-            self.main_menu_list.focus_position = self.current_menu_focus - off
+            self.main_menu_list.focus_position = self.top_main_menu.current_menu_focus - off
         self.main_menu = self._menu_to_frame(self.main_menu_list)
         if self.app_control.current_window == _MAIN_MENU:
             self._loop.widget = self.main_menu
@@ -1657,12 +1655,12 @@ class Application(ApplicationHandler):
         :returns: The id of the selected menu item. (>=1)
         :rtype: int
         """
-        self.current_menu_focus = super().get_focused_menu(
+        self.top_main_menu.current_menu_focus = super().get_focused_menu(
             menu, event
         )
-        if not self.last_menu_focus == self.current_menu_focus:
-            cid: int = self.last_menu_focus - 1
-            nid: int = self.current_menu_focus - 1
+        if not self.top_main_menu.last_menu_focus == self.top_main_menu.current_menu_focus:
+            cid: int = self.top_main_menu.last_menu_focus - 1
+            nid: int = self.top_main_menu.current_menu_focus - 1
             current_widget: urwid.Widget = menu.body[cid].base_widget
             next_widget: urwid.Widget = menu.body[nid].base_widget
             if isinstance(current_widget, MultiMenuItem) and isinstance(next_widget, MultiMenuItem):
@@ -1672,7 +1670,7 @@ class Application(ApplicationHandler):
                 nmmi.mark_as_dirty()
                 nmmi.set_focus()
                 cmmi.refresh_content()
-        return self.current_menu_focus
+        return self.top_main_menu.current_menu_focus
 
     def _handle_standard_menu_behaviour(
         self, menu: urwid.ListBox, event: Any, description_box: urwid.ListBox = None
