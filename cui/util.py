@@ -213,11 +213,11 @@ def create_application_buttons(app):
         [app.view.button_store.details_button[1]], 10, 1, 1, "center"
     )
     # Common Toggle Button
-    app.toggle_button = cui.button.GBoxButton(T_("Space to toggle"), app._press_button)
-    app.toggle_button._selectable = False
-    app.toggle_button = (len(app.toggle_button.label) + 6, app.toggle_button)
-    app.toggle_button_footer = urwid.GridFlow(
-        [app.toggle_button[1]], 10, 1, 1, "center"
+    app.view.button_store.toggle_button = cui.button.GBoxButton(T_("Space to toggle"), app._press_button)
+    app.view.button_store.toggle_button._selectable = False
+    app.view.button_store.toggle_button = (len(app.view.button_store.toggle_button.label) + 6, app.view.button_store.toggle_button)
+    app.view.button_store.toggle_button_footer = urwid.GridFlow(
+        [app.view.button_store.toggle_button[1]], 10, 1, 1, "center"
     )
     # Common Apply Button
     app.view.button_store.apply_button = cui.button.GBoxButton(T_("Apply"), app._press_button)
@@ -231,15 +231,15 @@ def create_application_buttons(app):
         [app.view.button_store.apply_button[1]], 10, 1, 1, "center"
     )
     # Common Save Button
-    app.save_button = cui.button.GBoxButton(T_("Save"), app._press_button)
+    app.view.button_store.save_button = cui.button.GBoxButton(T_("Save"), app._press_button)
     urwid.connect_signal(
-        app.save_button,
+        app.view.button_store.save_button,
         "click",
         lambda button: app.handle_event("save enter"),
     )
-    app.save_button = (len(app.save_button.label) + 6, app.save_button)
-    app.save_button_footer = urwid.GridFlow(
-        [app.save_button[1]], 10, 1, 1, "center"
+    app.view.button_store.save_button = (len(app.view.button_store.save_button.label) + 6, app.view.button_store.save_button)
+    app.view.button_store.save_button_footer = urwid.GridFlow(
+        [app.view.button_store.save_button[1]], 10, 1, 1, "center"
     )
 
 
