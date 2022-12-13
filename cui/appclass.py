@@ -243,6 +243,9 @@ class LogControl:
     log_line_count: int = 200
     log_finished: bool = False
     log_viewer: urwid.LineBox
+    # The hidden input string
+    _hidden_input: str = ""
+    _hidden_pos: int = 0
 
 
 class Footer:

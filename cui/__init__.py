@@ -77,9 +77,6 @@ class Application(ApplicationHandler):
     key_counter: Dict[str, int] = {}
     progressbar: urwid.ProgressBar
 
-    # The hidden input string
-    _hidden_input: str = ""
-    _hidden_pos: int = 0
     _body: urwid.Widget
     admin_api_config: Dict[str, Any] = {}
     menu_control: cui.appclass.MenuControl = cui.appclass.MenuControl()
@@ -498,16 +495,16 @@ class Application(ApplicationHandler):
                 self.log_control.log_line_count,
             )
         elif (
-            self._hidden_pos < len(_UNSUPPORTED)
-            and key == _UNSUPPORTED.lower()[self._hidden_pos]
+            self.log_control._hidden_pos < len(_UNSUPPORTED)
+            and key == _UNSUPPORTED.lower()[self.log_control._hidden_pos]
         ):
-            self._hidden_input += key
-            self._hidden_pos += 1
-            if self._hidden_input == _UNSUPPORTED.lower():
+            self.log_control._hidden_input += key
+            self.log_control._hidden_pos += 1
+            if self.log_control._hidden_input == _UNSUPPORTED.lower():
                 self._open_log_viewer("syslog")
         else:
-            self._hidden_input = ""
-            self._hidden_pos = 0
+            self.log_control._hidden_input = ""
+            self.log_control._hidden_pos = 0
 
     def _key_ev_unsupp(self, key):
         """Handle event on unsupported."""
