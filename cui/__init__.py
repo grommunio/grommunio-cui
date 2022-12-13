@@ -949,8 +949,8 @@ class Application(ApplicationHandler):
                             "SUSE_Leap_15.3/repodata/repomd.xml"
                     req: Response = requests.get(testurl, auth=(user, password))
                     if req.status_code == 200:
-                        url = '%s:%s@download.grommunio.com/supported/open' \
-                              'SUSE_Leap_15.3/?ssl_verify=no' % (user, password)
+                        url = f'{user}:{password}@download.grommunio.com/supported/open' \
+                              'SUSE_Leap_15.3/?ssl_verify=no'
                         updateable = True
                     else:
                         self.message_box(
@@ -964,7 +964,7 @@ class Application(ApplicationHandler):
                     # community selected
                     updateable = True
                 if updateable:
-                    config['grommunio']['baseurl'] = 'https://%s' % url
+                    config['grommunio']['baseurl'] = f'https://{url}'
                     config['grommunio']['type'] = 'rpm-md'
                     config2 = cui.parser.ConfigParser(infile=repofile)
                     config.write()
@@ -1187,7 +1187,7 @@ class Application(ApplicationHandler):
         :param creator: The widget creating calling the function.
         :param option: On if True, off otherwise.
         """
-        self.print(T_("Creator (%s) clicked %r." % creator, option))
+        self.print(T_(f"Creator ({creator}) clicked {option}."))
 
     def _open_terminal(self):
         """
@@ -1436,7 +1436,7 @@ class Application(ApplicationHandler):
             T_("Please wait while `yast2 %s` is being run.") % modulename
         )
         print("\x1b[J")
-        os.system("yast2 {}".format(modulename))
+        os.system(f"yast2 {modulename}")
         self.screen.tty_signal_keys(*self.blank_termios)
         self._loop.start()
 
@@ -1447,7 +1447,7 @@ class Application(ApplicationHandler):
         print("\x1b[K")
         print("\x1b[K \x1b[36m▼\x1b[0m Please wait while zypper is invoked.")
         print("\x1b[J")
-        os.system("zypper {}".format(subcmd))
+        os.system(f"zypper {subcmd}")
         input("\n \x1b[36m▼\x1b[0m Press ENTER to return to the CUI.")
         self.screen.tty_signal_keys(*self.blank_termios)
         self._loop.start()
