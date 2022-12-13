@@ -2,6 +2,7 @@
 # SPDX-FileCopyrightText: 2021 grommunio GmbH
 import os
 import subprocess
+import time
 from pathlib import Path
 
 from pamela import authenticate, PAMError
@@ -746,3 +747,43 @@ def minishell_write(file, items):
 def get_current_kbdlayout():
     items = minishell_read("/etc/vconsole.conf")
     return items.get("KEYMAP", "us").strip('"')
+
+
+def reset_system_passwd(new_pw: str) -> bool:
+    """Reset the system password."""
+    if new_pw:
+        if new_pw != "":
+            proc = subprocess.Popen(
+                ["passwd"],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            proc.stdin.write(f"{new_pw}\n{new_pw}\n".encode())
+            proc.stdin.flush()
+            i = 0
+            while i < 10 and proc.poll() is None:
+                time.sleep(0.1)
+                i += 1
+            proc.terminate()
+            proc.kill()
+            return proc.returncode == 0
+    return False
+
+
+def reset_aapi_passwd(new_pw: str) -> bool:
+    """Reset admin-API password."""
+    if new_pw:
+        if new_pw != "":
+            exe = "grammm-admin"
+            if Path("/usr/sbin/grommunio-admin").exists():
+                exe = "grommunio-admin"
+            proc = subprocess.Popen(
+                [exe, "passwd", "--password", new_pw],
+                stderr=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+            )
+
+            return proc.wait() == 0
+    return False
+

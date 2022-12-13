@@ -707,7 +707,7 @@ class Application(ApplicationHandler):
                     4
                 ].edit_text
                 if pw1 == pw2:
-                    res = self._reset_system_passwd(pw1)
+                    res = util.reset_system_passwd(pw1)
                 else:
                     res = 2
                     success_msg = T_("failed due to mismatching password values")
@@ -888,7 +888,7 @@ class Application(ApplicationHandler):
                     4
                 ].edit_text
                 if pw1 == pw2:
-                    res = self._reset_aapi_passwd(pw1)
+                    res = util.reset_aapi_passwd(pw1)
                 else:
                     res = 2
                     success_msg = T_("failed due to mismatching password values")
@@ -1288,27 +1288,6 @@ class Application(ApplicationHandler):
         size: parameter.Size = parameter.Size(width, height)
         self.dialog(frame, alignment=alignment, size=size)
 
-    def _reset_system_passwd(self, new_pw: str) -> bool:
-        """Reset the system password."""
-        if new_pw:
-            if new_pw != "":
-                proc = subprocess.Popen(
-                    ["passwd"],
-                    stdin=subprocess.PIPE,
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
-                )
-                proc.stdin.write(f"{new_pw}\n{new_pw}\n".encode())
-                proc.stdin.flush()
-                i = 0
-                while i < 10 and proc.poll() is None:
-                    time.sleep(0.1)
-                    i += 1
-                proc.terminate()
-                proc.kill()
-                return proc.returncode == 0
-        return False
-
     def _prepare_password_dialog(self):
         """Prepare the QuickNDirty password dialog."""
         self.password = Terminal(["passwd"])
@@ -1473,7 +1452,8 @@ class Application(ApplicationHandler):
         self.screen.tty_signal_keys(*self.blank_termios)
         self._loop.start()
 
-    def restart_gui(self):
+    @staticmethod
+    def restart_gui():
         """Restart complete GUI to source language in again."""
         global T_
         langfile = '/etc/sysconfig/language'
@@ -1501,22 +1481,6 @@ class Application(ApplicationHandler):
         title = T_("admin-web Password Change")
         msg = T_("Enter the new admin-web password:")
         self._create_password_dialog(msg, title, _ADMIN_WEB_PW)
-
-    def _reset_aapi_passwd(self, new_pw: str) -> bool:
-        """Reset admin-API password."""
-        if new_pw:
-            if new_pw != "":
-                exe = "grammm-admin"
-                if Path("/usr/sbin/grommunio-admin").exists():
-                    exe = "grommunio-admin"
-                proc = subprocess.Popen(
-                    [exe, "passwd", "--password", new_pw],
-                    stderr=subprocess.DEVNULL,
-                    stdout=subprocess.DEVNULL,
-                )
-
-                return proc.wait() == 0
-        return False
 
     def _open_timesyncd_conf(self):
         """Open timesyncd configuration form."""
