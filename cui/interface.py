@@ -11,10 +11,8 @@ class ApplicationHandler(object):
     Interface for accessing the Application object.
     """
 
-    header: Any
-    main_footer: Any
-    main_frame: Any
-    top_main_menu: Any
+    view: Any
+    control: Any
 
     def handle_event(self, event: Any):
         """

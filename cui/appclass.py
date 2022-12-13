@@ -142,9 +142,9 @@ class MainFrame:
             cui.scroll.Scrollable(
                 urwid.Pile(
                     [
-                        urwid.Padding(self.app.header.tb.tb_intro, left=2, right=2, min_width=20),
+                        urwid.Padding(self.app.view.header.tb.tb_intro, left=2, right=2, min_width=20),
                         urwid.Padding(
-                            self.app.header.tb.tb_sysinfo_top,
+                            self.app.view.header.tb.tb_sysinfo_top,
                             align=urwid.LEFT,
                             left=6,
                             width=("relative", 80),
@@ -159,7 +159,7 @@ class MainFrame:
                     [
                         urwid.AttrMap(
                             urwid.Padding(
-                                self.app.header.tb.tb_sysinfo_bottom,
+                                self.app.view.header.tb.tb_sysinfo_bottom,
                                 align=urwid.LEFT,
                                 left=6,
                                 width=("relative", 80),
@@ -264,3 +264,13 @@ class Control:
 class Footer:
     footer_content = []
     footer: urwid.Pile
+
+
+class View:
+    main_frame: MainFrame
+    header: Header
+    top_main_menu: MainMenu = MainMenu()
+    main_footer: Footer = Footer()
+    gscreen: GScreen
+    button_store: ButtonStore = ButtonStore()
+    login_window: LoginWindow = LoginWindow()
