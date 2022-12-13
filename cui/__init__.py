@@ -73,7 +73,7 @@ class Application(ApplicationHandler):
     app_control: Optional[cui.appclass.ApplicationControl] = cui.appclass.ApplicationControl(_MAIN)
     current_menu_state: int = -1
     maybe_menu_state: int = -1
-    config: Dict[str, Any] = {}
+    admin_api_config: Dict[str, Any] = {}
     timesyncd_vars: Dict[str, str] = {}
     log_units: Dict[str, Dict[str, str]] = {}
     current_log_unit: int = 0
@@ -778,12 +778,12 @@ class Application(ApplicationHandler):
             if isinstance(out, bytes):
                 out = out.decode()
         if out == "":
-            self.config = {
+            self.admin_api_config = {
                 "logs": {"gromox-http": {"source": "gromox-http.service"}}
             }
         else:
-            self.config = yaml.load(out, Loader=SafeLoader)
-        self.log_units = self.config.get(
+            self.admin_api_config = yaml.load(out, Loader=SafeLoader)
+        self.log_units = self.admin_api_config.get(
             "logs", {"gromox-http": {"source": "gromox-http.service"}}
         )
         for i, k in enumerate(self.log_units.keys()):
@@ -794,7 +794,7 @@ class Application(ApplicationHandler):
     def _get_logging_formatter(self) -> str:
         """Get logging formatter."""
         default = (
-            self.config.get("logging", {})
+            self.admin_api_config.get("logging", {})
             .get("formatters", {})
             .get("mi-default", {})
         )
