@@ -73,7 +73,6 @@ class Application(ApplicationHandler):
     login_window: Optional[cui.appclass.LoginWindow] = cui.appclass.LoginWindow()
     app_control: Optional[cui.appclass.ApplicationControl] = cui.appclass.ApplicationControl(_MAIN)
     log_control: cui.appclass.LogControl = cui.appclass.LogControl()
-    footer_content = []
     key_counter: Dict[str, int] = {}
     progressbar: urwid.ProgressBar
 
@@ -81,8 +80,8 @@ class Application(ApplicationHandler):
     _hidden_input: str = ""
     _hidden_pos: int = 0
     _body: urwid.Widget
+    footer_content = []
     footer: urwid.Pile
-    log_viewer: urwid.LineBox
     admin_api_config: Dict[str, Any] = {}
     menu_control: cui.appclass.MenuControl = cui.appclass.MenuControl()
 
@@ -982,7 +981,7 @@ class Application(ApplicationHandler):
         header = (
             T_("Use the arrow keys to switch between logfiles. <urwid.LEFT> and <RIGHT> switch the logfile, while <+> and <-> changes the line count to view. (%s)") % self.log_control.log_line_count
         )
-        self.log_viewer = urwid.LineBox(
+        self.log_control.log_viewer = urwid.LineBox(
             urwid.AttrMap(
                 urwid.Pile(
                     [
@@ -1050,7 +1049,7 @@ class Application(ApplicationHandler):
             self.app_control.current_window = _LOG_VIEWER
         self.print(T_("Log file viewer has to open file {%s} ...") % unit)
         self._prepare_log_viewer(unit, lines)
-        self._body = self.log_viewer
+        self._body = self.log_control.log_viewer
         self._loop.widget = self._body
 
     def _run_yast_module(self, modulename: str):

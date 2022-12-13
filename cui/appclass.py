@@ -242,3 +242,4 @@ class LogControl:
     current_log_unit: int = 0
     log_line_count: int = 200
     log_finished: bool = False
+    log_viewer: urwid.LineBox
