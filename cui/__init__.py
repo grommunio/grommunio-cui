@@ -100,7 +100,7 @@ class Application(ApplicationHandler):
     def refresh_main_menu(self):
         """Refresh main menu."""
         # The common menu description column
-        self.menu_description = urwid.Pile(
+        self.view.top_main_menu.menu_description = urwid.Pile(
             [
                 GText(T_("Main Menu"), urwid.CENTER),
                 GText(T_("Here you can do the main actions"), urwid.LEFT),

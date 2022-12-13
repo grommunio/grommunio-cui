@@ -177,6 +177,7 @@ class MainMenu:
     maybe_menu_state: int = -1
     current_menu_focus: int = -1
     last_menu_focus: int = -2
+    menu_description: urwid.Widget
 
 
 class GScreen:
@@ -198,6 +199,14 @@ class ButtonStore:
     cancel_button: Optional[cui.button.GBoxButton]
     details_button: Optional[cui.button.GBoxButton]
     apply_button: Optional[cui.button.GBoxButton]
+    ok_button_footer: urwid.Widget
+    add_button_footer: urwid.Widget
+    edit_button_footer: urwid.Widget
+    save_button_footer: urwid.Widget
+    close_button_footer: urwid.Widget
+    cancel_button_footer: urwid.Widget
+    details_button_footer: urwid.Widget
+    apply_button_footer: urwid.Widget
     user_edit: Optional[cui.gwidgets.GEdit]
     pass_edit: Optional[cui.gwidgets.GEdit]
 

@@ -120,7 +120,7 @@ def create_application_buttons(app):
         lambda button: app.handle_event("ok enter"),
     )
     app.view.button_store.ok_button = (len(app.view.button_store.ok_button.label) + 6, app.view.button_store.ok_button)
-    app.ok_button_footer = urwid.AttrMap(
+    app.view.button_store.ok_button_footer = urwid.AttrMap(
         urwid.Columns(
             [
                 ("weight", 1, cui.gwidgets.GText("")),
@@ -148,7 +148,7 @@ def create_application_buttons(app):
         lambda button: app.handle_event("cancel enter"),
     )
     app.view.button_store.cancel_button = (len(app.view.button_store.cancel_button.label) + 6, app.view.button_store.cancel_button)
-    app.cancel_button_footer = urwid.GridFlow(
+    app.view.button_store.cancel_button_footer = urwid.GridFlow(
         [app.view.button_store.cancel_button[1]], 10, 1, 1, "center"
     )
     # Common Close Button
@@ -159,7 +159,7 @@ def create_application_buttons(app):
         lambda button: app.handle_event("close enter"),
     )
     app.view.button_store.close_button = (len(app.view.button_store.close_button.label) + 6, app.view.button_store.close_button)
-    app.close_button_footer = urwid.AttrMap(
+    app.view.button_store.close_button_footer = urwid.AttrMap(
         urwid.Columns(
             [
                 ("weight", 1, cui.gwidgets.GText("")),
@@ -187,7 +187,7 @@ def create_application_buttons(app):
         lambda button: app.handle_event("add enter"),
     )
     app.view.button_store.add_button = (len(app.view.button_store.add_button.label) + 6, app.view.button_store.add_button)
-    app.add_button_footer = urwid.GridFlow(
+    app.view.button_store.add_button_footer = urwid.GridFlow(
         [app.view.button_store.add_button[1]], 10, 1, 1, "center"
     )
     # Common Edit Button
@@ -198,7 +198,7 @@ def create_application_buttons(app):
         lambda button: app.handle_event("edit enter"),
     )
     app.view.button_store.edit_button = (len(app.view.button_store.edit_button.label) + 6, app.view.button_store.edit_button)
-    app.edit_button_footer = urwid.GridFlow(
+    app.view.button_store.edit_button_footer = urwid.GridFlow(
         [app.view.button_store.edit_button[1]], 10, 1, 1, "center"
     )
     # Common Details Button
@@ -209,7 +209,7 @@ def create_application_buttons(app):
         lambda button: app.handle_event("details enter"),
     )
     app.view.button_store.details_button = (len(app.view.button_store.details_button.label) + 6, app.view.button_store.details_button)
-    app.details_button_footer = urwid.GridFlow(
+    app.view.button_store.details_button_footer = urwid.GridFlow(
         [app.view.button_store.details_button[1]], 10, 1, 1, "center"
     )
     # Common Toggle Button
@@ -227,7 +227,7 @@ def create_application_buttons(app):
         lambda button: app.handle_event("apply enter"),
     )
     app.view.button_store.apply_button = (len(app.view.button_store.apply_button.label) + 6, app.view.button_store.apply_button)
-    app.apply_button_footer = urwid.GridFlow(
+    app.view.button_store.apply_button_footer = urwid.GridFlow(
         [app.view.button_store.apply_button[1]], 10, 1, 1, "center"
     )
     # Common Save Button
