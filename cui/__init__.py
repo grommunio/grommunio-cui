@@ -362,7 +362,7 @@ class Application(ApplicationHandler):
                 )
             else:
                 self.app_control.last_input_box_value = ""
-            self.app_control.current_window = self.app_control.app_control.current_window_input_box
+            self.app_control.current_window = self.app_control.current_window_input_box
             self._body = self.app_control._input_box_caller_body
             if self.gscreen.old_layout:
                 self.gscreen.layout = self.gscreen.old_layout
