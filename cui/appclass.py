@@ -223,6 +223,10 @@ class ApplicationControl:
     current_event = ""
     current_bottom_info = T_("Idle")
     menu_items: List[str] = []
+    _body: urwid.Widget
+    _loop: urwid.MainLoop
+    key_counter: Dict[str, int] = {}
+    progressbar: urwid.ProgressBar
 
     def __init__(self, initial_window):
         self.current_window = initial_window

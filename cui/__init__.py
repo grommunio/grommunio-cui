@@ -74,17 +74,13 @@ class Application(ApplicationHandler):
     login_window: Optional[cui.appclass.LoginWindow] = cui.appclass.LoginWindow()
     app_control: Optional[cui.appclass.ApplicationControl] = cui.appclass.ApplicationControl(_MAIN)
     log_control: cui.appclass.LogControl = cui.appclass.LogControl()
-    key_counter: Dict[str, int] = {}
-    progressbar: urwid.ProgressBar
-
-    _body: urwid.Widget
     admin_api_config: Dict[str, Any] = {}
     menu_control: cui.appclass.MenuControl = cui.appclass.MenuControl()
 
     def __init__(self):
         # MAIN Page
-        self._loop = util.create_main_loop(self)
-        self._loop.set_alarm_in(1, self._update_clock)
+        self.app_control._loop = util.create_main_loop(self)
+        self.app_control._loop.set_alarm_in(1, self._update_clock)
 
         util.create_application_buttons(self)
 
@@ -221,8 +217,8 @@ class Application(ApplicationHandler):
             self.main_menu_list.focus_position = self.top_main_menu.current_menu_focus - off
         self.main_menu = self._menu_to_frame(self.main_menu_list)
         if self.app_control.current_window == _MAIN_MENU:
-            self._loop.widget = self.main_menu
-            self._body = self.main_menu
+            self.app_control._loop.widget = self.main_menu
+            self.app_control._body = self.main_menu
 
     def prepare_mainscreen(self):
         """Prepare main screen."""
@@ -242,7 +238,7 @@ class Application(ApplicationHandler):
             footer=self.main_footer.footer,
         )
         self.main_frame.mainframe = frame
-        self._body = self.main_frame.mainframe
+        self.app_control._body = self.main_frame.mainframe
         # self.print(T_("Idle"))
 
     def handle_event(self, event: Any):
@@ -320,18 +316,18 @@ class Application(ApplicationHandler):
         if key.endswith("enter") or key == "esc":
             if self.app_control.message_box_caller not in (self.app_control.current_window, _MESSAGE_BOX):
                 self.app_control.current_window = self.app_control.message_box_caller
-                self._body = self.app_control._message_box_caller_body
+                self.app_control._body = self.app_control._message_box_caller_body
             if self.gscreen.old_layout:
                 self.gscreen.layout = self.gscreen.old_layout
             self._reset_layout()
             if self.app_control.current_window not in [
                 _LOGIN, _MAIN_MENU, _TIMESYNCD, _REPO_SELECTION
             ]:
-                if self.key_counter.get(key, 0) < 10:
-                    self.key_counter[key] = self.key_counter.get(key, 0) + 1
+                if self.app_control.key_counter.get(key, 0) < 10:
+                    self.app_control.key_counter[key] = self.app_control.key_counter.get(key, 0) + 1
                     self.handle_event(key)
                 else:
-                    self.key_counter[key] = 0
+                    self.app_control.key_counter[key] = 0
 
     def _key_ev_ibox(self, key):
         """Handle event on input box."""
@@ -339,14 +335,14 @@ class Application(ApplicationHandler):
         if key.endswith("enter") or key == "esc":
             if key.lower().endswith("enter"):
                 self.app_control.last_input_box_value = (
-                    self._loop.widget.top_w.base_widget.body.base_widget[
+                    self.app_control._loop.widget.top_w.base_widget.body.base_widget[
                         1
                     ].edit_text
                 )
             else:
                 self.app_control.last_input_box_value = ""
             self.app_control.current_window = self.app_control.current_window_input_box
-            self._body = self.app_control._input_box_caller_body
+            self.app_control._body = self.app_control._input_box_caller_body
             if self.gscreen.old_layout:
                 self.gscreen.layout = self.gscreen.old_layout
             self._reset_layout()
@@ -370,10 +366,10 @@ class Application(ApplicationHandler):
                 button_type = "ok"
             if button_type == "ok":
                 success_msg = T_("was successful")
-                pw1 = self._loop.widget.top_w.base_widget.body.base_widget[
+                pw1 = self.app_control._loop.widget.top_w.base_widget.body.base_widget[
                     2
                 ].edit_text
-                pw2 = self._loop.widget.top_w.base_widget.body.base_widget[
+                pw2 = self.app_control._loop.widget.top_w.base_widget.body.base_widget[
                     4
                 ].edit_text
                 if pw1 == pw2:
@@ -414,7 +410,7 @@ class Application(ApplicationHandler):
         if key.endswith("enter") and self.app_control.last_pressed_button.lower().endswith(
             "ok"
         ):
-            self._loop.stop()
+            self.app_control._loop.stop()
             self.gscreen.screen.tty_signal_keys(*self.gscreen.old_termios)
             os.system("reboot")
             raise urwid.ExitMainLoop()
@@ -426,7 +422,7 @@ class Application(ApplicationHandler):
         if key.endswith("enter") and self.app_control.last_pressed_button.lower().endswith(
             "ok"
         ):
-            self._loop.stop()
+            self.app_control._loop.stop()
             self.gscreen.screen.tty_signal_keys(*self.gscreen.old_termios)
             os.system("poweroff")
             raise urwid.ExitMainLoop()
@@ -474,7 +470,7 @@ class Application(ApplicationHandler):
         """Handle event on log viewer menu."""
         if key in ["ctrl f1", "H", "h", "L", "l", "esc"]:
             self.app_control.current_window = self.app_control.log_file_caller
-            self._body = self.app_control._log_file_caller_body
+            self.app_control._body = self.app_control._log_file_caller_body
             self._reset_layout()
             self.log_control.log_finished = True
         elif key in ["left", "right", "+", "-"]:
@@ -510,7 +506,7 @@ class Application(ApplicationHandler):
         """Handle event on unsupported."""
         if key in ["ctrl d", "esc", "ctrl f1", "H", "h", "l", "L"]:
             self.app_control.current_window = self.app_control.log_file_caller
-            self._body = self.app_control._log_file_caller_body
+            self.app_control._body = self.app_control._log_file_caller_body
             self.log_control.log_finished = True
             self._reset_layout()
 
@@ -543,10 +539,10 @@ class Application(ApplicationHandler):
                 button_type = "ok"
             if button_type == "ok":
                 success_msg = T_("was successful")
-                pw1 = self._loop.widget.top_w.base_widget.body.base_widget[
+                pw1 = self.app_control._loop.widget.top_w.base_widget.body.base_widget[
                     2
                 ].edit_text
-                pw2 = self._loop.widget.top_w.base_widget.body.base_widget[
+                pw2 = self.app_control._loop.widget.top_w.base_widget.body.base_widget[
                     4
                 ].edit_text
                 if pw1 == pw2:
@@ -598,8 +594,8 @@ class Application(ApplicationHandler):
         header = GText(T_("One moment, please ..."))
         footer = GText(T_('Fetching GPG-KEY file and refreshing '
                           'repositories. This may take a while ...'))
-        self.progressbar = self._create_progress_bar()
-        pad = urwid.Padding(self.progressbar)  # do not use pg! use self.progressbar.
+        self.app_control.progressbar = self._create_progress_bar()
+        pad = urwid.Padding(self.app_control.progressbar)  # do not use pg! use self.app_control.progressbar.
         fil = urwid.Filler(pad)
         linebox = urwid.LineBox(fil)
         frame: parameter.Frame = parameter.Frame(linebox, header, footer)
@@ -823,7 +819,7 @@ class Application(ApplicationHandler):
         """
         Jump to a shell prompt
         """
-        self._loop.stop()
+        self.app_control._loop.stop()
         self.gscreen.screen.tty_signal_keys(*self.gscreen.old_termios)
         print("\x1b[K")
         print(
@@ -835,7 +831,7 @@ class Application(ApplicationHandler):
         # a proper PAM session and set $HOME, etc.
         os.system("/usr/bin/su -l")
         self.gscreen.screen.tty_signal_keys(*self.gscreen.blank_termios)
-        self._loop.start()
+        self.app_control._loop.start()
 
     def _reboot_confirm(self):
         """Confirm reboot."""
@@ -883,7 +879,7 @@ class Application(ApplicationHandler):
         height = 14
         mask = "*"
         self.app_control.input_box_caller = self.app_control.current_window
-        self.app_control._input_box_caller_body = self._loop.widget
+        self.app_control._input_box_caller_body = self.app_control._loop.widget
         self.app_control.current_window = current_window
         body = urwid.LineBox(
             urwid.Padding(
@@ -1041,16 +1037,16 @@ class Application(ApplicationHandler):
         """
         if self.app_control.current_window != _LOG_VIEWER:
             self.app_control.log_file_caller = self.app_control.current_window
-            self.app_control._log_file_caller_body = self._body
+            self.app_control._log_file_caller_body = self.app_control._body
             self.app_control.current_window = _LOG_VIEWER
         self.print(T_("Log file viewer has to open file {%s} ...") % unit)
         self._prepare_log_viewer(unit, lines)
-        self._body = self.log_control.log_viewer
-        self._loop.widget = self._body
+        self.app_control._body = self.log_control.log_viewer
+        self.app_control._loop.widget = self.app_control._body
 
     def _run_yast_module(self, modulename: str):
         """Run yast module `modulename`."""
-        self._loop.stop()
+        self.app_control._loop.stop()
         self.gscreen.screen.tty_signal_keys(*self.gscreen.old_termios)
         print("\x1b[K")
         print(
@@ -1060,11 +1056,11 @@ class Application(ApplicationHandler):
         print("\x1b[J")
         os.system(f"yast2 {modulename}")
         self.gscreen.screen.tty_signal_keys(*self.gscreen.blank_termios)
-        self._loop.start()
+        self.app_control._loop.start()
 
     def _run_zypper(self, subcmd: str):
         """Run zypper modul `subcmd`."""
-        self._loop.stop()
+        self.app_control._loop.stop()
         self.gscreen.screen.tty_signal_keys(*self.gscreen.old_termios)
         print("\x1b[K")
         print("\x1b[K \x1b[36m▼\x1b[0m Please wait while zypper is invoked.")
@@ -1072,7 +1068,7 @@ class Application(ApplicationHandler):
         os.system(f"zypper {subcmd}")
         input("\n \x1b[36m▼\x1b[0m Press ENTER to return to the CUI.")
         self.gscreen.screen.tty_signal_keys(*self.gscreen.blank_termios)
-        self._loop.start()
+        self.app_control._loop.start()
 
     def _open_reset_aapi_pw(self):
         """Open reset admin-API password."""
@@ -1206,14 +1202,14 @@ class Application(ApplicationHandler):
 
     def _open_setup_wizard(self):
         """Open grommunio setup wizard."""
-        self._loop.stop()
+        self.app_control._loop.stop()
         self.gscreen.screen.tty_signal_keys(*self.gscreen.old_termios)
         if Path("/usr/sbin/grommunio-setup").exists():
             os.system("/usr/sbin/grommunio-setup")
         else:
             os.system("/usr/sbin/grammm-setup")
         self.gscreen.screen.tty_signal_keys(*self.gscreen.blank_termios)
-        self._loop.start()
+        self.app_control._loop.start()
 
     def _open_main_menu(self):
         """
@@ -1224,8 +1220,8 @@ class Application(ApplicationHandler):
         self.app_control.current_window = _MAIN_MENU
         self.header.set_authorized_options(T_(", <F4> for Main-Menu"))
         self.prepare_mainscreen()
-        self._body = self.main_menu
-        self._loop.widget = self._body
+        self.app_control._body = self.main_menu
+        self.app_control._loop.widget = self.app_control._body
 
     def _open_mainframe(self):
         """
@@ -1235,7 +1231,7 @@ class Application(ApplicationHandler):
         self.print(T_("Returning to main screen."))
         self.app_control.current_window = _MAIN
         self.prepare_mainscreen()
-        self._loop.widget = self._body
+        self.app_control._loop.widget = self.app_control._body
 
     def _check_login(self):
         """
@@ -1308,8 +1304,8 @@ class Application(ApplicationHandler):
         show_next = color_name
         self.header.set_colormode(show_next)
         self.header.refresh_header()
-        self._loop.screen.register_palette(palette)
-        self._loop.screen.clear()
+        self.app_control._loop.screen.register_palette(palette)
+        self.app_control._loop.screen.clear()
 
     def _set_kbd_layout(self, layout):
         """Set and save selected keyboard layout."""
@@ -1385,18 +1381,18 @@ class Application(ApplicationHandler):
         """
         Redraws screen.
         """
-        if getattr(self, "_loop", None):
-            if self._loop:
-                self._loop.draw_screen()
+        if getattr(self.app_control, "_loop", None):
+            if self.app_control._loop:
+                self.app_control._loop.draw_screen()
 
     def _reset_layout(self):
         """
         Resets the console UI to the default layout
         """
 
-        if getattr(self, "_loop", None):
-            self._loop.widget = self._body
-            self._loop.draw_screen()
+        if getattr(self.app_control, "_loop", None):
+            self.app_control._loop.widget = self.app_control._body
+            self.app_control._loop.draw_screen()
 
     def _create_menu_items(self, items: Dict[str, urwid.Widget]) -> List[MenuItem]:
         """
@@ -1467,7 +1463,7 @@ class Application(ApplicationHandler):
             col_list += [urwid.Columns([gdebug])]
         self.main_footer.footer_content = col_list
         self.main_footer.footer = urwid.AttrMap(urwid.Pile(self.main_footer.footer_content), "footer")
-        swap_widget = getattr(self, "_body", None)
+        swap_widget = getattr(self.app_control, "_body", None)
         if swap_widget:
             swap_widget.footer = self.main_footer.footer
             self.redraw()
@@ -1475,19 +1471,19 @@ class Application(ApplicationHandler):
 
     def _create_progress_bar(self, max_progress=100):
         """Create progressbar"""
-        self.progressbar = urwid.ProgressBar('PB.normal', 'PB.complete', 0, max_progress, 'PB.satt')
-        return self.progressbar
+        self.app_control.progressbar = urwid.ProgressBar('PB.normal', 'PB.complete', 0, max_progress, 'PB.satt')
+        return self.app_control.progressbar
 
     def _draw_progress(self, progress, max_progress=100):
         """Draw progress at progressbar"""
         # completion = float(float(progress)/float(max_progress))
-        # self.progressbar.set_completion(completion)
+        # self.app_control.progressbar.set_completion(completion)
         time.sleep(0.1)
-        self.progressbar.done = max_progress
-        self.progressbar.current = progress
+        self.app_control.progressbar.done = max_progress
+        self.app_control.progressbar.current = progress
         if progress == max_progress:
             self._reset_layout()
-        self._loop.draw_screen()
+        self.app_control._loop.draw_screen()
 
     def message_box(
             self,
@@ -1507,7 +1503,7 @@ class Application(ApplicationHandler):
             elif self.app_control.current_window == _MESSAGE_BOX:
                 if key.endswith('enter') or key == 'esc':
                     self.app_control.current_window = self.app_control.message_box_caller
-                    self._body = self.app_control._message_box_caller_body
+                    self.app_control._body = self.app_control._message_box_caller_body
                     self.reset_layout()
 
         Args:
@@ -1518,7 +1514,7 @@ class Application(ApplicationHandler):
         """
         if self.app_control.current_window != _MESSAGE_BOX:
             self.app_control.message_box_caller = self.app_control.current_window
-            self.app_control._message_box_caller_body = self._loop.widget
+            self.app_control._message_box_caller_body = self.app_control._loop.widget
             self.app_control.current_window = _MESSAGE_BOX
         body = urwid.LineBox(urwid.Padding(urwid.Filler(urwid.Pile([GText(mb_params.msg, urwid.CENTER)]), urwid.TOP)))
         footer = self._create_footer(view_buttons.view_ok, view_buttons.view_cancel)
@@ -1571,7 +1567,7 @@ class Application(ApplicationHandler):
             @param view_buttons: The viewed buttons ok or cancel.
         """
         self.app_control.input_box_caller = self.app_control.current_window
-        self.app_control._input_box_caller_body = self._loop.widget
+        self.app_control._input_box_caller_body = self.app_control._loop.widget
         self.app_control.current_window = _INPUT_BOX
         body = urwid.LineBox(
             urwid.Padding(
@@ -1783,7 +1779,7 @@ class Application(ApplicationHandler):
         """
         # set_trace(term_size=(129, 18))
         # set_trace()
-        self._loop.run()
+        self.app_control._loop.run()
         if self.gscreen.old_termios is not None:
             self.gscreen.screen.tty_signal_keys(*self.gscreen.old_termios)
 
@@ -1839,21 +1835,21 @@ class Application(ApplicationHandler):
             body, header=header, footer=footer, focus_part=focus_part
         )
 
-        # self._body = body
+        # self.app_control._body = body
 
         widget = urwid.Overlay(
             urwid.LineBox(self.gscreen.layout),
-            self._body,
+            self.app_control._body,
             align=alignment.align,
             width=size.width,
             valign=alignment.valign,
             height=size.height,
         )
 
-        if getattr(self, "_loop", None):
-            self._loop.widget = widget
+        if getattr(self.app_control, "_loop", None):
+            self.app_control._loop.widget = widget
             if not modal:
-                self._loop.draw_screen()
+                self.app_control._loop.draw_screen()
 
 
 def create_application() -> Tuple[Union[Application, None], bool]:
