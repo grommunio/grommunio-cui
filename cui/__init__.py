@@ -73,8 +73,6 @@ class Application(ApplicationHandler):
     app_control: Optional[cui.appclass.ApplicationControl] = cui.appclass.ApplicationControl(_MAIN)
     current_menu_state: int = -1
     maybe_menu_state: int = -1
-    active_device: str = "lo"
-    active_ips: Dict[str, List[Tuple[str, str, str, str]]] = {}
     config: Dict[str, Any] = {}
     timesyncd_vars: Dict[str, str] = {}
     log_units: Dict[str, Dict[str, str]] = {}

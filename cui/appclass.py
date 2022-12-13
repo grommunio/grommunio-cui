@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # SPDX-FileCopyrightText: 2022 grommunio GmbH
 """In this module all application classes are hold."""
-from typing import Optional, List, Union, Tuple, Any
+from typing import Optional, List, Union, Tuple, Any, Dict
 
 import urwid
 
