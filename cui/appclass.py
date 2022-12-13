@@ -178,6 +178,8 @@ class MainMenu:
     current_menu_focus: int = -1
     last_menu_focus: int = -2
     menu_description: urwid.Widget
+    main_menu: urwid.Frame
+    main_menu_list: urwid.ListBox
 
 
 class GScreen:

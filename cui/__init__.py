@@ -201,16 +201,16 @@ class Application(ApplicationHandler):
         }
         if os.getppid() != 1:
             items["Exit"] = urwid.Pile([GText(T_("Exit CUI"), urwid.CENTER)])
-        self.main_menu_list = self._prepare_menu_list(items)
+        self.view.top_main_menu.main_menu_list = self._prepare_menu_list(items)
         if self.control.app_control.current_window == _MAIN_MENU and self.view.top_main_menu.current_menu_focus > 0:
             off: int = 1
             if self.control.app_control.last_current_window == _MAIN_MENU:
                 off = 1
-            self.main_menu_list.focus_position = self.view.top_main_menu.current_menu_focus - off
-        self.main_menu = self._menu_to_frame(self.main_menu_list)
+            self.view.top_main_menu.main_menu_list.focus_position = self.view.top_main_menu.current_menu_focus - off
+        self.view.top_main_menu.main_menu = self._menu_to_frame(self.view.top_main_menu.main_menu_list)
         if self.control.app_control.current_window == _MAIN_MENU:
-            self.control.app_control._loop.widget = self.main_menu
-            self.control.app_control._body = self.main_menu
+            self.control.app_control._loop.widget = self.view.top_main_menu.main_menu
+            self.control.app_control._body = self.view.top_main_menu.main_menu
 
     def prepare_mainscreen(self):
         """Prepare main screen."""
@@ -433,7 +433,7 @@ class Application(ApplicationHandler):
             raise urwid.ExitMainLoop()
 
         menu_selected: int = self._handle_standard_menu_behaviour(
-            self.main_menu_list, key, self.main_menu.base_widget.body[1]
+            self.view.top_main_menu.main_menu_list, key, self.view.top_main_menu.main_menu.base_widget.body[1]
         )
         if key.endswith("enter") or key in range(ord("1"), ord("9") + 1):
             (func, val) = {
@@ -1212,7 +1212,7 @@ class Application(ApplicationHandler):
         self.control.app_control.current_window = _MAIN_MENU
         self.view.header.set_authorized_options(T_(", <F4> for Main-Menu"))
         self.prepare_mainscreen()
-        self.control.app_control._body = self.main_menu
+        self.control.app_control._body = self.view.top_main_menu.main_menu
         self.control.app_control._loop.widget = self.control.app_control._body
 
     def _open_mainframe(self):
