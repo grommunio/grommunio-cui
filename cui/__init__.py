@@ -68,6 +68,7 @@ class Application(ApplicationHandler):
     main_frame: Optional[cui.appclass.MainFrame]
     header: Optional[cui.appclass.Header]
     top_main_menu: cui.appclass.MainMenu = cui.appclass.MainMenu()
+    main_footer: cui.appclass.Footer = cui.appclass.Footer()
     gscreen: Optional[cui.appclass.GScreen]
     button_store: Optional[cui.appclass.ButtonStore] = cui.appclass.ButtonStore()
     login_window: Optional[cui.appclass.LoginWindow] = cui.appclass.LoginWindow()
@@ -80,8 +81,6 @@ class Application(ApplicationHandler):
     _hidden_input: str = ""
     _hidden_pos: int = 0
     _body: urwid.Widget
-    footer_content = []
-    footer: urwid.Pile
     admin_api_config: Dict[str, Any] = {}
     menu_control: cui.appclass.MenuControl = cui.appclass.MenuControl()
 
@@ -239,11 +238,11 @@ class Application(ApplicationHandler):
                 ("weight", 50, self.main_frame.main_bottom),
             ]
         )
-        self.footer = urwid.Pile(self.footer_content)
+        self.main_footer.footer = urwid.Pile(self.main_footer.footer_content)
         frame = urwid.Frame(
             urwid.AttrMap(self.main_frame.vsplitbox, "reverse"),
             header=self.header.info.header,
-            footer=self.footer,
+            footer=self.main_footer.footer,
         )
         self.main_frame.mainframe = frame
         self._body = self.main_frame.mainframe
@@ -1302,7 +1301,7 @@ class Application(ApplicationHandler):
                 listbox.body[fopos].original_widget.get_description()
             ])), "reverse",),
         ])
-        return urwid.Frame(menu, header=self.header.info.header, footer=self.footer)
+        return urwid.Frame(menu, header=self.header.info.header, footer=self.main_footer.footer)
 
     def _switch_next_colormode(self):
         """Switch to next color scheme."""
@@ -1469,11 +1468,11 @@ class Application(ApplicationHandler):
             col_list += [urwid.Columns([(len(elem), elem) for elem in rest])]
         if self.gscreen.debug:
             col_list += [urwid.Columns([gdebug])]
-        self.footer_content = col_list
-        self.footer = urwid.AttrMap(urwid.Pile(self.footer_content), "footer")
+        self.main_footer.footer_content = col_list
+        self.main_footer.footer = urwid.AttrMap(urwid.Pile(self.main_footer.footer_content), "footer")
         swap_widget = getattr(self, "_body", None)
         if swap_widget:
-            swap_widget.footer = self.footer
+            swap_widget.footer = self.main_footer.footer
             self.redraw()
         self.app_control.current_bottom_info = string
 

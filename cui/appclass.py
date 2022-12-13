@@ -243,3 +243,8 @@ class LogControl:
     log_line_count: int = 200
     log_finished: bool = False
     log_viewer: urwid.LineBox
+
+
+class Footer:
+    footer_content = []
+    footer: urwid.Pile
