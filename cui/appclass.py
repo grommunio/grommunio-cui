@@ -176,6 +176,8 @@ class GScreen:
     old_termios: Optional[Tuple[Any, Any, Any, Any, Any]]
     blank_termios: Optional[Tuple[Any, Any, Any, Any, Any]]
     screen: Optional[urwid.raw_display.Screen]
+    layout: urwid.Frame = None
+    old_layout: urwid.Frame = None
 
 
 class ButtonStore:

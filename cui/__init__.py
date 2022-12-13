@@ -71,8 +71,6 @@ class Application(ApplicationHandler):
     button_store: Optional[cui.appclass.ButtonStore] = cui.appclass.ButtonStore()
     login_window: Optional[cui.appclass.LoginWindow] = cui.appclass.LoginWindow()
     app_control: Optional[cui.appclass.ApplicationControl] = cui.appclass.ApplicationControl(_MAIN)
-    layout: urwid.Frame = None
-    old_layout: urwid.Frame = None
     debug: bool = False
     quiet: bool = False
     current_menu_state: int = -1
@@ -342,8 +340,8 @@ class Application(ApplicationHandler):
             if self.app_control.message_box_caller not in (self.app_control.current_window, _MESSAGE_BOX):
                 self.app_control.current_window = self.app_control.message_box_caller
                 self._body = self.app_control._message_box_caller_body
-            if self.old_layout:
-                self.layout = self.old_layout
+            if self.gscreen.old_layout:
+                self.gscreen.layout = self.gscreen.old_layout
             self._reset_layout()
             if self.app_control.current_window not in [
                 _LOGIN, _MAIN_MENU, _TIMESYNCD, _REPO_SELECTION
@@ -368,8 +366,8 @@ class Application(ApplicationHandler):
                 self.app_control.last_input_box_value = ""
             self.app_control.current_window = self.app_control.app_control.current_window_input_box
             self._body = self.app_control._input_box_caller_body
-            if self.old_layout:
-                self.layout = self.old_layout
+            if self.gscreen.old_layout:
+                self.gscreen.layout = self.gscreen.old_layout
             self._reset_layout()
             self.handle_event(key)
 
@@ -1721,10 +1719,10 @@ class Application(ApplicationHandler):
         bottom_keys = ['tab', 'down', 'right']
 
         def switch_body_footer():
-            if self.layout.focus_position == "body":
-                self.layout.focus_position = "footer"
-            elif self.layout.focus_position == "footer":
-                self.layout.focus_position = "body"
+            if self.gscreen.layout.focus_position == "body":
+                self.gscreen.layout.focus_position = "footer"
+            elif self.gscreen.layout.focus_position == "footer":
+                self.gscreen.layout.focus_position = "body"
 
         def count_selectables(widget_list, up_to: int = None):
             if up_to is None:
@@ -1755,10 +1753,10 @@ class Application(ApplicationHandler):
             last = last - non_sels_last
             current = current - non_sels_current
             if current <= first and key in top_keys \
-                    and self.layout.focus_part == 'footer':
+                    and self.gscreen.layout.focus_part == 'footer':
                 switch_body_footer()
             if current >= last and key in bottom_keys \
-                    and self.layout.focus_part == 'body':
+                    and self.gscreen.layout.focus_part == 'body':
                 switch_body_footer()
             else:
                 move: int = 0
@@ -1774,11 +1772,11 @@ class Application(ApplicationHandler):
                     new_focus += move
         # self.print(f"key is {key}")
         if key.endswith("tab") or key.endswith("down") or key.endswith('up'):
-            current_part = self.layout.focus_part
+            current_part = self.gscreen.layout.focus_part
             if current_part == 'body':
-                jump_part(self.layout.body)
+                jump_part(self.gscreen.layout.body)
             elif current_part == 'footer':
-                jump_part(self.layout.footer)
+                jump_part(self.gscreen.layout.footer)
 
     def set_debug(self, yes: bool):
         """
@@ -1853,17 +1851,17 @@ class Application(ApplicationHandler):
             focus_part = frame.focus_part
 
         # Layout
-        if self.layout is not None:
-            self.old_layout = self.layout
+        if self.gscreen.layout is not None:
+            self.gscreen.old_layout = self.gscreen.layout
 
-        self.layout = urwid.Frame(
+        self.gscreen.layout = urwid.Frame(
             body, header=header, footer=footer, focus_part=focus_part
         )
 
         # self._body = body
 
         widget = urwid.Overlay(
-            urwid.LineBox(self.layout),
+            urwid.LineBox(self.gscreen.layout),
             self._body,
             align=alignment.align,
             width=size.width,
