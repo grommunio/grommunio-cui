@@ -775,7 +775,7 @@ class Application(ApplicationHandler):
                 self._run_yast_module("language")
                 post = cui.parser.ConfigParser(infile='/etc/locale.conf')
                 if pre != post:
-                    self.restart_gui()
+                    util.T_ = util.restart_gui()
             elif menu_selected == 2:
                 self._open_change_password()
             elif menu_selected == 3:
@@ -1451,30 +1451,6 @@ class Application(ApplicationHandler):
         input("\n \x1b[36m▼\x1b[0m Press ENTER to return to the CUI.")
         self.screen.tty_signal_keys(*self.blank_termios)
         self._loop.start()
-
-    @staticmethod
-    def restart_gui():
-        """Restart complete GUI to source language in again."""
-        global T_
-        langfile = '/etc/sysconfig/language'
-        config = cui.parser.ConfigParser(infile=langfile)
-        config['ROOT_USES_LANG'] = '"yes"'
-        config.write()
-        # assert os.getenv('PPID') == 1, 'Gugg mal rein da!'
-        locale_conf = util.minishell_read('/etc/locale.conf')
-        # T_ = util.init_localization()
-        # mainapp()
-        if os.getppid() == 1:
-            T_ = util.init_localization(language=locale_conf.get('LANG', ''))
-            main_app()
-            # raise ExitMainLoop()
-        else:
-            env = {}
-            for k in os.environ:
-                env[k] = os.environ.get(k)
-            for k in locale_conf:
-                env[k] = locale_conf.get(k)
-            os.execve(sys.executable, [sys.executable] + sys.argv, env)
 
     def _open_reset_aapi_pw(self):
         """Open reset admin-API password."""

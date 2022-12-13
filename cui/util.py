@@ -30,6 +30,32 @@ def reset_states():
     return STATES
 
 
+def restart_gui():
+    """Restart complete GUI to source language in again."""
+    ret_val = T_
+    langfile = '/etc/sysconfig/language'
+    config = cui.parser.ConfigParser(infile=langfile)
+    config['ROOT_USES_LANG'] = '"yes"'
+    config.write()
+    # assert os.getenv('PPID') == 1, 'Gugg mal rein da!'
+    locale_conf = util.minishell_read('/etc/locale.conf')
+    # T_ = util.init_localization()
+    # mainapp()
+    if os.getppid() == 1:
+        ret_val = init_localization(language=locale_conf.get('LANG', ''))
+        import cui
+        cui.main_app()
+        # raise ExitMainLoop()
+    else:
+        env = {}
+        for k in os.environ:
+            env[k] = os.environ.get(k)
+        for k in locale_conf:
+            env[k] = locale_conf.get(k)
+        os.execve(sys.executable, [sys.executable] + sys.argv, env)
+    return ret_val
+
+
 def init_localization(language: Union[str, str, Iterable[Union[str, str]], None] = ''):
     locale.setlocale(locale.LC_ALL, language)
     try:
