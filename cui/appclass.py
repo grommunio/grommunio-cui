@@ -252,6 +252,15 @@ class LogControl:
     _hidden_pos: int = 0
 
 
+class Control:
+    app_control: ApplicationControl
+    log_control: LogControl = LogControl()
+    menu_control: MenuControl = MenuControl()
+
+    def __init__(self, initial_window):
+        self.app_control = ApplicationControl(initial_window)
+
+
 class Footer:
     footer_content = []
     footer: urwid.Pile
