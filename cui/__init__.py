@@ -1375,16 +1375,12 @@ class Application(ApplicationHandler):
                                                 ("body", "*** "),
                                                 (
                                                     "body",
-                                                    " ".join(
-                                                        [u for u in pre[-3:]]
-                                                    ),
+                                                    " ".join(pre[-3:]),
                                                 ),
                                                 ("reverse", cur),
                                                 (
                                                     "body",
-                                                    " ".join(
-                                                        [u for u in post[:3]]
-                                                    ),
+                                                    " ".join(post[:3]),
                                                 ),
                                                 ("body", " ***"),
                                             ],
