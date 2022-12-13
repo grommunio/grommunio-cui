@@ -219,3 +219,10 @@ class ApplicationControl:
 
     def __init__(self, initial_window):
         self.current_window = initial_window
+
+
+class LogControl:
+    log_units: Dict[str, Dict[str, str]] = {}
+    current_log_unit: int = 0
+    log_line_count: int = 200
+    log_finished: bool = False

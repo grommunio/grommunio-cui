@@ -73,12 +73,9 @@ class Application(ApplicationHandler):
     app_control: Optional[cui.appclass.ApplicationControl] = cui.appclass.ApplicationControl(_MAIN)
     current_menu_state: int = -1
     maybe_menu_state: int = -1
-    admin_api_config: Dict[str, Any] = {}
     timesyncd_vars: Dict[str, str] = {}
-    log_units: Dict[str, Dict[str, str]] = {}
-    current_log_unit: int = 0
-    log_line_count: int = 200
-    log_finished: bool = False
+    admin_api_config: Dict[str, Any] = {}
+    log_control: cui.appclass.LogControl = cui.appclass.LogControl()
     footer_content = []
     key_counter: Dict[str, int] = {}
     progressbar: urwid.ProgressBar
@@ -116,7 +113,7 @@ class Application(ApplicationHandler):
             T_("If this is not that what you expected to see, you probably have insufficient "
                "permissions."),
         ]
-        self._prepare_log_viewer("NetworkManager", self.log_line_count)
+        self._prepare_log_viewer("NetworkManager", self.log_control.log_line_count)
 
         self._prepare_timesyncd_config()
 
@@ -281,8 +278,8 @@ class Application(ApplicationHandler):
         """Handle keyboard event."""
         # event was a key stroke
         key: str = str(event)
-        if self.log_finished and self.app_control.current_window != _LOG_VIEWER:
-            self.log_finished = False
+        if self.log_control.log_finished and self.app_control.current_window != _LOG_VIEWER:
+            self.log_control.log_finished = False
         (func, var) = {
             _MAIN: (self._key_ev_main, key),
             _MESSAGE_BOX: (self._key_ev_mbox, key),
@@ -491,23 +488,23 @@ class Application(ApplicationHandler):
             self.app_control.current_window = self.app_control.log_file_caller
             self._body = self.app_control._log_file_caller_body
             self._reset_layout()
-            self.log_finished = True
+            self.log_control.log_finished = True
         elif key in ["left", "right", "+", "-"]:
             line_offset = {
                 "-": -100,
                 "+": +100,
             }.get(key, 0)
-            self.log_line_count += line_offset
+            self.log_control.log_line_count += line_offset
             unit_offset = {
                 "left": -1,
                 "right": +1,
             }.get(key, 0)
-            self.current_log_unit += unit_offset
-            self.log_line_count = max(min(self.log_line_count, 10000), 200)
-            self.current_log_unit = max(min(self.current_log_unit, len(self.log_units) - 1), 0)
+            self.log_control.current_log_unit += unit_offset
+            self.log_control.log_line_count = max(min(self.log_control.log_line_count, 10000), 200)
+            self.log_control.current_log_unit = max(min(self.log_control.current_log_unit, len(self.log_control.log_units) - 1), 0)
             self._open_log_viewer(
-                self._get_log_unit_by_id(self.current_log_unit),
-                self.log_line_count,
+                self._get_log_unit_by_id(self.log_control.current_log_unit),
+                self.log_control.log_line_count,
             )
         elif (
             self._hidden_pos < len(_UNSUPPORTED)
@@ -526,7 +523,7 @@ class Application(ApplicationHandler):
         if key in ["ctrl d", "esc", "ctrl f1", "H", "h", "l", "L"]:
             self.app_control.current_window = self.app_control.log_file_caller
             self._body = self.app_control._log_file_caller_body
-            self.log_finished = True
+            self.log_control.log_finished = True
             self._reset_layout()
 
     def _key_ev_anytime(self, key):
@@ -543,9 +540,9 @@ class Application(ApplicationHandler):
             key in ["ctrl f1", "H", "h", "L", "l"]
             and self.app_control.current_window != _LOG_VIEWER
             and self.app_control.current_window != _UNSUPPORTED
-            and not self.log_finished
+            and not self.log_control.log_finished
         ):
-            self._open_log_viewer("gromox-http", self.log_line_count)
+            self._open_log_viewer("gromox-http", self.log_control.log_line_count)
 
     def _key_ev_aapi(self, key):
         """Handle event on admin api password reset menu."""
@@ -783,12 +780,12 @@ class Application(ApplicationHandler):
             }
         else:
             self.admin_api_config = yaml.load(out, Loader=SafeLoader)
-        self.log_units = self.admin_api_config.get(
+        self.log_control.log_units = self.admin_api_config.get(
             "logs", {"gromox-http": {"source": "gromox-http.service"}}
         )
-        for i, k in enumerate(self.log_units.keys()):
+        for i, k in enumerate(self.log_control.log_units.keys()):
             if k == "Gromox http":
-                self.current_log_unit = i
+                self.log_control.current_log_unit = i
                 break
 
     def _get_logging_formatter(self) -> str:
@@ -805,9 +802,9 @@ class Application(ApplicationHandler):
 
     def _get_log_unit_by_id(self, idx) -> str:
         """Get logging unit by idx."""
-        for i, k in enumerate(self.log_units.keys()):
+        for i, k in enumerate(self.log_control.log_units.keys()):
             if idx == i:
-                return self.log_units[k].get("source")[:-8]
+                return self.log_control.log_units[k].get("source")[:-8]
         return ""
 
     @staticmethod
@@ -980,8 +977,8 @@ class Application(ApplicationHandler):
         pre: List[str] = []
         post: List[str] = []
         cur: str = f" {unitname[:-8]} "
-        for uname in self.log_units.keys():
-            src = self.log_units[uname].get("source")
+        for uname in self.log_control.log_units.keys():
+            src = self.log_control.log_units[uname].get("source")
             if src == unitname:
                 found = True
             else:
@@ -990,7 +987,7 @@ class Application(ApplicationHandler):
                 else:
                     post.append(src[:-8])
         header = (
-            T_("Use the arrow keys to switch between logfiles. <urwid.LEFT> and <RIGHT> switch the logfile, while <+> and <-> changes the line count to view. (%s)") % self.log_line_count
+            T_("Use the arrow keys to switch between logfiles. <urwid.LEFT> and <RIGHT> switch the logfile, while <+> and <-> changes the line count to view. (%s)") % self.log_control.log_line_count
         )
         self.log_viewer = urwid.LineBox(
             urwid.AttrMap(
