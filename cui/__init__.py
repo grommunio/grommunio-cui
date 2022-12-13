@@ -9,7 +9,7 @@ import subprocess
 import sys
 from asyncio.events import AbstractEventLoop
 from pathlib import Path
-from typing import Any, List, Tuple, Dict, Union, Set, Optional
+from typing import Any, List, Tuple, Dict, Union, Set
 import os
 from getpass import getuser
 import requests
@@ -214,8 +214,8 @@ class Application(ApplicationHandler):
 
     def prepare_mainscreen(self):
         """Prepare main screen."""
-        self.view.header: Header = Header()
-        self.view.main_frame: MainFrame = MainFrame(self)
+        self.view.header = Header()
+        self.view.main_frame = MainFrame(self)
         self.view.header.refresh_header()
         self.view.main_frame.vsplitbox = urwid.Pile(
             [
