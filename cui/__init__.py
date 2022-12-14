@@ -65,11 +65,14 @@ class Application(ApplicationHandler):
     """
     The console UI. Main application class.
     """
-    admin_api_config: Dict[str, Any] = {}
-    view: cui.appclass.View = cui.appclass.View()
-    control: cui.appclass.Control = cui.appclass.Control(_MAIN)
+    admin_api_config: Dict[str, Any]
+    view: cui.appclass.View
+    control: cui.appclass.Control
 
     def __init__(self):
+        self.admin_api_config = {}
+        self.view = cui.appclass.View()
+        self.control = cui.appclass.Control(_MAIN)
         # MAIN Page
         self.control.app_control.loop = util.create_main_loop(self)
         self.control.app_control.loop.set_alarm_in(1, self._update_clock)
@@ -1638,7 +1641,9 @@ class Application(ApplicationHandler):
         :returns: The id of the selected menu item. (>=1)
         :rtype: int
         """
-        self.view.top_main_menu.current_menu_focus = super().get_focused_menu(
+        test = super()
+        test2 = super(Application, self)
+        self.view.top_main_menu.current_menu_focus = super().view.top_main_menu.get_focused_menu(
             menu, event
         )
         if not self.view.top_main_menu.last_menu_focus == self.view.top_main_menu.current_menu_focus:

@@ -11,8 +11,16 @@ class ApplicationHandler(object):
     Interface for accessing the Application object.
     """
 
-    view: Any
-    control: Any
+    _view: Any
+    _control: Any
+
+    @property
+    def view(self):
+        return self._view
+
+    @view.setter
+    def view(self, val):
+        self._view = val
 
     def handle_event(self, event: Any):
         """
@@ -29,57 +37,6 @@ class ApplicationHandler(object):
             f"{self.__class__}.handle_event() must not be called directly in {self.__name__} "
             f"and has to be implemented in sub classes."
         )
-
-    def refresh_main_menu(self):
-        """Refresh main menu."""
-        raise NotImplementedError(
-            f"{self.__class__}.handle_event() must not be called directly in {self.__name__} "
-            f"and has to be implemented in sub classes."
-        )
-
-    def get_focused_menu(self, menu: urwid.ListBox, event: Any) -> int:
-        """
-        Returns id of focused menu item. Returns current id on enter or 1-9 or click, and returns the next id if
-        key is up or down.
-
-        - **Parameters**:
-
-            The menu as a urwid.ListBox combined with any event to resolve the current id.
-
-            :param menu: The menu from which you want to know the id.
-            :type: urwid.ListBox
-            :param event: The event passed to the menu. The event can be a keystroke also as a mouse click.
-            :type: Any
-            :returns: The id of the selected menu item. (>=1)
-            :rtype: int
-
-        """
-        item_count: int
-        if isinstance(menu, cui.ScrollBar):
-            tmp_menu = menu.base_widget
-            item_count = len(tmp_menu.contents)
-        else:
-            tmp_menu = menu
-            item_count = len(tmp_menu.body)
-        self.last_menu_focus: int = tmp_menu.focus_position + 1
-        self.current_menu_focus: int = self.last_menu_focus
-        if type(event) is str:
-            key: str = str(event)
-            if key.endswith("enter") or key in [" "]:
-                self.current_menu_focus = self.last_menu_focus
-            elif len(key) == 1 and ord("1") <= ord(key) <= ord("9"):
-                self.current_menu_focus = ord(str(key)) - ord("1")
-            elif key == "up":
-                self.current_menu_focus = (
-                    tmp_menu.focus_position if tmp_menu.focus_position > 0 else 1
-                )
-            elif key == "down":
-                self.current_menu_focus = (
-                    self.last_menu_focus + 1
-                    if tmp_menu.focus_position < item_count - 1
-                    else item_count
-                )
-        return self.current_menu_focus
 
     def print(self, string="", align="left"):
         """
