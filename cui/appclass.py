@@ -224,18 +224,18 @@ class ApplicationControl:
     last_current_window: str = ""
     current_window_input_box: str = ""
     message_box_caller: str = ""
-    _message_box_caller_body: urwid.Widget = None
+    message_box_caller_body: urwid.Widget = None
     last_pressed_button: str = ""
     input_box_caller: str = ""
-    _input_box_caller_body: urwid.Widget = None
+    input_box_caller_body: urwid.Widget = None
     last_input_box_value: str = ""
     log_file_caller: str = ""
-    _log_file_caller_body: urwid.Widget = None
+    log_file_caller_body: urwid.Widget = None
     current_event = ""
     current_bottom_info = T_("Idle")
     menu_items: List[str] = []
-    _body: urwid.Widget
-    _loop: urwid.MainLoop
+    body: urwid.Widget
+    loop: urwid.MainLoop
     key_counter: Dict[str, int] = {}
     progressbar: urwid.ProgressBar
 
@@ -259,8 +259,8 @@ class LogControl:
     log_finished: bool = False
     log_viewer: urwid.LineBox
     # The hidden input string
-    _hidden_input: str = ""
-    _hidden_pos: int = 0
+    hidden_input: str = ""
+    hidden_pos: int = 0
 
 
 class Control:

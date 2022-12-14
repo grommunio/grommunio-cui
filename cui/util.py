@@ -253,7 +253,7 @@ def create_main_loop(app):
     app.prepare_mainscreen()
     # Loop
     return urwid.MainLoop(
-        app.control.app_control._body,
+        app.control.app_control.body,
         get_palette(app.view.header.get_colormode()),
         unhandled_input=app.handle_event,
         screen=app.view.gscreen.screen,
