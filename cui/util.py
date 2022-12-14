@@ -2,6 +2,7 @@
 # SPDX-FileCopyrightText: 2021 grommunio GmbH
 import os
 import subprocess
+import sys
 import time
 from pathlib import Path
 
@@ -14,6 +15,7 @@ import platform
 import psutil
 import socket
 import shlex
+import cui
 
 
 def T_(msg):
@@ -30,6 +32,29 @@ def reset_states():
     return STATES
 
 
+def get_button_type(key, open_func_on_ok, mb_func, cancel_msg, size):
+    def open_cancel_msg(msg, mb_size):
+        mb_func(
+            cui.parameter.MsgBoxParams(msg),
+            size=mb_size
+        )
+
+    val: str = key.lower()
+    if val.endswith("enter"):
+        val = " ".join(val.split(" ")[:-1])
+        open_func_on_ok()
+        if val.startswith("hidden"):
+            val = " ".join(val.split(" ")[1:])
+        else:
+            val = T_("Cancel").lower()
+        if val == T_("Cancel").lower():
+            open_cancel_msg(cancel_msg, size)
+    elif val == 'esc':
+        open_func_on_ok()
+        open_cancel_msg(cancel_msg, size)
+    return val
+
+
 def restart_gui():
     """Restart complete GUI to source language in again."""
     ret_val = T_
@@ -38,12 +63,11 @@ def restart_gui():
     config['ROOT_USES_LANG'] = '"yes"'
     config.write()
     # assert os.getenv('PPID') == 1, 'Gugg mal rein da!'
-    locale_conf = util.minishell_read('/etc/locale.conf')
+    locale_conf = minishell_read('/etc/locale.conf')
     # T_ = util.init_localization()
     # mainapp()
     if os.getppid() == 1:
         ret_val = init_localization(language=locale_conf.get('LANG', ''))
-        import cui
         cui.main_app()
         # raise ExitMainLoop()
     else:

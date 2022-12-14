@@ -34,7 +34,6 @@ from urwid import (
     SimpleListWalker,
     MainLoop,
     LEFT,
-    CENTER,
     Filler,
     Pile,
     connect_signal,
@@ -45,7 +44,6 @@ from urwid import (
     Terminal,
     SimpleFocusListWalker,
     set_encoding,
-    MIDDLE,
     TOP,
     RadioButton,
     raw_display,
@@ -358,7 +356,7 @@ class Application(ApplicationHandler):
         # The common menu description column
         self.menu_description = Pile(
             [
-                GText(T_("Main Menu"), CENTER),
+                GText(T_("Main Menu"), urwid.CENTER),
                 GText(T_("Here you can do the main actions"), LEFT),
             ]
         )
@@ -366,7 +364,7 @@ class Application(ApplicationHandler):
         items = {
             T_("Language configuration"): Pile(
                 [
-                    GText(T_("Language"), CENTER),
+                    GText(T_("Language"), urwid.CENTER),
                     GText(""),
                     GText(
                         T_("Opens the yast2 configurator for setting language settings.")
@@ -375,14 +373,14 @@ class Application(ApplicationHandler):
             ),
             T_("Change system password"): Pile(
                 [
-                    GText(T_("Password change"), CENTER),
+                    GText(T_("Password change"), urwid.CENTER),
                     GText(""),
                     GText(T_("Opens a dialog for changing the password of the system root user. When a password is set, you can login via ssh and rerun grommunio-cui.")),
                 ]
             ),
             T_("Network interface configuration"): Pile(
                 [
-                    GText(T_("Configuration of network"), CENTER),
+                    GText(T_("Configuration of network"), urwid.CENTER),
                     GText(""),
                     GText(
                         T_("Opens the yast2 configurator for setting up devices, interfaces, IP addresses, DNS and more.")
@@ -391,7 +389,7 @@ class Application(ApplicationHandler):
             ),
             T_("Timezone configuration"): Pile(
                 [
-                    GText(T_("Timezone"), CENTER),
+                    GText(T_("Timezone"), urwid.CENTER),
                     GText(""),
                     GText(
                         T_("Opens the yast2 configurator for setting country and timezone settings.")
@@ -400,7 +398,7 @@ class Application(ApplicationHandler):
             ),
             T_("timesyncd configuration"): Pile(
                 [
-                    GText(T_("timesyncd"), CENTER),
+                    GText(T_("timesyncd"), urwid.CENTER),
                     GText(""),
                     GText(
                         T_("Opens a simple configurator for configuring systemd-timesyncd as a lightweight NTP client for time synchronization.")
@@ -408,18 +406,18 @@ class Application(ApplicationHandler):
                 ]
             ),
             T_("Select software repositories"): Pile([
-                GText(T_("Software repositories selection"), CENTER),
+                GText(T_("Software repositories selection"), urwid.CENTER),
                 GText(""),
                 GText(T_("Opens dialog for choosing software repositories.")),
             ]),
             T_("Update the system"): Pile([
-                GText(T_("System update"), CENTER),
+                GText(T_("System update"), urwid.CENTER),
                 GText(""),
                 GText(T_("Executes the system package manager for the installation of newer component versions.")),
             ]),
             T_("grommunio setup wizard"): Pile(
                 [
-                    GText(T_("Setup wizard"), CENTER),
+                    GText(T_("Setup wizard"), urwid.CENTER),
                     GText(""),
                     GText(
                         T_("Executes the grommunio-setup script for the initial configuration of grommunio databases, TLS certificates, services and the administration web user interface.")
@@ -428,7 +426,7 @@ class Application(ApplicationHandler):
             ),
             T_("Change admin-web password"): Pile(
                 [
-                    GText(T_("Password change"), CENTER),
+                    GText(T_("Password change"), urwid.CENTER),
                     GText(""),
                     GText(
                         T_("Opens a dialog for changing the password used by the administration web interface.")
@@ -437,7 +435,7 @@ class Application(ApplicationHandler):
             ),
             T_("Terminal"): Pile(
                 [
-                    GText(T_("Terminal"), CENTER),
+                    GText(T_("Terminal"), urwid.CENTER),
                     GText(""),
                     GText(
                         T_("Starts terminal for advanced system configuration.")
@@ -445,18 +443,18 @@ class Application(ApplicationHandler):
                 ]
             ),
             T_("Reboot"): Pile(
-                [GText(T_("Reboot system."), CENTER), GText(""), GText("")]
+                [GText(T_("Reboot system."), urwid.CENTER), GText(""), GText("")]
             ),
             T_("Shutdown"): Pile(
                 [
-                    GText(T_("Shutdown system."), CENTER),
+                    GText(T_("Shutdown system."), urwid.CENTER),
                     GText(""),
                     GText(T_("Shuts down the system and powers off.")),
                 ]
             ),
         }
         if os.getppid() != 1:
-            items["Exit"] = Pile([GText(T_("Exit CUI"), CENTER)])
+            items["Exit"] = Pile([GText(T_("Exit CUI"), urwid.CENTER)])
         self.main_menu_list = self._prepare_menu_list(items)
         if self.current_window == _MAIN_MENU and self.current_menu_focus > 0:
             off: int = 1
@@ -482,7 +480,7 @@ class Application(ApplicationHandler):
             T_("If you need help, press the 'L' key to view logs."),
             "\n",
         ]
-        self.tb_intro = GText(text_intro, align=CENTER, wrap=SPACE)
+        self.tb_intro = GText(text_intro, align=urwid.CENTER, wrap=SPACE)
         text_sysinfo_top = util.get_system_info("top")
         self.tb_sysinfo_top = GText(text_sysinfo_top, align=LEFT, wrap=SPACE)
         text_sysinfo_bottom = util.get_system_info("bottom")
@@ -527,7 +525,7 @@ class Application(ApplicationHandler):
                 kbd=self._current_kbdlayout,
                 authorized_options="",
             ),
-            align=CENTER,
+            align=urwid.CENTER,
             wrap=SPACE,
         )
         self._refresh_header(colormode, self._current_kbdlayout, "")
@@ -550,7 +548,7 @@ class Application(ApplicationHandler):
     def _refresh_header(self, colormode, kbd, auth_options):
         """Refresh header"""
         self._refresh_head_text(colormode, kbd, auth_options)
-        self.header = AttrMap(Padding(self.tb_header, align=CENTER), "header")
+        self.header = AttrMap(Padding(self.tb_header, align=urwid.CENTER), "header")
         if getattr(self, "footer", None):
             self._refresh_main_menu()
 
@@ -925,120 +923,101 @@ class Application(ApplicationHandler):
             config['grommunio']['enabled'] = 1
             config['grommunio']['auorefresh'] = 1
         height = 10
-        if key.lower().endswith("enter"):
-            self._open_main_menu()
-            if key.lower().startswith("hidden"):
-                button_type = T_(key.split(" ")[1]).lower()
-            else:
-                button_type = T_("Cancel").lower()
-            if button_type == T_("Cancel").lower():
-                self.message_box(
-                    parameter.MsgBoxParams(
-                        T_('Software repository selection has been canceled.')
-                    ),
-                    size=parameter.Size(height=height)
-                )
-            else:
-                url = 'download.grommunio.com/community/openSUSE_Leap_15.3/' \
-                      '?ssl_verify=no'
-                if self.repo_selection_body.base_widget[3].state:
-                    # supported selected
-                    user = self.repo_selection_body.base_widget[4][1].edit_text
-                    password = self.repo_selection_body.base_widget[5][1].edit_text
-                    testurl="https://download.grommunio.com/supported/open" \
-                            "SUSE_Leap_15.3/repodata/repomd.xml"
-                    req: Response = requests.get(testurl, auth=(user, password))
-                    if req.status_code == 200:
-                        url = f'{user}:{password}@download.grommunio.com/supported/open' \
-                              'SUSE_Leap_15.3/?ssl_verify=no'
-                        updateable = True
-                    else:
-                        self.message_box(
-                            parameter.MsgBoxParams(
-                                T_('Please check the credentials for "supported"'
-                                   '-version or use "community"-version.'),
-                            ),
-                            size=parameter.Size(height=height+1)
-                        )
-                else:
-                    # community selected
+        button_type = util.get_button_type(
+            key,
+            self._open_main_menu,
+            self.message_box,
+            T_('Software repository selection has been canceled.'),
+            size=parameter.Size(height=height)
+        )
+        if button_type in ("ok", "save"):
+            url = 'download.grommunio.com/community/openSUSE_Leap_15.3/' \
+                  '?ssl_verify=no'
+            if self.repo_selection_body.base_widget[3].state:
+                # supported selected
+                user = self.repo_selection_body.base_widget[4][1].edit_text
+                password = self.repo_selection_body.base_widget[5][1].edit_text
+                testurl="https://download.grommunio.com/supported/open" \
+                        "SUSE_Leap_15.3/repodata/repomd.xml"
+                req: Response = requests.get(testurl, auth=(user, password))
+                if req.status_code == 200:
+                    url = f'{user}:{password}@download.grommunio.com/supported/open' \
+                          'SUSE_Leap_15.3/?ssl_verify=no'
                     updateable = True
-                if updateable:
-                    config['grommunio']['baseurl'] = f'https://{url}'
-                    config['grommunio']['type'] = 'rpm-md'
-                    config2 = cui.parser.ConfigParser(infile=repofile)
-                    config.write()
-                    if config == config2:
-                        self.message_box(
-                            parameter.MsgBoxParams(
-                                T_('The repo file has not been changed.')
-                            ),
-                            size=parameter.Size(height=height-1)
+                else:
+                    self.message_box(
+                        parameter.MsgBoxParams(
+                            T_('Please check the credentials for "supported"'
+                               '-version or use "community"-version.'),
+                        ),
+                        size=parameter.Size(height=height+1)
+                    )
+            else:
+                # community selected
+                updateable = True
+            if updateable:
+                config['grommunio']['baseurl'] = f'https://{url}'
+                config['grommunio']['type'] = 'rpm-md'
+                config2 = cui.parser.ConfigParser(infile=repofile)
+                config.write()
+                if config == config2:
+                    self.message_box(
+                        parameter.MsgBoxParams(
+                            T_('The repo file has not been changed.')
+                        ),
+                        size=parameter.Size(height=height-1)
+                    )
+                else:
+                    header = GText(T_("One moment, please ..."))
+                    footer = GText(T_('Fetching GPG-KEY file and refreshing '
+                                      'repositories. This may take a while ...'))
+                    self.progressbar = self._create_progress_bar()
+                    pad = urwid.Padding(self.progressbar)  # do not use pg! use self.progressbar.
+                    fil = urwid.Filler(pad)
+                    linebox = urwid.LineBox(fil)
+                    frame: parameter.Frame = parameter.Frame(linebox, header, footer)
+                    self.dialog(frame)
+                    self._draw_progress(20)
+                    res: Response = requests.get(keyurl)
+                    got_keyfile: bool = False
+                    if res.status_code == 200:
+                        self._draw_progress(30)
+                        tmp = Path(keyfile)
+                        with tmp.open('w') as file:
+                            file.write(res.content.decode())
+                        self._draw_progress(40)
+                        ret_code = subprocess.Popen(
+                            ["rpm", "--import", keyfile],
+                            stderr=subprocess.DEVNULL,
+                            stdout=subprocess.DEVNULL,
                         )
-                    else:
-                        # self.message_box(
-                        #     T_('Fetching GPG-KEY file and refreshing '
-                        #        'repositories. This may take a while ...'),
-                        #     height=height, modal=False
-                        # )
-                        header = GText(T_("One moment, please ..."))
-                        footer = GText(T_('Fetching GPG-KEY file and refreshing '
-                                          'repositories. This may take a while ...'))
-                        self.progressbar = self._create_progress_bar()
-                        pad = urwid.Padding(self.progressbar)  # do not use pg! use self.progressbar.
-                        fil = urwid.Filler(pad)
-                        linebox = urwid.LineBox(fil)
-                        frame: parameter.Frame = parameter.Frame(linebox, header, footer)
-                        self.dialog(frame)
-                        self._draw_progress(20)
-                        res: Response = requests.get(keyurl)
-                        got_keyfile: bool = False
-                        if res.status_code == 200:
-                            self._draw_progress(30)
-                            tmp = Path(keyfile)
-                            with tmp.open('w') as file:
-                                file.write(res.content.decode())
-                            self._draw_progress(40)
+                        if ret_code.wait() == 0:
+                            self._draw_progress(60)
                             ret_code = subprocess.Popen(
-                                ["rpm", "--import", keyfile],
+                                ["zypper", "--non-interactive", "refresh"],
                                 stderr=subprocess.DEVNULL,
                                 stdout=subprocess.DEVNULL,
                             )
                             if ret_code.wait() == 0:
-                                self._draw_progress(60)
-                                ret_code = subprocess.Popen(
-                                    ["zypper", "--non-interactive", "refresh"],
-                                    stderr=subprocess.DEVNULL,
-                                    stdout=subprocess.DEVNULL,
-                                )
-                                if ret_code.wait() == 0:
-                                    self._draw_progress(100)
-                                    got_keyfile = True
-                        if got_keyfile:
-                            self.message_box(
-                                parameter.MsgBoxParams(
-                                    T_('Software repository selection has been '
-                                       'updated.'),
-                                ),
-                                size=parameter.Size(height=height)
-                            )
-                        else:
-                            self.message_box(
-                                parameter.MsgBoxParams(
-                                    T_('Software repository selection has not been '
-                                       'updated. Something went wrong while importing '
-                                       'key file.'),
-                                ),
-                                size=parameter.Size(height=height+1)
-                            )
-        elif key == 'esc':
-            self._open_main_menu()
-            self.message_box(
-                parameter.MsgBoxParams(
-                    T_('Software repository selection has been canceled.'),
-                ),
-                size=parameter.Size(height=height)
-            )
+                                self._draw_progress(100)
+                                got_keyfile = True
+                    if got_keyfile:
+                        self.message_box(
+                            parameter.MsgBoxParams(
+                                T_('Software repository selection has been '
+                                   'updated.'),
+                            ),
+                            size=parameter.Size(height=height)
+                        )
+                    else:
+                        self.message_box(
+                            parameter.MsgBoxParams(
+                                T_('Software repository selection has not been '
+                                   'updated. Something went wrong while importing '
+                                   'key file.'),
+                            ),
+                            size=parameter.Size(height=height+1)
+                        )
 
     def _key_ev_timesyncd(self, key):
         """Handle event on timesyncd menu."""
@@ -1252,10 +1231,6 @@ class Application(ApplicationHandler):
         input_text = ""
         height = 14
         mask = "*"
-        view_ok = True
-        view_cancel = True
-        align = CENTER
-        valign = MIDDLE
         self.input_box_caller = self.current_window
         self._input_box_caller_body = self._loop.widget
         self.current_window = current_window
@@ -1264,27 +1239,27 @@ class Application(ApplicationHandler):
                 Filler(
                     Pile(
                         [
-                            GText(msg, CENTER),
+                            GText(msg, urwid.CENTER),
                             urwid.Divider(),
-                            GEdit("", input_text, False, CENTER, mask=mask),
+                            GEdit("", input_text, False, urwid.CENTER, mask=mask),
                             urwid.Divider(),
-                            GEdit("", input_text, False, CENTER, mask=mask),
+                            GEdit("", input_text, False, urwid.CENTER, mask=mask),
                         ]
                     ),
                     TOP,
                 )
             )
         )
-        footer = self._create_footer(view_ok, view_cancel)
+        footer = self._create_footer(True, True)
         if title is None:
             title = "Input expected"
         frame: parameter.Frame = parameter.Frame(
             body=body,
-            header=GText(title, CENTER),
+            header=GText(title, urwid.CENTER),
             footer=footer,
             focus_part="body",
         )
-        alignment: parameter.Alignment = parameter.Alignment(align, valign)
+        alignment: parameter.Alignment = parameter.Alignment(urwid.CENTER, urwid.MIDDLE)
         size: parameter.Size = parameter.Size(width, height)
         self.dialog(frame, alignment=alignment, size=size)
 
@@ -1359,8 +1334,8 @@ class Application(ApplicationHandler):
                             2,
                             Filler(
                                 Padding(
-                                    GText(("body", header), CENTER),
-                                    CENTER,
+                                    GText(("body", header), urwid.CENTER),
+                                    urwid.CENTER,
                                     RELATIVE_100,
                                 )
                             ),
@@ -1384,7 +1359,7 @@ class Application(ApplicationHandler):
                                                 ),
                                                 ("body", " ***"),
                                             ],
-                                            CENTER,
+                                            urwid.CENTER,
                                         )
                                     )
                                 ]
@@ -1459,7 +1434,7 @@ class Application(ApplicationHandler):
         self._reset_layout()
         self.print(T_("Opening timesyncd configuration"))
         self.current_window = _TIMESYNCD
-        header = AttrMap(GText(T_("Timesyncd Configuration"), CENTER), "header")
+        header = AttrMap(GText(T_("Timesyncd Configuration"), urwid.CENTER), "header")
         self._prepare_timesyncd_config()
         self._open_conf_dialog(self.timesyncd_body, header, [self.ok_button, self.cancel_button])
 
@@ -1532,7 +1507,7 @@ class Application(ApplicationHandler):
         self._reset_layout()
         self.print(T_("Opening repository selection"))
         self.current_window = _REPO_SELECTION
-        header = AttrMap(GText(T_("Software repository selection"), CENTER), "header")
+        header = AttrMap(GText(T_("Software repository selection"), urwid.CENTER), "header")
         self._prepare_repo_config()
         self._open_conf_dialog(self.repo_selection_body, header, [self.save_button, self.cancel_button])
 
@@ -1901,7 +1876,7 @@ class Application(ApplicationHandler):
             self.message_box_caller = self.current_window
             self._message_box_caller_body = self._loop.widget
             self.current_window = _MESSAGE_BOX
-        body = LineBox(Padding(Filler(Pile([GText(mb_params.msg, CENTER)]), TOP)))
+        body = LineBox(Padding(Filler(Pile([GText(mb_params.msg, urwid.CENTER)]), TOP)))
         footer = self._create_footer(view_buttons.view_ok, view_buttons.view_cancel)
 
         if mb_params.title is None:
@@ -1910,7 +1885,7 @@ class Application(ApplicationHandler):
             title = mb_params.title
         frame: parameter.Frame = parameter.Frame(
             body=body,
-            header=GText(title, CENTER),
+            header=GText(title, urwid.CENTER),
             footer=footer,
             focus_part="footer",
         )
@@ -1959,9 +1934,9 @@ class Application(ApplicationHandler):
                 Filler(
                     Pile(
                         [
-                            GText(ib_params.msg, CENTER),
+                            GText(ib_params.msg, urwid.CENTER),
                             GEdit(
-                                "", ib_params.input_text, ib_params.multiline, CENTER, mask=ib_params.mask
+                                "", ib_params.input_text, ib_params.multiline, urwid.CENTER, mask=ib_params.mask
                             ),
                         ]
                     ),
@@ -1977,7 +1952,7 @@ class Application(ApplicationHandler):
             title = ib_params.title
         frame: parameter.Frame = parameter.Frame(
             body=body,
-            header=GText(title, CENTER),
+            header=GText(title, urwid.CENTER),
             footer=footer,
             focus_part="body",
         )
