@@ -25,12 +25,31 @@ T_ = cui.util.init_localization()
 
 class Header:
     """The Header class holds all header information and widgets"""
+
     class TextBlock:
         """TextBlock containing all tb widgets."""
         tb_sysinfo_top: Optional[GText]
         tb_sysinfo_bottom: Optional[GText]
         tb_intro: Optional[GText]
         tb_header: GText
+
+        def __init__(self):
+            self.text_header = [T_("grommunio console user interface")]
+            self.text_header += ["\n"]
+            self.text_header += [
+                T_("Active keyboard layout: {kbd}; color set: {colormode}.")
+            ]
+
+        def debug_out(self, msg):
+            """Prints all elements of the class. """
+            for elem in dir(self):
+                print(elem)
+            print(msg)
+
+        @property
+        def text(self):
+            """Returns the text as string. """
+            return "".join(self.text_header)
 
     class Info:
         """The Info class contains additional information"""
@@ -41,6 +60,22 @@ class Header:
         kbdlayout: str = cui.util.get_current_kbdlayout()
         # The default color palette
         colormode: str = "light"
+
+        def debug_out(self, msg):
+            """Prints all elements of the class. """
+            for elem in dir(self):
+                print(elem)
+            print(msg)
+
+        @property
+        def text(self):
+            """Returns the text as string. """
+            return "".join(self.text_header).format(
+                colormode=self.colormode,
+                kbd=self.kbdlayout,
+                authorized_options=self.authorized_options,
+            )
+
 
     info: Info = Info()
     tb: TextBlock = TextBlock()
@@ -58,11 +93,6 @@ class Header:
             self.info.kbdlayout = kbd_layout
         if application:
             self.info.app = application
-        self.info.text_header = [T_("grommunio console user interface")]
-        self.info.text_header += ["\n"]
-        self.info.text_header += [
-            T_("Active keyboard layout: {kbd}; color set: {colormode}.")
-        ]
         self.info.authorized_options = ""
         text_intro = [
             "\n",
@@ -80,15 +110,7 @@ class Header:
         self.tb.tb_sysinfo_bottom = GText(
             text_sysinfo_bottom, align=urwid.LEFT, wrap=urwid.SPACE
         )
-        self.tb.tb_header = GText(
-            "".join(self.info.text_header).format(
-                colormode=self.info.colormode,
-                kbd=self.info.kbdlayout,
-                authorized_options="",
-            ),
-            align=urwid.CENTER,
-            wrap=urwid.SPACE,
-        )
+        self.tb.tb_header = GText(self.tb.text, align=urwid.CENTER, wrap=urwid.SPACE,)
 
     def set_app(self, application: BaseApplication):
         """Set the main app"""
@@ -130,21 +152,17 @@ class Header:
 
     def refresh_head_text(self):
         """Refresh head text."""
-        self.tb.tb_header.set_text(
-            "".join(self.info.text_header).format(
-                colormode=self.info.colormode,
-                kbd=self.info.kbdlayout,
-                authorized_options=self.info.authorized_options,
-            )
-        )
+        self.tb.tb_header.set_text(self.tb.text)
 
     def debug_out(self, msg):
+        """Prints all elements of the class. """
         for elem in dir(self):
             print(elem)
         print(msg)
 
     @property
     def app(self):
+        """Returns the application property. """
         return self._app
 
     @app.setter
@@ -152,6 +170,7 @@ class Header:
         self._app = app
 
     def is_app_set(self):
+        """Checks if app property is set."""
         return self.app is not None
 
 
@@ -169,7 +188,8 @@ class MainFrame:
             cui.classes.scroll.Scrollable(
                 urwid.Pile(
                     [
-                        urwid.Padding(self.app.view.header.tb.tb_intro, left=2, right=2, min_width=20),
+                        urwid.Padding(self.app.view.header.tb.tb_intro, left=2, right=2,
+                                      min_width=20),
                         urwid.Padding(
                             self.app.view.header.tb.tb_sysinfo_top,
                             align=urwid.LEFT,
@@ -199,12 +219,14 @@ class MainFrame:
         )
 
     def debug_out(self, msg):
+        """Prints all elements of the class. """
         for elem in dir(self):
             print(elem)
         print(msg)
 
     @property
     def app(self):
+        """Returns the application property. """
         return self._app
 
     @app.setter
@@ -212,10 +234,12 @@ class MainFrame:
         self._app = app
 
     def is_app_set(self):
+        """Checks if app property is set."""
         return self.app is not None
 
 
 class MainMenu:
+    """The MainMenu class contains all main menu code."""
     current_menu_state: int = -1
     maybe_menu_state: int = -1
     current_menu_focus: int = -1
@@ -227,11 +251,11 @@ class MainMenu:
 
     def __init__(self, application: BaseApplication):
         self.app = application
-        
+
     def get_focused_menu(self, menu: urwid.ListBox, event: Any) -> int:
         """
-        Returns id of focused menu item. Returns current id on enter or 1-9 or click, and returns the next id if
-        key is up or down.
+        Returns id of focused menu item. Returns current id on enter or 1-9 or click, and
+            returns the next id if key is up or down.
 
         - **Parameters**:
 
@@ -239,7 +263,8 @@ class MainMenu:
 
             :param menu: The menu from which you want to know the id.
             :type: urwid.ListBox
-            :param event: The event passed to the menu. The event can be a keystroke also as a mouse click.
+            :param event: The event passed to the menu. The event can be a keystroke also
+                as a mouse click.
             :type: Any
             :returns: The id of the selected menu item. (>=1)
             :rtype: int
@@ -254,7 +279,7 @@ class MainMenu:
             item_count = len(tmp_menu.body)
         self.last_menu_focus: int = tmp_menu.focus_position + 1
         self.current_menu_focus: int = self.last_menu_focus
-        if type(event) is str:
+        if isinstance(event, str):
             key: str = str(event)
             if key.endswith("enter") or key in [" "]:
                 self.current_menu_focus = self.last_menu_focus
@@ -274,6 +299,7 @@ class MainMenu:
 
     def refresh_main_menu(self):
         """Refresh main menu."""
+
         def create_menu_description(description, description_title):
             item: urwid.Pile = urwid.Pile([
                 GText(description_title, urwid.CENTER)
@@ -298,11 +324,13 @@ class MainMenu:
             ),
             T_("Change system password"): create_menu_description(
                 T_("Password change"),
-                T_("Opens a dialog for changing the password of the system root user. When a password is set, you can login via ssh and rerun grommunio-cui."),
+                T_("Opens a dialog for changing the password of the system root user. "
+                   "When a password is set, you can login via ssh and rerun grommunio-cui."),
             ),
             T_("Network interface configuration"): create_menu_description(
                 T_("Configuration of network"),
-                T_("Opens the yast2 configurator for setting up devices, interfaces, IP addresses, DNS and more.")
+                T_("Opens the yast2 configurator for setting up devices, interfaces, "
+                   "IP addresses, DNS and more.")
             ),
             T_("Timezone configuration"): create_menu_description(
                 T_("Timezone"),
@@ -310,7 +338,8 @@ class MainMenu:
             ),
             T_("timesyncd configuration"): create_menu_description(
                 T_("timesyncd"),
-                T_("Opens a simple configurator for configuring systemd-timesyncd as a lightweight NTP client for time synchronization.")
+                T_("Opens a simple configurator for configuring systemd-timesyncd as a "
+                   "lightweight NTP client for time synchronization.")
             ),
             T_("Select software repositories"): create_menu_description(
                 T_("Software repositories selection"),
@@ -318,15 +347,19 @@ class MainMenu:
             ),
             T_("Update the system"): create_menu_description(
                 T_("System update"),
-                T_("Executes the system package manager for the installation of newer component versions."),
+                T_("Executes the system package manager for the installation of newer "
+                   "component versions."),
             ),
             T_("grommunio setup wizard"): create_menu_description(
                 T_("Setup wizard"),
-                T_("Executes the grommunio-setup script for the initial configuration of grommunio databases, TLS certificates, services and the administration web user interface.")
+                T_("Executes the grommunio-setup script for the initial configuration of "
+                   "grommunio databases, TLS certificates, services and the administration "
+                   "web user interface.")
             ),
             T_("Change admin-web password"): create_menu_description(
                 T_("Password change"),
-                T_("Opens a dialog for changing the password used by the administration web interface.")
+                T_("Opens a dialog for changing the password used by the administration "
+                   "web interface.")
             ),
             T_("Terminal"): create_menu_description(
                 T_("Terminal"),
@@ -341,12 +374,15 @@ class MainMenu:
         if os.getppid() != 1:
             items["Exit"] = urwid.Pile([GText(T_("Exit CUI"), urwid.CENTER)])
         self.app.view.top_main_menu.main_menu_list = self._prepare_menu_list(items)
-        if self.app.control.app_control.current_window == cui.symbol.MAIN_MENU and self.app.view.top_main_menu.current_menu_focus > 0:
+        if self.app.control.app_control.current_window == cui.symbol.MAIN_MENU \
+                and self.app.view.top_main_menu.current_menu_focus > 0:
             off: int = 1
             if self.app.control.app_control.last_current_window == cui.symbol.MAIN_MENU:
                 off = 1
-            self.app.view.top_main_menu.main_menu_list.focus_position = self.app.view.top_main_menu.current_menu_focus - off
-        self.app.view.top_main_menu.main_menu = self._menu_to_frame(self.app.view.top_main_menu.main_menu_list)
+            self.app.view.top_main_menu.main_menu_list.focus_position = \
+                self.app.view.top_main_menu.current_menu_focus - off
+        self.app.view.top_main_menu.main_menu = self._menu_to_frame(
+            self.app.view.top_main_menu.main_menu_list)
         if self.app.control.app_control.current_window == cui.symbol.MAIN_MENU:
             self.app.control.app_control.loop.widget = self.app.view.top_main_menu.main_menu
             self.app.control.app_control.body = self.app.view.top_main_menu.main_menu
@@ -367,9 +403,10 @@ class MainMenu:
         menu = urwid.Columns([
             urwid.AttrMap(listbox, "body"), urwid.AttrMap(urwid.ListBox(urwid.SimpleListWalker([
                 listbox.body[fopos].original_widget.get_description()
-            ])), "reverse",),
+            ])), "reverse", ),
         ])
-        return urwid.Frame(menu, header=self.app.view.header.info.header, footer=self.app.view.main_footer.footer)
+        return urwid.Frame(menu, header=self.app.view.header.info.header,
+                           footer=self.app.view.main_footer.footer)
 
     def _create_menu_items(self, items: Dict[str, urwid.Widget]) -> List[MenuItem]:
         """
@@ -388,12 +425,14 @@ class MainMenu:
         return menu_items
 
     def debug_out(self, msg):
+        """Prints all elements of the class. """
         for elem in dir(self):
             print(elem)
         print(msg)
 
     @property
     def app(self):
+        """Returns the application property. """
         return self._app
 
     @app.setter
@@ -401,10 +440,12 @@ class MainMenu:
         self._app = app
 
     def is_app_set(self):
+        """Checks if app property is set."""
         return self.app is not None
 
 
 class GScreen:
+    """The GScreen class contains all screen code."""
     old_termios: Optional[Tuple[Any, Any, Any, Any, Any]]
     blank_termios: Optional[Tuple[Any, Any, Any, Any, Any]]
     screen: Optional[urwid.raw_display.Screen]
@@ -415,12 +456,14 @@ class GScreen:
     _app: BaseApplication
 
     def debug_out(self, msg):
+        """Prints all elements of the class. """
         for elem in dir(self):
             print(elem)
         print(msg)
 
     @property
     def app(self):
+        """Returns the application property. """
         return self._app
 
     @app.setter
@@ -428,10 +471,12 @@ class GScreen:
         self._app = app
 
     def is_app_set(self):
+        """Checks if app property is set."""
         return self.app is not None
 
 
 class ButtonStore:
+    """The ButtonStore class contains all button classes."""
     ok_button: Optional[GBoxButton]
     add_button: Optional[GBoxButton]
     edit_button: Optional[GBoxButton]
@@ -453,12 +498,14 @@ class ButtonStore:
     _app: BaseApplication
 
     def debug_out(self, msg):
+        """Prints all elements of the class. """
         for elem in dir(self):
             print(elem)
         print(msg)
 
     @property
     def app(self):
+        """Returns the application property. """
         return self._app
 
     @app.setter
@@ -466,22 +513,26 @@ class ButtonStore:
         self._app = app
 
     def is_app_set(self):
+        """Checks if app property is set."""
         return self.app is not None
 
 
 class LoginWindow:
+    """The LoginControl class contains all login controlling code."""
     login_body: Optional[urwid.Widget]
     login_header: Optional[urwid.Widget]
     login_footer: Optional[urwid.Widget]
     _app: BaseApplication
 
     def debug_out(self, msg):
+        """Prints all elements of the class. """
         for elem in dir(self):
             print(elem)
         print(msg)
 
     @property
     def app(self):
+        """Returns the application property. """
         return self._app
 
     @app.setter
@@ -489,10 +540,12 @@ class LoginWindow:
         self._app = app
 
     def is_app_set(self):
+        """Checks if app property is set."""
         return self.app is not None
 
 
 class ApplicationControl:
+    """The ApplicationControl class contains all application controlling code."""
     current_window: str
     last_current_window: str = ""
     current_window_input_box: str = ""
@@ -517,12 +570,14 @@ class ApplicationControl:
         self.current_window = initial_window
 
     def debug_out(self, msg):
+        """Prints all elements of the class. """
         for elem in dir(self):
             print(elem)
         print(msg)
 
     @property
     def app(self):
+        """Returns the application property. """
         return self._app
 
     @app.setter
@@ -530,10 +585,12 @@ class ApplicationControl:
         self._app = app
 
     def is_app_set(self):
+        """Checks if app property is set."""
         return self.app is not None
 
 
 class MenuControl:
+    """The MenuControl class contains all menu controlling code."""
     repo_selection_body: urwid.LineBox
     timesyncd_vars: Dict[str, str] = {}
     keyboard_rb: List
@@ -543,12 +600,14 @@ class MenuControl:
     _app: BaseApplication
 
     def debug_out(self, msg):
+        """Prints all elements of the class. """
         for elem in dir(self):
             print(elem)
         print(msg)
 
     @property
     def app(self):
+        """Returns the application property. """
         return self._app
 
     @app.setter
@@ -556,10 +615,12 @@ class MenuControl:
         self._app = app
 
     def is_app_set(self):
+        """Checks if app property is set."""
         return self.app is not None
 
 
 class LogControl:
+    """The LogControl class contains all log controlling code."""
     log_units: Dict[str, Dict[str, str]] = {}
     current_log_unit: int = 0
     log_line_count: int = 200
@@ -571,12 +632,14 @@ class LogControl:
     _app: BaseApplication
 
     def debug_out(self, msg):
+        """Prints all elements of the class. """
         for elem in dir(self):
             print(elem)
         print(msg)
 
     @property
     def app(self):
+        """Returns the application property. """
         return self._app
 
     @app.setter
@@ -584,10 +647,12 @@ class LogControl:
         self._app = app
 
     def is_app_set(self):
+        """Checks if app property is set."""
         return self.app is not None
 
 
 class Control:
+    """The Control class contains all controlling code."""
     app_control: ApplicationControl
     log_control: LogControl = LogControl()
     menu_control: MenuControl = MenuControl()
@@ -597,12 +662,14 @@ class Control:
         self.app_control = ApplicationControl(initial_window)
 
     def debug_out(self, msg):
+        """Prints all elements of the class. """
         for elem in dir(self):
             print(elem)
         print(msg)
 
     @property
     def app(self):
+        """Returns the application property. """
         return self._app
 
     @app.setter
@@ -610,21 +677,25 @@ class Control:
         self._app = app
 
     def is_app_set(self):
+        """Checks if app property is set."""
         return self.app is not None
 
 
 class Footer:
+    """The Footer class contains all footer elements."""
     footer_content = []
     footer: urwid.Pile
     _app: BaseApplication
 
     def debug_out(self, msg):
+        """Prints all elements of the class. """
         for elem in dir(self):
             print(elem)
         print(msg)
 
     @property
     def app(self):
+        """Returns the application property. """
         return self._app
 
     @app.setter
@@ -632,10 +703,12 @@ class Footer:
         self._app = app
 
     def is_app_set(self):
+        """Checks if app property is set."""
         return self.app is not None
 
 
 class View:
+    """The view class contains all view elements that are visible"""
     main_frame: MainFrame
     header: Header
     top_main_menu: MainMenu
@@ -650,12 +723,14 @@ class View:
         self.top_main_menu = MainMenu(self.app)
 
     def debug_out(self, msg):
+        """Prints all elements of the class. """
         for elem in dir(self):
             print(elem)
         print(msg)
 
     @property
     def app(self):
+        """Returns the application property. """
         return self._app
 
     @app.setter
@@ -663,4 +738,5 @@ class View:
         self._app = app
 
     def is_app_set(self):
+        """Checks if app property is set."""
         return self.app is not None
