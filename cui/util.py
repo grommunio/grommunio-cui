@@ -245,7 +245,7 @@ def create_application_buttons(app):
 
 def create_main_loop(app):
     urwid.set_encoding("utf-8")
-    app.view.gscreen = cui.appclass.GScreen()
+    app.view.gscreen = cui.classes.application.GScreen()
     app.view.gscreen.screen = urwid.raw_display.Screen()
     app.view.gscreen.old_termios = app.view.gscreen.screen.tty_signal_keys()
     app.view.gscreen.blank_termios = ["undefined" for _ in range(0, 5)]

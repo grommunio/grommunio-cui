@@ -11,7 +11,7 @@ import cui.scroll
 import cui.button
 import cui.menu
 import cui.symbol
-from cui.interface import BaseApplication
+from cui.classes.interface import BaseApplication
 
 T_ = cui.util.init_localization()
 

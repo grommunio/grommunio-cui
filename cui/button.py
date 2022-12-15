@@ -3,7 +3,7 @@
 
 from typing import Any
 import urwid
-from interface import BaseApplication, WidgetDrawer
+from cui.classes.interface import BaseApplication, WidgetDrawer
 
 
 class GButton(urwid.Button):

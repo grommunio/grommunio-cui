@@ -3,7 +3,7 @@
 
 from typing import Any, List, Dict
 import urwid
-from cui.interface import BaseApplication, WidgetDrawer
+from cui.classes.interface import BaseApplication, WidgetDrawer
 from gwidgets import GText
 
 

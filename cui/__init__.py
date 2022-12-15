@@ -21,11 +21,11 @@ import urwid
 from cui.gwidgets import GText, GEdit
 from cui import util, parameter
 import cui.parser
-from cui.appclass import Header, MainFrame, GScreen, ButtonStore
+from cui.classes.application import Header, MainFrame, GScreen, ButtonStore
 from cui.scroll import ScrollBar, Scrollable
 from cui.button import GButton, GBoxButton
 from cui.menu import MenuItem, MultiMenuItem
-from cui.interface import BaseApplication, WidgetDrawer
+from cui.classes.interface import BaseApplication, WidgetDrawer
 from cui.symbol import PRODUCTION, MAIN, MAIN_MENU, TERMINAL, LOGIN, REBOOT, SHUTDOWN, UNSUPPORTED, PASSWORD, \
     MESSAGE_BOX, INPUT_BOX, LOG_VIEWER, ADMIN_WEB_PW, TIMESYNCD, KEYBOARD_SWITCH, REPO_SELECTION
 
@@ -42,13 +42,13 @@ class ApplicationHandler(BaseApplication):
     The console UI. Main application class.
     """
     admin_api_config: Dict[str, Any]
-    view: cui.appclass.View
-    control: cui.appclass.Control
+    view: cui.classes.application.View
+    control: cui.classes.application.Control
 
     def __init__(self):
         self.admin_api_config = {}
-        self.view = cui.appclass.View(self)
-        self.control = cui.appclass.Control(MAIN)
+        self.view = cui.classes.application.View(self)
+        self.control = cui.classes.application.Control(MAIN)
         # MAIN Page
         self.control.app_control.loop = util.create_main_loop(self)
         self.control.app_control.loop.set_alarm_in(1, self._update_clock)
