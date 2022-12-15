@@ -68,31 +68,13 @@ class WidgetDrawer(urwid.WidgetWrap):
 
     @property
     def label(self) -> str:
+        """Return the label"""
         return self._label
 
     @label.setter
     def label(self, label: str):
         self._label = label
 
-    def mark_as_dirty(self):
-        """
-        This method must be called if you want to mark that widget for redrawing.
-        This method is not implemented here and must be done in sub classes.
-        """
-        raise NotImplementedError(
-            f"{self.__class__}.mark_as_dirty() must not be called directly in {self.__name__} "
-            f"and has to be implemented in sub classes."
-        )
-
-    def refresh_content(self, event: Any = None):
-        """
-        Triggers the refreshing of dirty content.
-        This method is not implemented here and must be done in sub classes.
-        """
-        raise NotImplementedError(
-            f"{self.__class__}.refresh_content() must not be called directly in {self.__name__} "
-            f"and has to be implemented in sub classes."
-        )
-
     def render(self, size, focus=False):
+        """Render the widget."""
         return super(WidgetDrawer, self).render(size, focus)
