@@ -4,7 +4,7 @@
 from typing import Any, List, Dict
 import urwid
 from cui.classes.interface import BaseApplication, WidgetDrawer
-from gwidgets import GText
+from cui.classes.gwidgets import GText
 
 
 class MenuItem(GText):

@@ -7,11 +7,18 @@ from typing import Optional, List, Union, Tuple, Any, Dict
 import urwid
 
 import cui
-import cui.scroll
-import cui.button
-import cui.menu
+import cui.classes
+import cui.classes.gwidgets
+import cui.classes.scroll
+import cui.classes.button
+import cui.classes.menu
 import cui.symbol
+import cui.util
 from cui.classes.interface import BaseApplication
+from cui.classes.gwidgets import GText, GEdit
+from cui.classes.scroll import ScrollBar
+from cui.classes.menu import MenuItem
+from cui.classes.button import GBoxButton
 
 T_ = cui.util.init_localization()
 
@@ -20,15 +27,15 @@ class Header:
     """The Header class holds all header information and widgets"""
     class TextBlock:
         """TextBlock containing all tb widgets."""
-        tb_sysinfo_top: Optional[cui.gwidgets.GText]
-        tb_sysinfo_bottom: Optional[cui.gwidgets.GText]
-        tb_intro: Optional[cui.gwidgets.GText]
-        tb_header: cui.gwidgets.GText
+        tb_sysinfo_top: Optional[GText]
+        tb_sysinfo_bottom: Optional[GText]
+        tb_intro: Optional[GText]
+        tb_header: GText
 
     class Info:
         """The Info class contains additional information"""
         text_header: List[Union[str, tuple]]
-        header: cui.gwidgets.GText
+        header: GText
         app: BaseApplication
         authorized_options: str = ""
         kbdlayout: str = cui.util.get_current_kbdlayout()
@@ -61,18 +68,18 @@ class Header:
             T_("If you need help, press the 'L' key to view logs."),
             "\n",
         ]
-        self.tb.tb_intro = cui.gwidgets.GText(
+        self.tb.tb_intro = GText(
             text_intro, align=urwid.CENTER, wrap=urwid.SPACE
         )
         text_sysinfo_top = cui.util.get_system_info("top")
-        self.tb.tb_sysinfo_top = cui.gwidgets.GText(
+        self.tb.tb_sysinfo_top = GText(
             text_sysinfo_top, align=urwid.LEFT, wrap=urwid.SPACE
         )
         text_sysinfo_bottom = cui.util.get_system_info("bottom")
-        self.tb.tb_sysinfo_bottom = cui.gwidgets.GText(
+        self.tb.tb_sysinfo_bottom = GText(
             text_sysinfo_bottom, align=urwid.LEFT, wrap=urwid.SPACE
         )
-        self.tb.tb_header = cui.gwidgets.GText(
+        self.tb.tb_header = GText(
             "".join(self.info.text_header).format(
                 colormode=self.info.colormode,
                 kbd=self.info.kbdlayout,
@@ -135,14 +142,14 @@ class MainFrame:
     """The MainFrame class holds all mainframe widgets"""
     mainframe: Optional[urwid.Frame]
     vsplitbox: Optional[urwid.Pile]
-    main_top: Optional[cui.scroll.ScrollBar]
-    main_bottom: Optional[cui.scroll.ScrollBar]
+    main_top: Optional[ScrollBar]
+    main_bottom: Optional[ScrollBar]
     app: BaseApplication
 
     def __init__(self, application: BaseApplication):
         self.app = application
-        self.main_top = cui.scroll.ScrollBar(
-            cui.scroll.Scrollable(
+        self.main_top = ScrollBar(
+            cui.classes.scroll.Scrollable(
                 urwid.Pile(
                     [
                         urwid.Padding(self.app.view.header.tb.tb_intro, left=2, right=2, min_width=20),
@@ -156,8 +163,8 @@ class MainFrame:
                 )
             )
         )
-        self.main_bottom = cui.scroll.ScrollBar(
-            cui.scroll.Scrollable(
+        self.main_bottom = ScrollBar(
+            cui.classes.scroll.Scrollable(
                 urwid.Pile(
                     [
                         urwid.AttrMap(
@@ -236,12 +243,12 @@ class MainMenu:
         """Refresh main menu."""
         def create_menu_description(description, description_title):
             item: urwid.Pile = urwid.Pile([
-                cui.gwidgets.GText(description_title, urwid.CENTER)
-                if not isinstance(description_title, cui.gwidgets.GText)
+                GText(description_title, urwid.CENTER)
+                if not isinstance(description_title, GText)
                 else description_title,
-                cui.gwidgets.GText(""),
-                cui.gwidgets.GText(description, urwid.LEFT)
-                if not isinstance(description, cui.gwidgets.GText)
+                GText(""),
+                GText(description, urwid.LEFT)
+                if not isinstance(description, GText)
                 else description,
             ])
             return item
@@ -292,14 +299,14 @@ class MainMenu:
                 T_("Terminal"),
                 T_("Starts terminal for advanced system configuration.")
             ),
-            T_("Reboot"): create_menu_description(T_("Reboot system."), cui.gwidgets.GText("")),
+            T_("Reboot"): create_menu_description(T_("Reboot system."), GText("")),
             T_("Shutdown"): create_menu_description(
                 T_("Shutdown system."),
                 T_("Shuts down the system and powers off."),
             ),
         }
         if os.getppid() != 1:
-            items["Exit"] = urwid.Pile([cui.gwidgets.GText(T_("Exit CUI"), urwid.CENTER)])
+            items["Exit"] = urwid.Pile([GText(T_("Exit CUI"), urwid.CENTER)])
         self.app.view.top_main_menu.main_menu_list = self._prepare_menu_list(items)
         if self.app.control.app_control.current_window == cui.symbol.MAIN_MENU and self.app.view.top_main_menu.current_menu_focus > 0:
             off: int = 1
@@ -318,7 +325,7 @@ class MainMenu:
         :param items: A dictionary of widgets representing the menu items.
         :return: urwid.ListBox containing menu items.
         """
-        menu_items: List[cui.menu.MenuItem] = self._create_menu_items(items)
+        menu_items: List[MenuItem] = self._create_menu_items(items)
         return urwid.ListBox(urwid.SimpleFocusListWalker(menu_items))
 
     def _menu_to_frame(self, listbox: urwid.ListBox):
@@ -331,7 +338,7 @@ class MainMenu:
         ])
         return urwid.Frame(menu, header=self.app.view.header.info.header, footer=self.app.view.main_footer.footer)
 
-    def _create_menu_items(self, items: Dict[str, urwid.Widget]) -> List[cui.menu.MenuItem]:
+    def _create_menu_items(self, items: Dict[str, urwid.Widget]) -> List[MenuItem]:
         """
         Takes a dictionary with menu labels as keys and widget(lists) as
         content and creates a list of menu items.
@@ -339,10 +346,10 @@ class MainMenu:
         :param items: Dictionary in the form {'label': urwid.Widget}.
         :return: List of MenuItems.
         """
-        menu_items: List[cui.menu.MenuItem] = []
+        menu_items: List[MenuItem] = []
         for idx, caption in enumerate(items.keys(), 1):
             if getattr(self, "app", None):
-                item = cui.menu.MenuItem(idx, caption, items.get(caption), self.app)
+                item = MenuItem(idx, caption, items.get(caption), self.app)
                 urwid.connect_signal(item, "activate", self.app.handle_event)
                 menu_items.append(urwid.AttrMap(item, "selectable", "focus"))
         return menu_items
@@ -359,14 +366,14 @@ class GScreen:
 
 
 class ButtonStore:
-    ok_button: Optional[cui.button.GBoxButton]
-    add_button: Optional[cui.button.GBoxButton]
-    edit_button: Optional[cui.button.GBoxButton]
-    save_button: Optional[cui.button.GBoxButton]
-    close_button: Optional[cui.button.GBoxButton]
-    cancel_button: Optional[cui.button.GBoxButton]
-    details_button: Optional[cui.button.GBoxButton]
-    apply_button: Optional[cui.button.GBoxButton]
+    ok_button: Optional[GBoxButton]
+    add_button: Optional[GBoxButton]
+    edit_button: Optional[GBoxButton]
+    save_button: Optional[GBoxButton]
+    close_button: Optional[GBoxButton]
+    cancel_button: Optional[GBoxButton]
+    details_button: Optional[GBoxButton]
+    apply_button: Optional[GBoxButton]
     ok_button_footer: urwid.Widget
     add_button_footer: urwid.Widget
     edit_button_footer: urwid.Widget
@@ -375,8 +382,8 @@ class ButtonStore:
     cancel_button_footer: urwid.Widget
     details_button_footer: urwid.Widget
     apply_button_footer: urwid.Widget
-    user_edit: Optional[cui.gwidgets.GEdit]
-    pass_edit: Optional[cui.gwidgets.GEdit]
+    user_edit: Optional[GEdit]
+    pass_edit: Optional[GEdit]
 
 
 class LoginWindow:
@@ -414,8 +421,8 @@ class MenuControl:
     timesyncd_vars: Dict[str, str] = {}
     keyboard_rb: List
     keyboard_content: List
-    keyboard_list: cui.scroll.ScrollBar
-    keyboard_switch_body: cui.scroll.ScrollBar
+    keyboard_list: ScrollBar
+    keyboard_switch_body: ScrollBar
 
 
 class LogControl:

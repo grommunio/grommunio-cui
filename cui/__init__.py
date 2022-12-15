@@ -18,13 +18,14 @@ import yaml
 from yaml import SafeLoader
 from systemd import journal
 import urwid
-from cui.gwidgets import GText, GEdit
+import cui.classes as classes
+from cui.classes.gwidgets import GText, GEdit
 from cui import util, parameter
-import cui.parser
+import cui.classes.parser
 from cui.classes.application import Header, MainFrame, GScreen, ButtonStore
-from cui.scroll import ScrollBar, Scrollable
-from cui.button import GButton, GBoxButton
-from cui.menu import MenuItem, MultiMenuItem
+from cui.classes.scroll import ScrollBar, Scrollable
+from cui.classes.button import GButton, GBoxButton
+from cui.classes.menu import MenuItem, MultiMenuItem
 from cui.classes.interface import BaseApplication, WidgetDrawer
 from cui.symbol import PRODUCTION, MAIN, MAIN_MENU, TERMINAL, LOGIN, REBOOT, SHUTDOWN, UNSUPPORTED, PASSWORD, \
     MESSAGE_BOX, INPUT_BOX, LOG_VIEWER, ADMIN_WEB_PW, TIMESYNCD, KEYBOARD_SWITCH, REPO_SELECTION
@@ -287,9 +288,9 @@ class ApplicationHandler(BaseApplication):
     def _key_ev_mainmenu(self, key):
         """Handle event on main menu menu."""
         def menu_language():
-            pre = cui.parser.ConfigParser(infile='/etc/locale.conf')
+            pre = cui.classes.parser.ConfigParser(infile='/etc/locale.conf')
             self._run_yast_module("language")
-            post = cui.parser.ConfigParser(infile='/etc/locale.conf')
+            post = cui.classes.parser.ConfigParser(infile='/etc/locale.conf')
             if pre != post:
                 util.T_ = util.restart_gui()
 
@@ -434,7 +435,7 @@ class ApplicationHandler(BaseApplication):
             if updateable:
                 repo_res.get("config", None)['grommunio']['baseurl'] = f'https://{url}'
                 repo_res.get("config", None)['grommunio']['type'] = 'rpm-md'
-                config2 = cui.parser.ConfigParser(infile=repo_res.get("repofile", None))
+                config2 = cui.classes.parser.ConfigParser(infile=repo_res.get("repofile", None))
                 repo_res.get("config", None).write()
                 if repo_res.get("config", None) == config2:
                     self.message_box(
@@ -503,7 +504,7 @@ class ApplicationHandler(BaseApplication):
         keyurl = 'https://download.grommunio.com/RPM-GPG-KEY-grommunio'
         keyfile = '/tmp/RPM-GPG-KEY-grommunio'
         repofile = '/etc/zypp/repos.d/grommunio.repo'
-        config = cui.parser.ConfigParser(infile=repofile)
+        config = cui.classes.parser.ConfigParser(infile=repofile)
         # config.filename = repofile
         if not config.get('grommunio'):
             config['grommunio'] = {}
@@ -1004,7 +1005,7 @@ class ApplicationHandler(BaseApplication):
         baseurl = 'https://download.grommunio.com/community/openSUSE_Leap_' \
                   '15.3/?ssl_verify=no'
         repofile = '/etc/zypp/repos.d/grommunio.repo'
-        config = cui.parser.ConfigParser(infile=repofile)
+        config = cui.classes.parser.ConfigParser(infile=repofile)
         default_type = 'community'
         default_user = ''
         default_pw = ''
