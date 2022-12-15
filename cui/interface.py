@@ -5,7 +5,7 @@ from typing import Any
 import urwid
 
 
-class ApplicationHandler(object):
+class BaseApplication(object):
     """
     Interface for accessing the Application object.
     """

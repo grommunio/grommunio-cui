@@ -3,7 +3,7 @@
 
 from typing import Any
 import urwid
-from interface import ApplicationHandler, WidgetDrawer
+from interface import BaseApplication, WidgetDrawer
 
 
 class GButton(urwid.Button):
@@ -12,7 +12,7 @@ class GButton(urwid.Button):
     """
 
     _selectable = True
-    application: ApplicationHandler = None
+    application: BaseApplication = None
 
     def __init__(
         self,
@@ -31,7 +31,7 @@ class GButton(urwid.Button):
         button = urwid.Padding(button, left=left_pad, right=right_pad)
         return button
 
-    def set_application(self, app: ApplicationHandler):
+    def set_application(self, app: BaseApplication):
         self.application = app
 
 
@@ -97,7 +97,7 @@ class GBoxButton(WidgetDrawer):
         # rv = self._hidden_button.mouse_event(size, event, button, x, y, focus)
         return rv
 
-    def set_application(self, app: ApplicationHandler):
+    def set_application(self, app: BaseApplication):
         self._hidden_button.set_application(app)
 
     def refresh_content(self, event: Any = None):

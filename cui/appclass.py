@@ -11,7 +11,7 @@ import cui.scroll
 import cui.button
 import cui.menu
 import cui.symbol
-from cui.interface import ApplicationHandler
+from cui.interface import BaseApplication
 
 T_ = cui.util.init_localization()
 
@@ -29,7 +29,7 @@ class Header:
         """The Info class contains additional information"""
         text_header: List[Union[str, tuple]]
         header: cui.gwidgets.GText
-        app: ApplicationHandler
+        app: BaseApplication
         authorized_options: str = ""
         kbdlayout: str = cui.util.get_current_kbdlayout()
         # The default color palette
@@ -42,7 +42,7 @@ class Header:
             self,
             colormode: str = None,
             kbd_layout: str = None,
-            application: ApplicationHandler = None
+            application: BaseApplication = None
     ):
         if colormode:
             self.info.colormode = colormode
@@ -82,7 +82,7 @@ class Header:
             wrap=urwid.SPACE,
         )
 
-    def set_app(self, application: ApplicationHandler):
+    def set_app(self, application: BaseApplication):
         """Set the main app"""
         self.info.app = application
 
@@ -137,9 +137,9 @@ class MainFrame:
     vsplitbox: Optional[urwid.Pile]
     main_top: Optional[cui.scroll.ScrollBar]
     main_bottom: Optional[cui.scroll.ScrollBar]
-    app: ApplicationHandler
+    app: BaseApplication
 
-    def __init__(self, application: ApplicationHandler):
+    def __init__(self, application: BaseApplication):
         self.app = application
         self.main_top = cui.scroll.ScrollBar(
             cui.scroll.Scrollable(
@@ -183,9 +183,9 @@ class MainMenu:
     menu_description: urwid.Widget
     main_menu: urwid.Frame
     main_menu_list: urwid.ListBox
-    app: ApplicationHandler
+    app: BaseApplication
 
-    def __init__(self, application: ApplicationHandler):
+    def __init__(self, application: BaseApplication):
         self.app = application
         
     def get_focused_menu(self, menu: urwid.ListBox, event: Any) -> int:
@@ -451,8 +451,8 @@ class View:
     gscreen: GScreen
     button_store: ButtonStore = ButtonStore()
     login_window: LoginWindow = LoginWindow()
-    app: ApplicationHandler
+    app: BaseApplication
 
-    def __init__(self, application: ApplicationHandler):
+    def __init__(self, application: BaseApplication):
         self.app = application
         self.top_main_menu = MainMenu(self.app)

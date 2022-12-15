@@ -3,7 +3,7 @@
 
 from typing import Any, List, Dict
 import urwid
-from cui.interface import ApplicationHandler, WidgetDrawer
+from cui.interface import BaseApplication, WidgetDrawer
 from gwidgets import GText
 
 
@@ -12,14 +12,14 @@ class MenuItem(GText):
     Standard MenuItem enhances Text urwid.Widget by signal 'activate'
     """
 
-    application: ApplicationHandler = None
+    application: BaseApplication = None
 
     def __init__(
         self,
         menu_id,
         caption,
         description: Any = None,
-        app: ApplicationHandler = None,
+        app: BaseApplication = None,
     ):
         GText.__init__(self, caption)
         self.id = menu_id
@@ -100,7 +100,7 @@ class MultiMenuItem(WidgetDrawer):
     Enhanced Multiurwid.RadioButton with focus handling etc.
     """
 
-    application: ApplicationHandler = None
+    application: BaseApplication = None
     dirty: bool = True
     parent_listbox: urwid.ListBox = None
     last_focus: int = -1
@@ -116,7 +116,7 @@ class MultiMenuItem(WidgetDrawer):
         state: Any = "first True",
         on_state_change: Any = None,
         user_data: Any = None,
-        app: ApplicationHandler = None,
+        app: BaseApplication = None,
     ):
         self._group = group
         self._id = menu_id

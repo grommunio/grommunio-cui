@@ -25,7 +25,7 @@ from cui.appclass import Header, MainFrame, GScreen, ButtonStore
 from cui.scroll import ScrollBar, Scrollable
 from cui.button import GButton, GBoxButton
 from cui.menu import MenuItem, MultiMenuItem
-from cui.interface import ApplicationHandler, WidgetDrawer
+from cui.interface import BaseApplication, WidgetDrawer
 from cui.symbol import PRODUCTION, MAIN, MAIN_MENU, TERMINAL, LOGIN, REBOOT, SHUTDOWN, UNSUPPORTED, PASSWORD, \
     MESSAGE_BOX, INPUT_BOX, LOG_VIEWER, ADMIN_WEB_PW, TIMESYNCD, KEYBOARD_SWITCH, REPO_SELECTION
 
@@ -37,7 +37,7 @@ except ImportError:
 T_ = util.init_localization()
 
 
-class Application(ApplicationHandler):
+class ApplicationHandler(BaseApplication):
     """
     The console UI. Main application class.
     """
@@ -1656,6 +1656,10 @@ class Application(ApplicationHandler):
             self.control.app_control.loop.widget = widget
             if not modal:
                 self.control.app_control.loop.draw_screen()
+
+
+class Application(ApplicationHandler):
+    pass
 
 
 def create_application() -> Tuple[Union[Application, None], bool]:
