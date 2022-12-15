@@ -44,6 +44,7 @@ class Header:
 
     info: Info = Info()
     tb: TextBlock = TextBlock()
+    _app: BaseApplication
 
     def __init__(
             self,
@@ -137,6 +138,22 @@ class Header:
             )
         )
 
+    def debug_out(self, msg):
+        for elem in dir(self):
+            print(elem)
+        print(msg)
+
+    @property
+    def app(self):
+        return self._app
+
+    @app.setter
+    def app(self, app):
+        self._app = app
+
+    def is_app_set(self):
+        return self.app is not None
+
 
 class MainFrame:
     """The MainFrame class holds all mainframe widgets"""
@@ -144,7 +161,7 @@ class MainFrame:
     vsplitbox: Optional[urwid.Pile]
     main_top: Optional[ScrollBar]
     main_bottom: Optional[ScrollBar]
-    app: BaseApplication
+    _app: BaseApplication
 
     def __init__(self, application: BaseApplication):
         self.app = application
@@ -181,6 +198,22 @@ class MainFrame:
             )
         )
 
+    def debug_out(self, msg):
+        for elem in dir(self):
+            print(elem)
+        print(msg)
+
+    @property
+    def app(self):
+        return self._app
+
+    @app.setter
+    def app(self, app):
+        self._app = app
+
+    def is_app_set(self):
+        return self.app is not None
+
 
 class MainMenu:
     current_menu_state: int = -1
@@ -190,7 +223,7 @@ class MainMenu:
     menu_description: urwid.Widget
     main_menu: urwid.Frame
     main_menu_list: urwid.ListBox
-    app: BaseApplication
+    _app: BaseApplication
 
     def __init__(self, application: BaseApplication):
         self.app = application
@@ -354,6 +387,22 @@ class MainMenu:
                 menu_items.append(urwid.AttrMap(item, "selectable", "focus"))
         return menu_items
 
+    def debug_out(self, msg):
+        for elem in dir(self):
+            print(elem)
+        print(msg)
+
+    @property
+    def app(self):
+        return self._app
+
+    @app.setter
+    def app(self, app):
+        self._app = app
+
+    def is_app_set(self):
+        return self.app is not None
+
 
 class GScreen:
     old_termios: Optional[Tuple[Any, Any, Any, Any, Any]]
@@ -363,6 +412,23 @@ class GScreen:
     old_layout: urwid.Frame = None
     debug: bool = False
     quiet: bool = False
+    _app: BaseApplication
+
+    def debug_out(self, msg):
+        for elem in dir(self):
+            print(elem)
+        print(msg)
+
+    @property
+    def app(self):
+        return self._app
+
+    @app.setter
+    def app(self, app):
+        self._app = app
+
+    def is_app_set(self):
+        return self.app is not None
 
 
 class ButtonStore:
@@ -384,12 +450,46 @@ class ButtonStore:
     apply_button_footer: urwid.Widget
     user_edit: Optional[GEdit]
     pass_edit: Optional[GEdit]
+    _app: BaseApplication
+
+    def debug_out(self, msg):
+        for elem in dir(self):
+            print(elem)
+        print(msg)
+
+    @property
+    def app(self):
+        return self._app
+
+    @app.setter
+    def app(self, app):
+        self._app = app
+
+    def is_app_set(self):
+        return self.app is not None
 
 
 class LoginWindow:
     login_body: Optional[urwid.Widget]
     login_header: Optional[urwid.Widget]
     login_footer: Optional[urwid.Widget]
+    _app: BaseApplication
+
+    def debug_out(self, msg):
+        for elem in dir(self):
+            print(elem)
+        print(msg)
+
+    @property
+    def app(self):
+        return self._app
+
+    @app.setter
+    def app(self, app):
+        self._app = app
+
+    def is_app_set(self):
+        return self.app is not None
 
 
 class ApplicationControl:
@@ -411,9 +511,26 @@ class ApplicationControl:
     loop: urwid.MainLoop
     key_counter: Dict[str, int] = {}
     progressbar: urwid.ProgressBar
+    _app: BaseApplication
 
     def __init__(self, initial_window):
         self.current_window = initial_window
+
+    def debug_out(self, msg):
+        for elem in dir(self):
+            print(elem)
+        print(msg)
+
+    @property
+    def app(self):
+        return self._app
+
+    @app.setter
+    def app(self, app):
+        self._app = app
+
+    def is_app_set(self):
+        return self.app is not None
 
 
 class MenuControl:
@@ -423,6 +540,23 @@ class MenuControl:
     keyboard_content: List
     keyboard_list: ScrollBar
     keyboard_switch_body: ScrollBar
+    _app: BaseApplication
+
+    def debug_out(self, msg):
+        for elem in dir(self):
+            print(elem)
+        print(msg)
+
+    @property
+    def app(self):
+        return self._app
+
+    @app.setter
+    def app(self, app):
+        self._app = app
+
+    def is_app_set(self):
+        return self.app is not None
 
 
 class LogControl:
@@ -434,20 +568,71 @@ class LogControl:
     # The hidden input string
     hidden_input: str = ""
     hidden_pos: int = 0
+    _app: BaseApplication
+
+    def debug_out(self, msg):
+        for elem in dir(self):
+            print(elem)
+        print(msg)
+
+    @property
+    def app(self):
+        return self._app
+
+    @app.setter
+    def app(self, app):
+        self._app = app
+
+    def is_app_set(self):
+        return self.app is not None
 
 
 class Control:
     app_control: ApplicationControl
     log_control: LogControl = LogControl()
     menu_control: MenuControl = MenuControl()
+    _app: BaseApplication
 
     def __init__(self, initial_window):
         self.app_control = ApplicationControl(initial_window)
+
+    def debug_out(self, msg):
+        for elem in dir(self):
+            print(elem)
+        print(msg)
+
+    @property
+    def app(self):
+        return self._app
+
+    @app.setter
+    def app(self, app):
+        self._app = app
+
+    def is_app_set(self):
+        return self.app is not None
 
 
 class Footer:
     footer_content = []
     footer: urwid.Pile
+    _app: BaseApplication
+
+    def debug_out(self, msg):
+        for elem in dir(self):
+            print(elem)
+        print(msg)
+
+    @property
+    def app(self):
+        return self._app
+
+    @app.setter
+    def app(self, app):
+        self._app = app
+
+    def is_app_set(self):
+        return self.app is not None
 
 
 class View:
@@ -458,8 +643,24 @@ class View:
     gscreen: GScreen
     button_store: ButtonStore = ButtonStore()
     login_window: LoginWindow = LoginWindow()
-    app: BaseApplication
+    _app: BaseApplication
 
     def __init__(self, application: BaseApplication):
         self.app = application
         self.top_main_menu = MainMenu(self.app)
+
+    def debug_out(self, msg):
+        for elem in dir(self):
+            print(elem)
+        print(msg)
+
+    @property
+    def app(self):
+        return self._app
+
+    @app.setter
+    def app(self, app):
+        self._app = app
+
+    def is_app_set(self):
+        return self.app is not None
