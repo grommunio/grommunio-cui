@@ -647,21 +647,6 @@ class Application(ApplicationHandler):
                 return self.control.log_control.log_units[k].get("source")[:-8]
         return ""
 
-    @staticmethod
-    def get_pure_menu_name(label: str) -> str:
-        """
-        Reduces label with id to original label-only form.
-
-        :param label: The label in form "ID) LABEL" or "LABEL".
-        :return: Only LABEL without "ID) ".
-        """
-        if label.find(") ") > 0:
-            parts = label.split(") ")
-            if len(parts) < 2:
-                return label
-            return parts[1]
-        return label
-
     def handle_click(self, creator: urwid.Widget, option: bool = False):
         """
         Handles urwid.RadioButton clicks.
