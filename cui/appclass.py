@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # SPDX-FileCopyrightText: 2022 grommunio GmbH
 """In this module all application classes are hold."""
+import os
 from typing import Optional, List, Union, Tuple, Any, Dict
 
 import urwid
@@ -8,6 +9,7 @@ import urwid
 import cui
 import cui.scroll
 import cui.button
+import cui.menu
 from cui.interface import ApplicationHandler
 
 T_ = cui.util.init_localization()
@@ -115,7 +117,7 @@ class Header:
         )
         if getattr(self.info, "app", None):
             if getattr(self.info.app, "footer", None):
-                self.info.app.refresh_main_menu()
+                self.info.app.view.top_main_menu.refresh_main_menu()
 
     def refresh_head_text(self):
         """Refresh head text."""
@@ -180,7 +182,11 @@ class MainMenu:
     menu_description: urwid.Widget
     main_menu: urwid.Frame
     main_menu_list: urwid.ListBox
+    app: ApplicationHandler
 
+    def __init__(self, application: ApplicationHandler):
+        self.app = application
+        
     def get_focused_menu(self, menu: urwid.ListBox, event: Any) -> int:
         """
         Returns id of focused menu item. Returns current id on enter or 1-9 or click, and returns the next id if
@@ -224,6 +230,121 @@ class MainMenu:
                     else item_count
                 )
         return self.current_menu_focus
+
+    def refresh_main_menu(self):
+        """Refresh main menu."""
+        def create_menu_description(description, description_title):
+            item: urwid.Pile = urwid.Pile([
+                cui.gwidgets.GText(description_title, urwid.CENTER)
+                if not isinstance(description_title, cui.gwidgets.GText)
+                else description_title,
+                cui.gwidgets.GText(""),
+                cui.gwidgets.GText(description, urwid.LEFT)
+                if not isinstance(description, cui.gwidgets.GText)
+                else description,
+            ])
+            return item
+
+        self.app.view.top_main_menu.menu_description = create_menu_description(
+            T_("Main Menu"),
+            T_("Here you can do the main actions"),
+        )
+        # Main Menu
+        items = {
+            T_("Language configuration"): create_menu_description(
+                T_("Language"),
+                T_("Opens the yast2 configurator for setting language settings.")
+            ),
+            T_("Change system password"): create_menu_description(
+                T_("Password change"),
+                T_("Opens a dialog for changing the password of the system root user. When a password is set, you can login via ssh and rerun grommunio-cui."),
+            ),
+            T_("Network interface configuration"): create_menu_description(
+                T_("Configuration of network"),
+                T_("Opens the yast2 configurator for setting up devices, interfaces, IP addresses, DNS and more.")
+            ),
+            T_("Timezone configuration"): create_menu_description(
+                T_("Timezone"),
+                T_("Opens the yast2 configurator for setting country and timezone settings.")
+            ),
+            T_("timesyncd configuration"): create_menu_description(
+                T_("timesyncd"),
+                T_("Opens a simple configurator for configuring systemd-timesyncd as a lightweight NTP client for time synchronization.")
+            ),
+            T_("Select software repositories"): create_menu_description(
+                T_("Software repositories selection"),
+                T_("Opens dialog for choosing software repositories."),
+            ),
+            T_("Update the system"): create_menu_description(
+                T_("System update"),
+                T_("Executes the system package manager for the installation of newer component versions."),
+            ),
+            T_("grommunio setup wizard"): create_menu_description(
+                T_("Setup wizard"),
+                T_("Executes the grommunio-setup script for the initial configuration of grommunio databases, TLS certificates, services and the administration web user interface.")
+            ),
+            T_("Change admin-web password"): create_menu_description(
+                T_("Password change"),
+                T_("Opens a dialog for changing the password used by the administration web interface.")
+            ),
+            T_("Terminal"): create_menu_description(
+                T_("Terminal"),
+                T_("Starts terminal for advanced system configuration.")
+            ),
+            T_("Reboot"): create_menu_description(T_("Reboot system."), cui.gwidgets.GText("")),
+            T_("Shutdown"): create_menu_description(
+                T_("Shutdown system."),
+                T_("Shuts down the system and powers off."),
+            ),
+        }
+        if os.getppid() != 1:
+            items["Exit"] = urwid.Pile([cui.gwidgets.GText(T_("Exit CUI"), urwid.CENTER)])
+        self.app.view.top_main_menu.main_menu_list = self._prepare_menu_list(items)
+        if self.app.control.app_control.current_window == cui._MAIN_MENU and self.app.view.top_main_menu.current_menu_focus > 0:
+            off: int = 1
+            if self.app.control.app_control.last_current_window == cui._MAIN_MENU:
+                off = 1
+            self.app.view.top_main_menu.main_menu_list.focus_position = self.app.view.top_main_menu.current_menu_focus - off
+        self.app.view.top_main_menu.main_menu = self._menu_to_frame(self.app.view.top_main_menu.main_menu_list)
+        if self.app.control.app_control.current_window == cui._MAIN_MENU:
+            self.app.control.app_control.loop.widget = self.app.view.top_main_menu.main_menu
+            self.app.control.app_control.body = self.app.view.top_main_menu.main_menu
+
+    def _prepare_menu_list(self, items: Dict[str, urwid.Widget]) -> urwid.ListBox:
+        """
+        Prepare general menu list.
+
+        :param items: A dictionary of widgets representing the menu items.
+        :return: urwid.ListBox containing menu items.
+        """
+        menu_items: List[cui.menu.MenuItem] = self._create_menu_items(items)
+        return urwid.ListBox(urwid.SimpleFocusListWalker(menu_items))
+
+    def _menu_to_frame(self, listbox: urwid.ListBox):
+        """Put menu(urwid.ListBox) into a urwid.Frame."""
+        fopos: int = listbox.focus_position
+        menu = urwid.Columns([
+            urwid.AttrMap(listbox, "body"), urwid.AttrMap(urwid.ListBox(urwid.SimpleListWalker([
+                listbox.body[fopos].original_widget.get_description()
+            ])), "reverse",),
+        ])
+        return urwid.Frame(menu, header=self.app.view.header.info.header, footer=self.app.view.main_footer.footer)
+
+    def _create_menu_items(self, items: Dict[str, urwid.Widget]) -> List[cui.menu.MenuItem]:
+        """
+        Takes a dictionary with menu labels as keys and widget(lists) as
+        content and creates a list of menu items.
+
+        :param items: Dictionary in the form {'label': urwid.Widget}.
+        :return: List of MenuItems.
+        """
+        menu_items: List[cui.menu.MenuItem] = []
+        for idx, caption in enumerate(items.keys(), 1):
+            if getattr(self, "app", None):
+                item = cui.menu.MenuItem(idx, caption, items.get(caption), self.app)
+                urwid.connect_signal(item, "activate", self.app.handle_event)
+                menu_items.append(urwid.AttrMap(item, "selectable", "focus"))
+        return menu_items
 
 
 class GScreen:
@@ -324,8 +445,13 @@ class Footer:
 class View:
     main_frame: MainFrame
     header: Header
-    top_main_menu: MainMenu = MainMenu()
+    top_main_menu: MainMenu
     main_footer: Footer = Footer()
     gscreen: GScreen
     button_store: ButtonStore = ButtonStore()
     login_window: LoginWindow = LoginWindow()
+    app: ApplicationHandler
+
+    def __init__(self, application: ApplicationHandler):
+        self.app = application
+        self.top_main_menu = MainMenu(self.app)

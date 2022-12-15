@@ -71,7 +71,7 @@ class Application(ApplicationHandler):
 
     def __init__(self):
         self.admin_api_config = {}
-        self.view = cui.appclass.View()
+        self.view = cui.appclass.View(self)
         self.control = cui.appclass.Control(_MAIN)
         # MAIN Page
         self.control.app_control.loop = util.create_main_loop(self)
@@ -79,7 +79,7 @@ class Application(ApplicationHandler):
 
         util.create_application_buttons(self)
 
-        self.refresh_main_menu()
+        self.view.top_main_menu.refresh_main_menu()
 
         # Password Dialog
         self._prepare_password_dialog()
@@ -99,121 +99,6 @@ class Application(ApplicationHandler):
         # some settings
         MultiMenuItem.application = self
         GButton.application = self
-
-    def refresh_main_menu(self):
-        """Refresh main menu."""
-        # The common menu description column
-        self.view.top_main_menu.menu_description = urwid.Pile(
-            [
-                GText(T_("Main Menu"), urwid.CENTER),
-                GText(T_("Here you can do the main actions"), urwid.LEFT),
-            ]
-        )
-        # Main Menu
-        items = {
-            T_("Language configuration"): urwid.Pile(
-                [
-                    GText(T_("Language"), urwid.CENTER),
-                    GText(""),
-                    GText(
-                        T_("Opens the yast2 configurator for setting language settings.")
-                    ),
-                ]
-            ),
-            T_("Change system password"): urwid.Pile(
-                [
-                    GText(T_("Password change"), urwid.CENTER),
-                    GText(""),
-                    GText(T_("Opens a dialog for changing the password of the system root user. When a password is set, you can login via ssh and rerun grommunio-cui.")),
-                ]
-            ),
-            T_("Network interface configuration"): urwid.Pile(
-                [
-                    GText(T_("Configuration of network"), urwid.CENTER),
-                    GText(""),
-                    GText(
-                        T_("Opens the yast2 configurator for setting up devices, interfaces, IP addresses, DNS and more.")
-                    ),
-                ]
-            ),
-            T_("Timezone configuration"): urwid.Pile(
-                [
-                    GText(T_("Timezone"), urwid.CENTER),
-                    GText(""),
-                    GText(
-                        T_("Opens the yast2 configurator for setting country and timezone settings.")
-                    ),
-                ]
-            ),
-            T_("timesyncd configuration"): urwid.Pile(
-                [
-                    GText(T_("timesyncd"), urwid.CENTER),
-                    GText(""),
-                    GText(
-                        T_("Opens a simple configurator for configuring systemd-timesyncd as a lightweight NTP client for time synchronization.")
-                    ),
-                ]
-            ),
-            T_("Select software repositories"): urwid.Pile([
-                GText(T_("Software repositories selection"), urwid.CENTER),
-                GText(""),
-                GText(T_("Opens dialog for choosing software repositories.")),
-            ]),
-            T_("Update the system"): urwid.Pile([
-                GText(T_("System update"), urwid.CENTER),
-                GText(""),
-                GText(T_("Executes the system package manager for the installation of newer component versions.")),
-            ]),
-            T_("grommunio setup wizard"): urwid.Pile(
-                [
-                    GText(T_("Setup wizard"), urwid.CENTER),
-                    GText(""),
-                    GText(
-                        T_("Executes the grommunio-setup script for the initial configuration of grommunio databases, TLS certificates, services and the administration web user interface.")
-                    ),
-                ]
-            ),
-            T_("Change admin-web password"): urwid.Pile(
-                [
-                    GText(T_("Password change"), urwid.CENTER),
-                    GText(""),
-                    GText(
-                        T_("Opens a dialog for changing the password used by the administration web interface.")
-                    ),
-                ]
-            ),
-            T_("Terminal"): urwid.Pile(
-                [
-                    GText(T_("Terminal"), urwid.CENTER),
-                    GText(""),
-                    GText(
-                        T_("Starts terminal for advanced system configuration.")
-                    ),
-                ]
-            ),
-            T_("Reboot"): urwid.Pile(
-                [GText(T_("Reboot system."), urwid.CENTER), GText(""), GText("")]
-            ),
-            T_("Shutdown"): urwid.Pile(
-                [
-                    GText(T_("Shutdown system."), urwid.CENTER),
-                    GText(""),
-                    GText(T_("Shuts down the system and powers off.")),
-                ]
-            ),
-        }
-        if os.getppid() != 1:
-            items["Exit"] = urwid.Pile([GText(T_("Exit CUI"), urwid.CENTER)])
-        self.view.top_main_menu.main_menu_list = self._prepare_menu_list(items)
-        if self.control.app_control.current_window == _MAIN_MENU and self.view.top_main_menu.current_menu_focus > 0:
-            off: int = 1
-            if self.control.app_control.last_current_window == _MAIN_MENU:
-                off = 1
-            self.view.top_main_menu.main_menu_list.focus_position = self.view.top_main_menu.current_menu_focus - off
-        self.view.top_main_menu.main_menu = self._menu_to_frame(self.view.top_main_menu.main_menu_list)
-        if self.control.app_control.current_window == _MAIN_MENU:
-            self.control.app_control.loop.widget = self.view.top_main_menu.main_menu
-            self.control.app_control.body = self.view.top_main_menu.main_menu
 
     def prepare_mainscreen(self):
         """Prepare main screen."""
@@ -1271,26 +1156,6 @@ class Application(ApplicationHandler):
             )
             self.handle_event(f"{label} enter")
 
-    def _prepare_menu_list(self, items: Dict[str, urwid.Widget]) -> urwid.ListBox:
-        """
-        Prepare general menu list.
-
-        :param items: A dictionary of widgets representing the menu items.
-        :return: urwid.ListBox containing menu items.
-        """
-        menu_items: List[MenuItem] = self._create_menu_items(items)
-        return urwid.ListBox(urwid.SimpleFocusListWalker(menu_items))
-
-    def _menu_to_frame(self, listbox: urwid.ListBox):
-        """Put menu(urwid.ListBox) into a urwid.Frame."""
-        fopos: int = listbox.focus_position
-        menu = urwid.Columns([
-            urwid.AttrMap(listbox, "body"), urwid.AttrMap(urwid.ListBox(urwid.SimpleListWalker([
-                listbox.body[fopos].original_widget.get_description()
-            ])), "reverse",),
-        ])
-        return urwid.Frame(menu, header=self.view.header.info.header, footer=self.view.main_footer.footer)
-
     def _switch_next_colormode(self):
         """Switch to next color scheme."""
         original = self.view.header.get_colormode()
@@ -1388,21 +1253,6 @@ class Application(ApplicationHandler):
         if getattr(self.control.app_control, "loop", None):
             self.control.app_control.loop.widget = self.control.app_control.body
             self.control.app_control.loop.draw_screen()
-
-    def _create_menu_items(self, items: Dict[str, urwid.Widget]) -> List[MenuItem]:
-        """
-        Takes a dictionary with menu labels as keys and widget(lists) as
-        content and creates a list of menu items.
-
-        :param items: Dictionary in the form {'label': urwid.Widget}.
-        :return: List of MenuItems.
-        """
-        menu_items: List[MenuItem] = []
-        for idx, caption in enumerate(items.keys(), 1):
-            item = MenuItem(idx, caption, items.get(caption), self)
-            urwid.connect_signal(item, "activate", self.handle_event)
-            menu_items.append(urwid.AttrMap(item, "selectable", "focus"))
-        return menu_items
 
     def print(self, string="", align="left"):
         """
@@ -1641,8 +1491,6 @@ class Application(ApplicationHandler):
         :returns: The id of the selected menu item. (>=1)
         :rtype: int
         """
-        test = super()
-        test2 = super(Application, self)
         self.view.top_main_menu.current_menu_focus = super().view.top_main_menu.get_focused_menu(
             menu, event
         )

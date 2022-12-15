@@ -3,7 +3,6 @@
 
 from typing import Any
 import urwid
-import cui
 
 
 class ApplicationHandler(object):
@@ -21,6 +20,14 @@ class ApplicationHandler(object):
     @view.setter
     def view(self, val):
         self._view = val
+
+    @property
+    def control(self):
+        return self._control
+
+    @control.setter
+    def control(self, val):
+        self._control = val
 
     def handle_event(self, event: Any):
         """
