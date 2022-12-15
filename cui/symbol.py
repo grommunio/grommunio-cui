@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# SPDX-FileCopyrightText: 2022 grommunio GmbH
+"""In this module contains all symbold top control the classes."""
 PRODUCTION: bool = True
 MAIN: str = "MAIN"
 MAIN_MENU: str = "MAIN-MENU"
