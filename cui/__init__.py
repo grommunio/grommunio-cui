@@ -16,8 +16,9 @@ from cui.classes.scroll import ScrollBar, Scrollable
 from cui.classes.button import GButton, GBoxButton
 from cui.classes.menu import MenuItem, MultiMenuItem
 from cui.classes.interface import BaseApplication, WidgetDrawer
-from cui.symbol import PRODUCTION, MAIN, MAIN_MENU, TERMINAL, LOGIN, REBOOT, SHUTDOWN, UNSUPPORTED, PASSWORD, \
-    MESSAGE_BOX, INPUT_BOX, LOG_VIEWER, ADMIN_WEB_PW, TIMESYNCD, KEYBOARD_SWITCH, REPO_SELECTION
+from cui.symbol import PRODUCTION, MAIN, MAIN_MENU, TERMINAL, LOGIN, REBOOT, SHUTDOWN, \
+    UNSUPPORTED, PASSWORD, MESSAGE_BOX, INPUT_BOX, LOG_VIEWER, ADMIN_WEB_PW, TIMESYNCD, \
+    KEYBOARD_SWITCH, REPO_SELECTION
 
 try:
     import asyncio
@@ -28,7 +29,7 @@ T_ = util.init_localization()
 
 
 class Application(ApplicationHandler):
-    pass
+    """Placeholder class for future extensions"""
 
 
 def create_application() -> Tuple[Union[Application, None], bool]:
