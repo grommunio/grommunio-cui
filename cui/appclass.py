@@ -10,6 +10,7 @@ import cui
 import cui.scroll
 import cui.button
 import cui.menu
+import cui.symbol
 from cui.interface import ApplicationHandler
 
 T_ = cui.util.init_localization()
@@ -300,13 +301,13 @@ class MainMenu:
         if os.getppid() != 1:
             items["Exit"] = urwid.Pile([cui.gwidgets.GText(T_("Exit CUI"), urwid.CENTER)])
         self.app.view.top_main_menu.main_menu_list = self._prepare_menu_list(items)
-        if self.app.control.app_control.current_window == cui._MAIN_MENU and self.app.view.top_main_menu.current_menu_focus > 0:
+        if self.app.control.app_control.current_window == cui.symbol.MAIN_MENU and self.app.view.top_main_menu.current_menu_focus > 0:
             off: int = 1
-            if self.app.control.app_control.last_current_window == cui._MAIN_MENU:
+            if self.app.control.app_control.last_current_window == cui.symbol.MAIN_MENU:
                 off = 1
             self.app.view.top_main_menu.main_menu_list.focus_position = self.app.view.top_main_menu.current_menu_focus - off
         self.app.view.top_main_menu.main_menu = self._menu_to_frame(self.app.view.top_main_menu.main_menu_list)
-        if self.app.control.app_control.current_window == cui._MAIN_MENU:
+        if self.app.control.app_control.current_window == cui.symbol.MAIN_MENU:
             self.app.control.app_control.loop.widget = self.app.view.top_main_menu.main_menu
             self.app.control.app_control.body = self.app.view.top_main_menu.main_menu
 

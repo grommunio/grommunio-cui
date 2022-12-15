@@ -7,7 +7,6 @@ import time
 import re
 import subprocess
 import sys
-from asyncio.events import AbstractEventLoop
 from pathlib import Path
 from typing import Any, List, Tuple, Dict, Union, Set
 import os
@@ -27,36 +26,13 @@ from cui.scroll import ScrollBar, Scrollable
 from cui.button import GButton, GBoxButton
 from cui.menu import MenuItem, MultiMenuItem
 from cui.interface import ApplicationHandler, WidgetDrawer
-
+from cui.symbol import PRODUCTION, MAIN, MAIN_MENU, TERMINAL, LOGIN, REBOOT, SHUTDOWN, UNSUPPORTED, PASSWORD, \
+    MESSAGE_BOX, INPUT_BOX, LOG_VIEWER, ADMIN_WEB_PW, TIMESYNCD, KEYBOARD_SWITCH, REPO_SELECTION
 
 try:
     import asyncio
 except ImportError:
     import trollius as asyncio
-
-PRODUCTION: bool = True
-loop: AbstractEventLoop
-_MAIN: str = "MAIN"
-_MAIN_MENU: str = "MAIN-MENU"
-_TERMINAL: str = "TERMINAL"
-_LOGIN: str = "LOGIN"
-_REBOOT: str = "REBOOT"
-_SHUTDOWN: str = "SHUTDOWN"
-_NETWORK_CONFIG_MENU: str = "NETWORK-CONFIG-MENU"
-_UNSUPPORTED: str = "UNSUPPORTED"
-_PASSWORD: str = "PASSWORD"
-_DEVICE_CONFIG: str = "DEVICE-CONFIG"
-_IP_CONFIG: str = "IP-CONFIG"
-_IP_ADDRESS_CONFIG: str = "IP-ADDRESS-CONFIG"
-_DNS_CONFIG: str = "DNS-CONFIG"
-_MESSAGE_BOX: str = "MESSAGE-BOX"
-_INPUT_BOX: str = "INPUT-BOX"
-_LOG_VIEWER: str = "LOG-VIEWER"
-_ADMIN_WEB_PW: str = "ADMIN-WEB-PW"
-_TIMESYNCD: str = "TIMESYNCD"
-_KEYBOARD_SWITCH: str = "KEYBOARD_SWITCH"
-_REPO_SELECTION: str = "REPOSITORY-SELECTION"
-
 
 T_ = util.init_localization()
 
@@ -72,7 +48,7 @@ class Application(ApplicationHandler):
     def __init__(self):
         self.admin_api_config = {}
         self.view = cui.appclass.View(self)
-        self.control = cui.appclass.Control(_MAIN)
+        self.control = cui.appclass.Control(MAIN)
         # MAIN Page
         self.control.app_control.loop = util.create_main_loop(self)
         self.control.app_control.loop.set_alarm_in(1, self._update_clock)
@@ -142,24 +118,24 @@ class Application(ApplicationHandler):
         """Handle keyboard event."""
         # event was a key stroke
         key: str = str(event)
-        if self.control.log_control.log_finished and self.control.app_control.current_window != _LOG_VIEWER:
+        if self.control.log_control.log_finished and self.control.app_control.current_window != LOG_VIEWER:
             self.control.log_control.log_finished = False
         (func, var) = {
-            _MAIN: (self._key_ev_main, key),
-            _MESSAGE_BOX: (self._key_ev_mbox, key),
-            _INPUT_BOX: (self._key_ev_ibox, key),
-            _TERMINAL: (self._key_ev_term, key),
-            _PASSWORD: (self._key_ev_pass, key),
-            _LOGIN: (self._key_ev_login, key),
-            _REBOOT: (self._key_ev_reboot, key),
-            _SHUTDOWN: (self._key_ev_shutdown, key),
-            _MAIN_MENU: (self._key_ev_mainmenu, key),
-            _LOG_VIEWER: (self._key_ev_logview, key),
-            _UNSUPPORTED: (self._key_ev_unsupp, key),
-            _ADMIN_WEB_PW: (self._key_ev_aapi, key),
-            _TIMESYNCD: (self._key_ev_timesyncd, key),
-            _REPO_SELECTION: (self._key_ev_repo_selection, key),
-            _KEYBOARD_SWITCH: (self._key_ev_kbd_switch, key),
+            MAIN: (self._key_ev_main, key),
+            MESSAGE_BOX: (self._key_ev_mbox, key),
+            INPUT_BOX: (self._key_ev_ibox, key),
+            TERMINAL: (self._key_ev_term, key),
+            PASSWORD: (self._key_ev_pass, key),
+            LOGIN: (self._key_ev_login, key),
+            REBOOT: (self._key_ev_reboot, key),
+            SHUTDOWN: (self._key_ev_shutdown, key),
+            MAIN_MENU: (self._key_ev_mainmenu, key),
+            LOG_VIEWER: (self._key_ev_logview, key),
+            UNSUPPORTED: (self._key_ev_unsupp, key),
+            ADMIN_WEB_PW: (self._key_ev_aapi, key),
+            TIMESYNCD: (self._key_ev_timesyncd, key),
+            REPO_SELECTION: (self._key_ev_repo_selection, key),
+            KEYBOARD_SWITCH: (self._key_ev_kbd_switch, key),
         }.get(self.control.app_control.current_window)
         if var:
             func(var)
@@ -181,7 +157,7 @@ class Application(ApplicationHandler):
                     focus_part="body",
                 )
                 self.dialog(frame)
-                self.control.app_control.current_window = _LOGIN
+                self.control.app_control.current_window = LOGIN
             else:
                 self._open_main_menu()
         elif key == "l" and not PRODUCTION:
@@ -194,14 +170,14 @@ class Application(ApplicationHandler):
     def _key_ev_mbox(self, key):
         """Handle event on message box."""
         if key.endswith("enter") or key == "esc":
-            if self.control.app_control.message_box_caller not in (self.control.app_control.current_window, _MESSAGE_BOX):
+            if self.control.app_control.message_box_caller not in (self.control.app_control.current_window, MESSAGE_BOX):
                 self.control.app_control.current_window = self.control.app_control.message_box_caller
                 self.control.app_control.body = self.control.app_control.message_box_caller_body
             if self.view.gscreen.old_layout:
                 self.view.gscreen.layout = self.view.gscreen.old_layout
             self._reset_layout()
             if self.control.app_control.current_window not in [
-                _LOGIN, _MAIN_MENU, _TIMESYNCD, _REPO_SELECTION
+                LOGIN, MAIN_MENU, TIMESYNCD, REPO_SELECTION
             ]:
                 if self.control.app_control.key_counter.get(key, 0) < 10:
                     self.control.app_control.key_counter[key] = self.control.app_control.key_counter.get(key, 0) + 1
@@ -294,7 +270,7 @@ class Application(ApplicationHandler):
             self.view.gscreen.screen.tty_signal_keys(*self.view.gscreen.old_termios)
             os.system("reboot")
             raise urwid.ExitMainLoop()
-        self.control.app_control.current_window = _MAIN_MENU
+        self.control.app_control.current_window = MAIN_MENU
 
     def _key_ev_shutdown(self, key):
         """Handle event on shutdown menu."""
@@ -306,7 +282,7 @@ class Application(ApplicationHandler):
             self.view.gscreen.screen.tty_signal_keys(*self.view.gscreen.old_termios)
             os.system("poweroff")
             raise urwid.ExitMainLoop()
-        self.control.app_control.current_window = _MAIN_MENU
+        self.control.app_control.current_window = MAIN_MENU
 
     def _key_ev_mainmenu(self, key):
         """Handle event on main menu menu."""
@@ -371,12 +347,12 @@ class Application(ApplicationHandler):
                 self.control.log_control.log_line_count,
             )
         elif (
-                self.control.log_control.hidden_pos < len(_UNSUPPORTED)
-                and key == _UNSUPPORTED.lower()[self.control.log_control.hidden_pos]
+                self.control.log_control.hidden_pos < len(UNSUPPORTED)
+                and key == UNSUPPORTED.lower()[self.control.log_control.hidden_pos]
         ):
             self.control.log_control.hidden_input += key
             self.control.log_control.hidden_pos += 1
-            if self.control.log_control.hidden_input == _UNSUPPORTED.lower():
+            if self.control.log_control.hidden_input == UNSUPPORTED.lower():
                 self._open_log_viewer("syslog")
         else:
             self.control.log_control.hidden_input = ""
@@ -401,10 +377,10 @@ class Application(ApplicationHandler):
         elif key == "f5":
             self._open_keyboard_selection_menu()
         elif (
-            key in ["ctrl f1", "H", "h", "L", "l"]
-            and self.control.app_control.current_window != _LOG_VIEWER
-            and self.control.app_control.current_window != _UNSUPPORTED
-            and not self.control.log_control.log_finished
+                key in ["ctrl f1", "H", "h", "L", "l"]
+                and self.control.app_control.current_window != LOG_VIEWER
+                and self.control.app_control.current_window != UNSUPPORTED
+                and not self.control.log_control.log_finished
         ):
             self._open_log_viewer("gromox-http", self.control.log_control.log_line_count)
 
@@ -620,7 +596,7 @@ class Application(ApplicationHandler):
 
     def _return_to(self):
         """Return to mainframe or mainmenu depending on situation and state."""
-        if self.control.app_control.last_current_window in [_MAIN_MENU]:
+        if self.control.app_control.last_current_window in [MAIN_MENU]:
             self._open_main_menu()
         else:
             self._open_mainframe()
@@ -719,7 +695,7 @@ class Application(ApplicationHandler):
         msg += T_("After pressing OK, ")
         msg += T_("the system will reboot.")
         title = T_("Reboot")
-        self.control.app_control.current_window = _REBOOT
+        self.control.app_control.current_window = REBOOT
         self.message_box(
             parameter.MsgBoxParams(msg, title),
             size=parameter.Size(width=80, height=10),
@@ -732,7 +708,7 @@ class Application(ApplicationHandler):
         msg += T_("After pressing OK, ")
         msg += T_("the system will shut down and power off.")
         title = T_("Shutdown")
-        self.control.app_control.current_window = _SHUTDOWN
+        self.control.app_control.current_window = SHUTDOWN
         self.message_box(
             parameter.MsgBoxParams(msg, title),
             size=parameter.Size(width=80, height=10),
@@ -751,7 +727,7 @@ class Application(ApplicationHandler):
         """Open the change system password Dialog."""
         title = T_("System Password Change")
         msg = T_("Enter the new system password:")
-        self._create_password_dialog(msg, title, _PASSWORD)
+        self._create_password_dialog(msg, title, PASSWORD)
 
     def _create_password_dialog(self, msg, title, current_window):
         width = 60
@@ -915,10 +891,10 @@ class Application(ApplicationHandler):
         """
         Opens log file viewer.
         """
-        if self.control.app_control.current_window != _LOG_VIEWER:
+        if self.control.app_control.current_window != LOG_VIEWER:
             self.control.app_control.log_file_caller = self.control.app_control.current_window
             self.control.app_control.log_file_caller_body = self.control.app_control.body
-            self.control.app_control.current_window = _LOG_VIEWER
+            self.control.app_control.current_window = LOG_VIEWER
         self.print(T_("Log file viewer has to open file {%s} ...") % unit)
         self._prepare_log_viewer(unit, lines)
         self.control.app_control.body = self.control.log_control.log_viewer
@@ -954,13 +930,13 @@ class Application(ApplicationHandler):
         """Open reset admin-API password."""
         title = T_("admin-web Password Change")
         msg = T_("Enter the new admin-web password:")
-        self._create_password_dialog(msg, title, _ADMIN_WEB_PW)
+        self._create_password_dialog(msg, title, ADMIN_WEB_PW)
 
     def _open_timesyncd_conf(self):
         """Open timesyncd configuration form."""
         self._reset_layout()
         self.print(T_("Opening timesyncd configuration"))
-        self.control.app_control.current_window = _TIMESYNCD
+        self.control.app_control.current_window = TIMESYNCD
         header = urwid.AttrMap(GText(T_("Timesyncd Configuration"), urwid.CENTER), "header")
         self._prepare_timesyncd_config()
         self._open_conf_dialog(self.timesyncd_body, header, [self.view.button_store.ok_button, self.view.button_store.cancel_button])
@@ -1033,7 +1009,7 @@ class Application(ApplicationHandler):
         """Open repository configuration form."""
         self._reset_layout()
         self.print(T_("Opening repository selection"))
-        self.control.app_control.current_window = _REPO_SELECTION
+        self.control.app_control.current_window = REPO_SELECTION
         header = urwid.AttrMap(GText(T_("Software repository selection"), urwid.CENTER), "header")
         self._prepare_repo_config()
         self._open_conf_dialog(self.control.menu_control.repo_selection_body, header, [self.view.button_store.save_button, self.view.button_store.cancel_button])
@@ -1097,7 +1073,7 @@ class Application(ApplicationHandler):
         """
         self._reset_layout()
         self.print(T_("Login successful"))
-        self.control.app_control.current_window = _MAIN_MENU
+        self.control.app_control.current_window = MAIN_MENU
         self.view.header.set_authorized_options(T_(", <F4> for Main-Menu"))
         self.prepare_mainscreen()
         self.control.app_control.body = self.view.top_main_menu.main_menu
@@ -1109,7 +1085,7 @@ class Application(ApplicationHandler):
         """
         self._reset_layout()
         self.print(T_("Returning to main screen."))
-        self.control.app_control.current_window = _MAIN
+        self.control.app_control.current_window = MAIN
         self.prepare_mainscreen()
         self.control.app_control.loop.widget = self.control.app_control.body
 
@@ -1124,7 +1100,7 @@ class Application(ApplicationHandler):
             )
             return
         msg = T_("checking user %s with pass ") % self.view.button_store.user_edit.get_edit_text()
-        if self.control.app_control.current_window == _LOGIN:
+        if self.control.app_control.current_window == LOGIN:
             if util.authenticate_user(
                 self.view.button_store.user_edit.get_edit_text(), self.view.button_store.pass_edit.get_edit_text()
             ):
@@ -1149,7 +1125,7 @@ class Application(ApplicationHandler):
         if isinstance(button, (GButton, urwid.RadioButton, WidgetDrawer)):
             label = button.label
         self.control.app_control.last_pressed_button = label
-        if self.control.app_control.current_window not in [_MAIN]:
+        if self.control.app_control.current_window not in [MAIN]:
             self.print(
                 f"{self.__class__}.press_button(button={button}, "
                 f"*args={args}, kwargs={kwargs})"
@@ -1183,7 +1159,7 @@ class Application(ApplicationHandler):
         self._reset_layout()
         self.print(T_("Opening keyboard configuration"))
         self.control.app_control.last_current_window = self.control.app_control.current_window
-        self.control.app_control.current_window = _KEYBOARD_SWITCH
+        self.control.app_control.current_window = KEYBOARD_SWITCH
         header = None
         self._prepare_kbd_config()
         footer = None
@@ -1345,7 +1321,7 @@ class Application(ApplicationHandler):
         then you have to implement something like this in the event handler:
         (f.e. **self**.handle_event)
 
-            elif self.control.app_control.current_window == _MESSAGE_BOX:
+            elif self.control.app_control.current_window == MESSAGE_BOX:
                 if key.endswith('enter') or key == 'esc':
                     self.control.app_control.current_window = self.control.app_control.message_box_caller
                     self.control.app_control.body = self.control.app_control.message_box_caller_body
@@ -1357,10 +1333,10 @@ class Application(ApplicationHandler):
             @param size: The size in width and height.
             @param view_buttons: The viewed buttons ok or cancel.
         """
-        if self.control.app_control.current_window != _MESSAGE_BOX:
+        if self.control.app_control.current_window != MESSAGE_BOX:
             self.control.app_control.message_box_caller = self.control.app_control.current_window
             self.control.app_control.message_box_caller_body = self.control.app_control.loop.widget
-            self.control.app_control.current_window = _MESSAGE_BOX
+            self.control.app_control.current_window = MESSAGE_BOX
         body = urwid.LineBox(urwid.Padding(urwid.Filler(urwid.Pile([GText(mb_params.msg, urwid.CENTER)]), urwid.TOP)))
         footer = self._create_footer(view_buttons.view_ok, view_buttons.view_cancel)
 
@@ -1413,7 +1389,7 @@ class Application(ApplicationHandler):
         """
         self.control.app_control.input_box_caller = self.control.app_control.current_window
         self.control.app_control.input_box_caller_body = self.control.app_control.loop.widget
-        self.control.app_control.current_window = _INPUT_BOX
+        self.control.app_control.current_window = INPUT_BOX
         body = urwid.LineBox(
             urwid.Padding(
                 urwid.Filler(
