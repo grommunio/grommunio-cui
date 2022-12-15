@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # SPDX-FileCopyrightText: 2021 grommunio GmbH
-
+"""This module contains Scrollable widgets"""
 import urwid
 from urwid.widget import BOX, FIXED, FLOW
 
@@ -18,6 +18,7 @@ SCROLLBAR_RIGHT = "right"
 
 
 class Scrollable(urwid.WidgetDecoration):
+    """The Scrollable class to create a urwid scrollable widget base."""
     def sizing(self):
         return frozenset(
             [
@@ -39,39 +40,51 @@ class Scrollable(urwid.WidgetDecoration):
         rows in the original canvas.
         """
         if not any(s in widget.sizing() for s in (FIXED, FLOW)):
-            raise ValueError("Not a fixed or flow widget: %r" % widget)
+            raise ValueError(f"Not a fixed or flow widget: {widget}")
         self._trim_top = 0
         self._scroll_action = None
         self._forward_keypress = None
         self._old_cursor_coords = None
         self._rows_max_cached = 0
-        super(Scrollable, self).__init__(widget)
+        super().__init__(widget)
 
     def render(self, size, focus=False):
-        maxcol, maxrow = size
+        """
+        Render wrapped widget and apply attribute. Return canvas.
+        """
+        def canv_pad_trim(cur_val, max_val, func):
+            if cur_val <= max_val:
+                diff = max_val - cur_val
+                if diff > 0:
+                    # Canvas is narrower than available horizontal space
+                    func(0, diff)
+
+        var = {"maxcol": size[0], "maxrow": size[1]}
 
         # Render complete original widget
-        ow = self._original_widget
-        ow_size = self._get_original_widget_size(size)
-        canv_full = ow.render(ow_size, focus)
+        original_widget = self._original_widget
+        var["ow_size"] = self._get_original_widget_size(size)
+        var["canv_full"] = original_widget.render(var["ow_size"], focus)
 
         # Make full canvas editable
-        canv = urwid.CompositeCanvas(canv_full)
+        canv = urwid.CompositeCanvas(var["canv_full"])
         canv_cols, canv_rows = canv.cols(), canv.rows()
 
-        if canv_cols <= maxcol:
-            pad_width = maxcol - canv_cols
-            if pad_width > 0:
-                # Canvas is narrower than available horizontal space
-                canv.pad_trim_left_right(0, pad_width)
+        canv_pad_trim(canv_cols, var["maxcol"], canv.pad_trim_left_right)
+        # if canv_cols <= var["maxcol"]:
+        #     pad_width = var["maxcol"] - canv_cols
+        #     if pad_width > 0:
+        #         # Canvas is narrower than available horizontal space
+        #         canv.pad_trim_left_right(0, pad_width)
 
-        if canv_rows <= maxrow:
-            fill_height = maxrow - canv_rows
-            if fill_height > 0:
-                # Canvas is lower than available vertical space
-                canv.pad_trim_top_bottom(0, fill_height)
+        canv_pad_trim(canv_rows, var["maxrow"], canv.pad_trim_top_bottom)
+        # if canv_rows <= var["maxrow"]:
+        #     fill_height = var["maxrow"] - canv_rows
+        #     if fill_height > 0:
+        #         # Canvas is lower than available vertical space
+        #         canv.pad_trim_top_bottom(0, fill_height)
 
-        if canv_cols <= maxcol and canv_rows <= maxrow:
+        if canv_cols <= var["maxcol"] and canv_rows <= var["maxrow"]:
             # Canvas is small enough to fit without trimming
             return canv
 
@@ -79,8 +92,8 @@ class Scrollable(urwid.WidgetDecoration):
 
         # Trim canvas if necessary
         trim_top = self._trim_top
-        trim_end = canv_rows - maxrow - trim_top
-        trim_right = canv_cols - maxcol
+        trim_end = canv_rows - var["maxrow"] - trim_top
+        trim_right = canv_cols - var["maxcol"]
         if trim_top > 0:
             canv.trim(trim_top)
         if trim_end > 0:
@@ -90,48 +103,45 @@ class Scrollable(urwid.WidgetDecoration):
 
         # Disable cursor display if cursor is outside of visible canvas parts
         if canv.cursor is not None:
-            curscol, cursrow = canv.cursor
-            if cursrow >= maxrow or cursrow < 0:
+            _, cursrow = canv.cursor
+            if cursrow >= var["maxrow"] or cursrow < 0:
                 canv.cursor = None
 
         # Figure out whether we should forward keypresses to original widget
         if canv.cursor is not None:
             # Trimmed canvas contains the cursor, e.g. in an Edit widget
             self._forward_keypress = True
+        elif var["canv_full"].cursor is not None:
+            # Full canvas contains the cursor, but scrolled out of view
+            self._forward_keypress = False
         else:
-            if canv_full.cursor is not None:
-                # Full canvas contains the cursor, but scrolled out of view
-                self._forward_keypress = False
-            else:
-                # Original widget does not have a cursor, but may be selectable
-
-                # FIXME: Using ow.selectable() is bad because the original
-                # widget may be selectable because it's a container widget with
-                # a key-grabbing widget that is scrolled out of view.
-                # ow.selectable() returns True anyway because it doesn't know
-                # how we trimmed our canvas.
-                #
-                # To fix this, we need to resolve ow.focus and somehow
-                # ask canv whether it contains bits of the focused widget.  I
-                # can't see a way to do that.
-                if ow.selectable():
-                    self._forward_keypress = True
-                else:
-                    self._forward_keypress = False
-
+            # Original widget does not have a cursor, but may be selectable
+            # pylint: disable=fixme
+            # FIXME: Using original_widget.selectable() is bad because the original
+            # widget may be selectable because it's a container widget with
+            # a key-grabbing widget that is scrolled out of view.
+            # original_widget.selectable() returns True anyway because it doesn't know
+            # how we trimmed our canvas.
+            #
+            # To fix this, we need to resolve original_widget.focus and somehow
+            # ask canv whether it contains bits of the focused widget.  I
+            # can't see a way to do that.
+            self._forward_keypress = original_widget.selectable()
         return canv
 
     def keypress(self, size, key):
+        """Handle key event while event is NOT a mouse event in the
+        form size, event"""
         # Maybe offer key to original widget
         if self._forward_keypress:
-            ow = self._original_widget
+            original_widget = self._original_widget
             ow_size = self._get_original_widget_size(size)
 
             # Remember previous cursor position if possible
-            if hasattr(ow, "get_cursor_coords"):
-                self._old_cursor_coords = ow.get_cursor_coords(ow_size)
+            if hasattr(original_widget, "get_cursor_coords"):
+                self._old_cursor_coords = original_widget.get_cursor_coords(ow_size)
 
-            key = ow.keypress(ow_size, key)
+            key = original_widget.keypress(ow_size, key)
             if key is None:
                 return None
 
@@ -155,36 +165,39 @@ class Scrollable(urwid.WidgetDecoration):
         else:
             return key
 
-        self._invalidate()
+        return self._invalidate()
 
+    # pylint: disable=too-many-arguments
+    # because mouse_event method on urwid is the same
     def mouse_event(self, size, event, button, col, row, focus):
-        ow = self._original_widget
-        if hasattr(ow, "mouse_event"):
+        """Handle mouse event while event is a mouse event in the
+        form size, event, button, col, row, focus"""
+        original_widget = self._original_widget
+        if hasattr(original_widget, "mouse_event"):
             ow_size = self._get_original_widget_size(size)
             row += self._trim_top
-            return ow.mouse_event(ow_size, event, button, col, row, focus)
-        else:
-            return False
+            return original_widget.mouse_event(ow_size, event, button, col, row, focus)
+        return False
 
     def _adjust_trim_top(self, canv, size):
         """Adjust self._trim_top according to self._scroll_action"""
         action = self._scroll_action
         self._scroll_action = None
 
-        maxcol, maxrow = size
+        var = {"maxcol": size[0], "maxrow": size[1]}
         trim_top = self._trim_top
         canv_rows = canv.rows()
 
         if trim_top < 0:
             # Negative trim_top values use bottom of canvas as reference
-            trim_top = canv_rows - maxrow + trim_top + 1
+            trim_top = canv_rows - var["maxrow"] + trim_top + 1
 
-        if canv_rows <= maxrow:
+        if canv_rows <= var["maxrow"]:
             self._trim_top = 0  # Reset scroll position
             return
 
         def ensure_bounds(new_trim_top):
-            return max(0, min(canv_rows - maxrow, new_trim_top))
+            return max(0, min(canv_rows - var["maxrow"], new_trim_top))
 
         if action == SCROLL_LINE_UP:
             self._trim_top = ensure_bounds(trim_top - 1)
@@ -192,14 +205,14 @@ class Scrollable(urwid.WidgetDecoration):
             self._trim_top = ensure_bounds(trim_top + 1)
 
         elif action == SCROLL_PAGE_UP:
-            self._trim_top = ensure_bounds(trim_top - maxrow + 1)
+            self._trim_top = ensure_bounds(trim_top - var["maxrow"] + 1)
         elif action == SCROLL_PAGE_DOWN:
-            self._trim_top = ensure_bounds(trim_top + maxrow - 1)
+            self._trim_top = ensure_bounds(trim_top + var["maxrow"] - 1)
 
         elif action == SCROLL_TO_TOP:
             self._trim_top = 0
         elif action == SCROLL_TO_END:
-            self._trim_top = canv_rows - maxrow
+            self._trim_top = canv_rows - var["maxrow"]
 
         else:
             self._trim_top = ensure_bounds(trim_top)
@@ -213,19 +226,20 @@ class Scrollable(urwid.WidgetDecoration):
             and self._old_cursor_coords != canv.cursor
         ):
             self._old_cursor_coords = None
-            curscol, cursrow = canv.cursor
+            _, cursrow = canv.cursor
             if cursrow < self._trim_top:
                 self._trim_top = cursrow
-            elif cursrow >= self._trim_top + maxrow:
-                self._trim_top = max(0, cursrow - maxrow + 1)
+            elif cursrow >= self._trim_top + var["maxrow"]:
+                self._trim_top = max(0, cursrow - var["maxrow"] + 1)
 
     def _get_original_widget_size(self, size):
-        ow = self._original_widget
-        sizing = ow.sizing()
+        original_widget = self._original_widget
+        sizing = original_widget.sizing()
         if FIXED in sizing:
             return ()
-        elif FLOW in sizing:
+        if FLOW in sizing:
             return (size[0],)
+        return None
 
     def get_scrollpos(self, size=None, focus=False):
         """Current scrolling position
@@ -253,21 +267,20 @@ class Scrollable(urwid.WidgetDecoration):
         If `size` is not given, the currently rendered number of rows is returned.
         """
         if size is not None:
-            ow = self._original_widget
+            original_widget = self._original_widget
             ow_size = self._get_original_widget_size(size)
-            sizing = ow.sizing()
+            sizing = original_widget.sizing()
             if FIXED in sizing:
-                self._rows_max_cached = ow.pack(ow_size, focus)[1]
+                self._rows_max_cached = original_widget.pack(ow_size, focus)[1]
             elif FLOW in sizing:
-                self._rows_max_cached = ow.rows(ow_size, focus)
+                self._rows_max_cached = original_widget.rows(ow_size, focus)
             else:
-                raise RuntimeError(
-                    "Not a flow/box widget: %r" % self._original_widget
-                )
+                raise RuntimeError(f"Not a flow/box widget: {self._original_widget}")
         return self._rows_max_cached
 
 
 class ScrollBar(urwid.WidgetDecoration):
+    """The ScrollBar class to create a urwid scrollbar."""
     def sizing(self):
         return frozenset((BOX,))
 
@@ -277,10 +290,8 @@ class ScrollBar(urwid.WidgetDecoration):
     def __init__(
         self,
         widget,
-        thumb_char="\u2588",
-        trough_char=" ",
-        side=SCROLLBAR_RIGHT,
-        width=1,
+        *args,
+        **kwargs,
     ):
         """Box widget that adds a scrollbar to `widget`
         `widget` must be a box widget with the following methods:
@@ -295,9 +306,13 @@ class ScrollBar(urwid.WidgetDecoration):
         `side` must be 'left' or 'right'.
         `width` specifies the number of columns the scrollbar uses.
         """
+        thumb_char = kwargs.get("thumb_char", args[0] if len(args) > 0 else "\u2588")
+        trough_char = kwargs.get("trough_char", args[1] if len(args) > 1 else " ")
+        side = kwargs.get("side", args[2] if len(args) > 2 else SCROLLBAR_RIGHT)
+        width = kwargs.get("width", args[3] if len(args) > 3 else 1)
         if BOX not in widget.sizing():
-            raise ValueError("Not a box widget: %r" % widget)
-        super(ScrollBar, self).__init__(widget)
+            raise ValueError(f"Not a box widget: {widget}")
+        super().__init__(widget)
         self._thumb_char = thumb_char
         self._trough_char = trough_char
         self.scrollbar_side = side
@@ -305,64 +320,65 @@ class ScrollBar(urwid.WidgetDecoration):
         self._original_widget_size = (0, 0)
 
     def render(self, size, focus=False):
-        maxcol, maxrow = size
+        """
+        Render wrapped widget and apply attribute. Return canvas.
+        """
+        var = {"maxcol": size[0], "maxrow": size[1], "sb_width": self._scrollbar_width}
 
-        sb_width = self._scrollbar_width
-        ow_size = (max(0, maxcol - sb_width), maxrow)
-        sb_width = maxcol - ow_size[0]
+        var["ow_size"] = (max(0, var["maxcol"] - var["sb_width"]), var["maxrow"])
+        var["sb_width"] = var["maxcol"] - var["ow_size"][0]
 
-        ow = self._original_widget
-        ow_base = self.scrolling_base_widget
-        ow_rows_max = ow_base.rows_max(size, focus)
-        if ow_rows_max <= maxrow:
+        original_widget = self._original_widget
+        var["ow_base"] = self.scrolling_base_widget
+        var["ow_rows_max"] = var["ow_base"].rows_max(size, focus)
+        if var["ow_rows_max"] <= var["maxrow"]:
             # Canvas fits without scrolling - no scrollbar needed
             self._original_widget_size = size
-            return ow.render(size, focus)
-        ow_rows_max = ow_base.rows_max(ow_size, focus)
+            return original_widget.render(size, focus)
+        var["ow_rows_max"] = var["ow_base"].rows_max(var["ow_size"], focus)
 
-        ow_canv = ow.render(ow_size, focus)
-        self._original_widget_size = ow_size
+        var["ow_canv"] = original_widget.render(var["ow_size"], focus)
+        self._original_widget_size = var["ow_size"]
 
-        pos = ow_base.get_scrollpos(ow_size, focus)
-        posmax = ow_rows_max - maxrow
+        pos = var["ow_base"].get_scrollpos(var["ow_size"], focus)
+        posmax = var["ow_rows_max"] - var["maxrow"]
 
         # Thumb shrinks/grows according to the ratio of
         # <number of visible lines> / <number of total lines>
-        thumb_weight = min(1, maxrow / max(1, ow_rows_max))
-        thumb_height = max(1, round(thumb_weight * maxrow))
+        var["thumb_weight"] = min(1, var["maxrow"] / max(1, var["ow_rows_max"]))
+        var["thumb_height"] = max(1, round(var["thumb_weight"] * var["maxrow"]))
 
         # Thumb may only touch top/bottom if the first/last row is visible
-        top_weight = float(pos) / max(1, posmax)
-        top_height = int((maxrow - thumb_height) * top_weight)
-        if top_height == 0 and top_weight > 0:
-            top_height = 1
+        var["top_weight"] = float(pos) / max(1, posmax)
+        var["top_height"] = int((var["maxrow"] - var["thumb_height"]) * var["top_weight"])
+        if var["top_height"] == 0 and var["top_weight"] > 0:
+            var["top_height"] = 1
 
         # Bottom part is remaining space
-        bottom_height = maxrow - thumb_height - top_height
-        assert thumb_height + top_height + bottom_height == maxrow
+        bottom_height = var["maxrow"] - var["thumb_height"] - var["top_height"]
+        assert var["thumb_height"] + var["top_height"] + bottom_height == var["maxrow"]
 
         # Create scrollbar canvas
         # Creating SolidCanvases of correct height may result in "cviews do not
         # fill gaps in shard_tail!" or "cviews overflow gaps in shard_tail!"
         # exceptions. Stacking the same SolidCanvas is a workaround.
         # https://github.com/urwid/urwid/issues/226#issuecomment-437176837
-        top = urwid.SolidCanvas(self._trough_char, sb_width, 1)
-        thumb = urwid.SolidCanvas(self._thumb_char, sb_width, 1)
-        bottom = urwid.SolidCanvas(self._trough_char, sb_width, 1)
-        sb_canv = urwid.CanvasCombine(
-            [(top, None, False)] * top_height
-            + [(thumb, None, False)] * thumb_height
+        top = urwid.SolidCanvas(self._trough_char, var["sb_width"], 1)
+        thumb = urwid.SolidCanvas(self._thumb_char, var["sb_width"], 1)
+        bottom = urwid.SolidCanvas(self._trough_char, var["sb_width"], 1)
+        var["sb_canv"] = urwid.CanvasCombine(
+            [(top, None, False)] * var["top_height"]
+            + [(thumb, None, False)] * var["thumb_height"]
             + [(bottom, None, False)] * bottom_height,
         )
 
         combinelist = [
-            (ow_canv, None, True, ow_size[0]),
-            (sb_canv, None, False, sb_width),
+            (var["ow_canv"], None, True, var["ow_size"][0]),
+            (var["sb_canv"], None, False, var["sb_width"]),
         ]
         if self._scrollbar_side != SCROLLBAR_LEFT:
             return urwid.CanvasJoin(combinelist)
-        else:
-            return urwid.CanvasJoin(reversed(combinelist))
+        return urwid.CanvasJoin(reversed(combinelist))
 
     @property
     def scrollbar_width(self):
@@ -382,9 +398,7 @@ class ScrollBar(urwid.WidgetDecoration):
     @scrollbar_side.setter
     def scrollbar_side(self, side):
         if side not in (SCROLLBAR_LEFT, SCROLLBAR_RIGHT):
-            raise ValueError(
-                'scrollbar_side must be "left" or "right", not %r' % side
-            )
+            raise ValueError(f'scrollbar_side must be "left" or "right", not {side}')
         self._scrollbar_side = side
         self._invalidate()
 
@@ -392,41 +406,45 @@ class ScrollBar(urwid.WidgetDecoration):
     def scrolling_base_widget(self):
         """Nearest `original_widget` that is compatible with the scrolling API"""
 
-        def orig_iter(w):
-            while hasattr(w, "original_widget"):
-                w = w.original_widget
-                yield w
-            yield w
+        def orig_iter(widget):
+            while hasattr(widget, "original_widget"):
+                widget = widget.original_widget
+                yield widget
+            yield widget
 
-        def is_scrolling_widget(w):
-            return hasattr(w, "get_scrollpos") and hasattr(w, "rows_max")
+        def is_scrolling_widget(widget):
+            return hasattr(widget, "get_scrollpos") and hasattr(widget, "rows_max")
 
         widget = None
         for widget in orig_iter(self):
             if is_scrolling_widget(widget):
                 return widget
-        raise ValueError(
-            "Not compatible to be wrapped by ScrollBar: %r" % widget
-        )
+        raise ValueError(f"Not compatible to be wrapped by ScrollBar: {widget}")
 
     def keypress(self, _, key):
+        """Handle key event while event is NOT a mouse event in the
+        form size, event"""
         return self._original_widget.keypress(self._original_widget_size, key)
 
+    # pylint: disable=too-many-arguments
+    # because mouse_event method on urwid is the same
     def mouse_event(self, _, event, button, col, row, focus):
-        ow = self._original_widget
+        """Handle mouse event while event is a mouse event in the
+        form size, event, button, col, row, focus"""
+        original_widget = self._original_widget
         ow_size = self._original_widget_size
         handled = False
-        if hasattr(ow, "mouse_event"):
-            handled = ow.mouse_event(ow_size, event, button, col, row, focus)
+        if hasattr(original_widget, "mouse_event"):
+            handled = original_widget.mouse_event(ow_size, event, button, col, row, focus)
 
-        if not handled and hasattr(ow, "set_scrollpos"):
+        if not handled and hasattr(original_widget, "set_scrollpos"):
             if button == 4:  # scroll wheel up
-                pos = ow.get_scrollpos(ow_size)
-                ow.set_scrollpos(pos - (1 if pos > 0 else 0))
+                pos = original_widget.get_scrollpos(ow_size)
+                original_widget.set_scrollpos(pos - (1 if pos > 0 else 0))
                 return True
-            elif button == 5:  # scroll wheel down
-                pos = ow.get_scrollpos(ow_size)
-                ow.set_scrollpos(pos + 1)
+            if button == 5:  # scroll wheel down
+                pos = original_widget.get_scrollpos(ow_size)
+                original_widget.set_scrollpos(pos + 1)
                 return True
 
         return False

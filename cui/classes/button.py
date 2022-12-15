@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # SPDX-FileCopyrightText: 2021 grommunio GmbH
-
+"""This module contains the button classes"""
 from typing import Any
 import urwid
 from cui.classes.interface import BaseApplication, WidgetDrawer
@@ -19,19 +19,20 @@ class GButton(urwid.Button):
         label: Any,
         on_press: Any = None,
         user_data: Any = None,
-        left_end: str = "<",
-        right_end: str = ">",
+        margin_chars: (str, str) = ("<", ">"),
     ):
-        self.button_left = urwid.Text(left_end)
-        self.button_right = urwid.Text(right_end)
-        super(GButton, self).__init__(label, on_press, user_data)
+        self.button_left = urwid.Text(margin_chars[0])
+        self.button_right = urwid.Text(margin_chars[1])
+        super().__init__(label, on_press, user_data)
 
     def wrap(self, left_pad: int = 4, right_pad: int = 4) -> urwid.Padding:
+        """Sets the application"""
         button = urwid.AttrMap(self, "buttn", "buttnf")
         button = urwid.Padding(button, left=left_pad, right=right_pad)
         return button
 
     def set_application(self, app: BaseApplication):
+        """Sets the application"""
         self.application = app
 
 
@@ -70,38 +71,37 @@ class GBoxButton(WidgetDrawer):
         self._label = label
         self.label = label
         self.widget = urwid.AttrMap(self.widget, "buttn", "buttnf")
-        self._hidden_button: GButton = GButton(
-            "hidden %s" % label, on_press, user_data
-        )
-        super(GBoxButton, self).__init__(self.widget)
+        self._hidden_button: GButton = GButton(f"hidden {label}", on_press, user_data)
+        super().__init__(self.widget)
         urwid.register_signal(self.__class__, ["click"])
         urwid.connect_signal(self, "click", on_press)
 
     def selectable(self):
+        """Return if selectable or not"""
         return True
 
     def keypress(self, *args, **kw):
+        """Handle key event while event is NOT a mouse event in the
+        form size, event"""
         return self._hidden_button.keypress(*args, **kw)
 
-    def mouse_event(self, size, event, button, x, y, focus):
+    # pylint: disable=too-many-arguments  ,
+    # because mouse_event method on urwid is the same
+    def mouse_event(self, size, event, button, col, row, focus):
+        """Handle mouse event while event is a mouse event in the
+        form size, event, button, col, row, focus"""
         if self._hidden_button.application is not None:
             self._hidden_button.application.print(
                 f"GBoxButton({self._label}).mouse_event(size={size}, event={event}, "
-                f"button={button}, x={x}, y={y}, focus={focus})"
+                f"button={button}, col={col}, row={row}, focus={focus})"
             )
             if event == "mouse press":
                 self._hidden_button.application.handle_event(
                     f"button <{self._label}> enter"
                 )
-        rv = True
-        # rv = self._hidden_button.mouse_event(size, event, button, x, y, focus)
-        return rv
+        # rv = self._hidden_button.mouse_event(size, event, button, col, row, focus)
+        return True
 
     def set_application(self, app: BaseApplication):
+        """Set the application to app property."""
         self._hidden_button.set_application(app)
-
-    def refresh_content(self, event: Any = None):
-        pass
-
-    def mark_as_dirty(self):
-        pass
