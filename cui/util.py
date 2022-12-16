@@ -240,7 +240,7 @@ def init_localization(language: Union[str, str, Iterable[Union[str, str]], None]
         T_ = locale.gettext
         reset_states()
         return T_
-    except OSError as e:
+    except OSError as _:
         def T_(msg):
             """
             Function for tagging text for translations.
@@ -438,13 +438,13 @@ _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
 
 def extract_bits(binary):
     """Return extracted bits"""
-    c = ""
+    char = ""
     i = 0
     ret_val = []
-    while c != "b":
-        s = str(bin(binary))[::-1]
-        c = s[i]
-        if c == "1":
+    while char != "b":
+        string = str(bin(binary))[::-1]
+        char = string[i]
+        if char == "1":
             ret_val.append(2**i)
         i += 1
     return ret_val
@@ -468,16 +468,15 @@ def tlen(tuple_list, idx=0):
     [(1, a), ..., (23, b)] will return the same as [[[(1, a), ...]], (23, b)]
     """
     ret_val = 0
-    tl = tuple_list
-    if not tl:
+    if not tuple_list:
         return 0
-    if isinstance(tl, list):
-        for elem in tl:
+    if isinstance(tuple_list, list):
+        for elem in tuple_list:
             ret_val += tlen(elem, idx)
-    elif isinstance(tl, tuple):
-        ret_val += len(tl[idx])
-    elif isinstance(tl, str):
-        ret_val += len(tl)
+    elif isinstance(tuple_list, tuple):
+        ret_val += len(tuple_list[idx])
+    elif isinstance(tuple_list, str):
+        ret_val += len(tuple_list)
     else:
         ret_val += 0
     return ret_val
@@ -486,12 +485,11 @@ def tlen(tuple_list, idx=0):
 def rebase_list(deep_list):
     """Extract all list components recursively"""
     ret_val = []
-    dl = deep_list
-    if isinstance(dl, list):
-        for elem in dl:
+    if isinstance(deep_list, list):
+        for elem in deep_list:
             ret_val += rebase_list(elem)
     else:
-        ret_val += [dl]
+        ret_val += [deep_list]
     return ret_val
 
 
@@ -596,17 +594,17 @@ def get_os_release() -> Tuple[str, str]:
     with osr.open("r", encoding="utf-8") as file_handle:
         for line in file_handle:
             if line.startswith("NAME"):
-                k, name = line.strip().split("=")
+                _, name = line.strip().split("=")
             elif line.startswith("VERSION"):
-                k, version = line.strip().split("=")
+                _, version = line.strip().split("=")
     return name.strip('"'), version.strip('"')
 
 
 def get_first_ip_not_localhost() -> str:
     """Return first IP that is not localhost"""
-    for ip in get_ip_list():
-        if not ip.strip().startswith("127."):
-            return ip.strip()
+    for ip_addr in get_ip_list():
+        if not ip_addr.strip().startswith("127."):
+            return ip_addr.strip()
     return ""
 
 
@@ -614,7 +612,7 @@ def get_ip_list() -> List[str]:
     """Return list of IPs on this computer"""
     ret_val: List[str] = []
     addrs = psutil.net_if_addrs()
-    for dev, addrlist in addrs.items():
+    for _, addrlist in addrs.items():
         for addr in addrlist:
             if addr.family == socket.AF_INET:
                 ret_val.append(addr.address)
@@ -623,14 +621,14 @@ def get_ip_list() -> List[str]:
 
 def get_last_login_time():
     """Return last login time as string"""
-    p = subprocess.Popen(
+    with subprocess.Popen(
         ["last", "-1", "root"],
         stderr=subprocess.DEVNULL,
         stdout=subprocess.PIPE,
-    )
-    res, _ = p.communicate()
-    out = bytes(res).decode()
-    lines = out.splitlines()
+    ) as proc:
+        res, _ = proc.communicate()
+        out = bytes(res).decode()
+        lines = out.splitlines()
     last_login = ""
     if len(lines) > 0:
         parts = out.splitlines()[0].split("              ")
@@ -717,7 +715,7 @@ def get_system_info_bottom():
     uname = platform.uname()
     if_addrs = psutil.net_if_addrs()
     boot_time_timestamp = psutil.boot_time()
-    bt = datetime.fromtimestamp(boot_time_timestamp)
+    boot_time = datetime.fromtimestamp(boot_time_timestamp)
     proto = "http"
     if check_setup_state() == 0:
         ret_val += [
@@ -766,7 +764,7 @@ def get_system_info_bottom():
         ret_val.append("\n")
     ret_val.append("\n")
     ret_val.append(T_("Boot Time: "))
-    ret_val.append(("reverse", f"{bt.isoformat()}"))
+    ret_val.append(("reverse", f"{boot_time.isoformat()}"))
     ret_val.append("\n")
     last_login = get_last_login_time()
     if last_login != "":
