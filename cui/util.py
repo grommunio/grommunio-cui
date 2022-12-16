@@ -5,23 +5,23 @@ import subprocess
 import sys
 import time
 from pathlib import Path
-
-import requests
-from getpass import getuser
-from pamela import authenticate, PAMError
-from typing import Any, Dict, List, Tuple, Union, Iterable
-from datetime import datetime
 import ipaddress
 import locale
 import platform
-import psutil
 import socket
 import shlex
+from getpass import getuser
+from typing import Any, Dict, List, Tuple, Union, Iterable
+from datetime import datetime
+
+import psutil
+import requests
+from pamela import authenticate, PAMError
 
 from requests import Response
 
-import cui
 import urwid
+import cui
 
 
 def T_(msg):
@@ -87,6 +87,38 @@ def restart_gui():
 
 
 def create_application_buttons(app):
+    """Create all application buttons"""
+
+    def create_button(label, event, button_func, handle_event_func):
+        res = cui.classes.button.GBoxButton(label, button_func)
+        urwid.connect_signal(
+            res,
+            "click",
+            lambda button: handle_event_func(event),
+        )
+        res = (len(res.label) + 6, res)
+        return res
+
+    def create_button_footer(button_ref: Any, which: str = "attrmap"):
+        if not isinstance(button_ref, Tuple):
+            button_ref = (len(button_ref.label) + 6, button_ref)
+        res = urwid.AttrMap(urwid.Columns([
+            ("weight", 1, cui.classes.gwidgets.GText("")),
+            ("weight", 1, urwid.Columns([
+                ("weight", 1, cui.classes.gwidgets.GText("")),
+                button_ref,
+                ("weight", 1, cui.classes.gwidgets.GText("")),
+            ]),),
+            ("weight", 1, cui.classes.gwidgets.GText("")),
+        ]), "buttonbar", )
+        if which.startswith("grid"):
+            res = urwid.GridFlow([button_ref[1]], 10, 1, 1, "center")
+        return res
+
+    def create_both(label, event, which: str = "attr"):
+        but = create_button(label, event, app._press_button, app.handle_event)
+        return but, create_button_footer(but, which)
+
     # Login Dialog
     app.view.login_window.login_header = urwid.AttrMap(
         cui.classes.gwidgets.GText(("header", T_("Login")), align="center"), "header"
@@ -113,137 +145,45 @@ def create_application_buttons(app):
         urwid.Columns([cui.classes.gwidgets.GText(""), login_button, cui.classes.gwidgets.GText("")]), "buttonbar"
     )
     # Common OK Button
-    app.view.button_store.ok_button = cui.classes.button.GBoxButton(T_("OK"), app._press_button)
-    urwid.connect_signal(
-        app.view.button_store.ok_button,
-        "click",
-        lambda button: app.handle_event("ok enter"),
-    )
-    app.view.button_store.ok_button = (len(app.view.button_store.ok_button.label) + 6, app.view.button_store.ok_button)
-    app.view.button_store.ok_button_footer = urwid.AttrMap(
-        urwid.Columns(
-            [
-                ("weight", 1, cui.classes.gwidgets.GText("")),
-                (
-                    "weight",
-                    1,
-                    urwid.Columns(
-                        [
-                            ("weight", 1, cui.classes.gwidgets.GText("")),
-                            app.view.button_store.ok_button,
-                            ("weight", 1, cui.classes.gwidgets.GText("")),
-                        ]
-                    ),
-                ),
-                ("weight", 1, cui.classes.gwidgets.GText("")),
-            ]
-        ),
-        "buttonbar",
+    app.view.button_store.ok_button, app.view.button_store.ok_button_footer = create_both(
+        T_("OK"), "ok enter", "attr"
     )
     # Common Cancel Button
-    app.view.button_store.cancel_button = cui.classes.button.GBoxButton(T_("Cancel"), app._press_button)
-    urwid.connect_signal(
-        app.view.button_store.cancel_button,
-        "click",
-        lambda button: app.handle_event("cancel enter"),
+    app.view.button_store.cancel_button, app.view.button_store.cancel_button_footer = create_both(
+        T_("Cancel"), "cancel enter", "grid"
     )
-    app.view.button_store.cancel_button = (len(app.view.button_store.cancel_button.label) + 6, app.view.button_store.cancel_button)
-    app.view.button_store.cancel_button_footer = urwid.GridFlow(
-        [app.view.button_store.cancel_button[1]], 10, 1, 1, "center"
-    )
-    # Common Close Button
-    app.view.button_store.close_button = cui.classes.button.GBoxButton(T_("Close"), app._press_button)
-    urwid.connect_signal(
-        app.view.button_store.close_button,
-        "click",
-        lambda button: app.handle_event("close enter"),
-    )
-    app.view.button_store.close_button = (len(app.view.button_store.close_button.label) + 6, app.view.button_store.close_button)
-    app.view.button_store.close_button_footer = urwid.AttrMap(
-        urwid.Columns(
-            [
-                ("weight", 1, cui.classes.gwidgets.GText("")),
-                (
-                    "weight",
-                    1,
-                    urwid.Columns(
-                        [
-                            ("weight", 1, cui.classes.gwidgets.GText("")),
-                            app.view.button_store.close_button,
-                            ("weight", 1, cui.classes.gwidgets.GText("")),
-                        ]
-                    ),
-                ),
-                ("weight", 1, cui.classes.gwidgets.GText("")),
-            ]
-        ),
-        "buttonbar",
+    # Common close Button
+    app.view.button_store.close_button, app.view.button_store.close_button_footer = create_both(
+        T_("Close"), "close enter", "attr"
     )
     # Common Add Button
-    app.view.button_store.add_button = cui.classes.button.GBoxButton(T_("Add"), app._press_button)
-    urwid.connect_signal(
-        app.view.button_store.add_button,
-        "click",
-        lambda button: app.handle_event("add enter"),
-    )
-    app.view.button_store.add_button = (len(app.view.button_store.add_button.label) + 6, app.view.button_store.add_button)
-    app.view.button_store.add_button_footer = urwid.GridFlow(
-        [app.view.button_store.add_button[1]], 10, 1, 1, "center"
+    app.view.button_store.add_button, app.view.button_store.add_button_footer = create_both(
+        T_("Add"), "add enter", "grid"
     )
     # Common Edit Button
-    app.view.button_store.edit_button = cui.classes.button.GBoxButton(T_("Edit"), app._press_button)
-    urwid.connect_signal(
-        app.view.button_store.edit_button,
-        "click",
-        lambda button: app.handle_event("edit enter"),
-    )
-    app.view.button_store.edit_button = (len(app.view.button_store.edit_button.label) + 6, app.view.button_store.edit_button)
-    app.view.button_store.edit_button_footer = urwid.GridFlow(
-        [app.view.button_store.edit_button[1]], 10, 1, 1, "center"
-    )
-    # Common Details Button
-    app.view.button_store.details_button = cui.classes.button.GBoxButton(T_("Details"), app._press_button)
-    urwid.connect_signal(
-        app.view.button_store.details_button,
-        "click",
-        lambda button: app.handle_event("details enter"),
-    )
-    app.view.button_store.details_button = (len(app.view.button_store.details_button.label) + 6, app.view.button_store.details_button)
-    app.view.button_store.details_button_footer = urwid.GridFlow(
-        [app.view.button_store.details_button[1]], 10, 1, 1, "center"
-    )
-    # Common Toggle Button
-    app.view.button_store.toggle_button = cui.classes.button.GBoxButton(T_("Space to toggle"), app._press_button)
-    app.view.button_store.toggle_button._selectable = False
-    app.view.button_store.toggle_button = (len(app.view.button_store.toggle_button.label) + 6, app.view.button_store.toggle_button)
-    app.view.button_store.toggle_button_footer = urwid.GridFlow(
-        [app.view.button_store.toggle_button[1]], 10, 1, 1, "center"
-    )
-    # Common Apply Button
-    app.view.button_store.apply_button = cui.classes.button.GBoxButton(T_("Apply"), app._press_button)
-    urwid.connect_signal(
-        app.view.button_store.apply_button,
-        "click",
-        lambda button: app.handle_event("apply enter"),
-    )
-    app.view.button_store.apply_button = (len(app.view.button_store.apply_button.label) + 6, app.view.button_store.apply_button)
-    app.view.button_store.apply_button_footer = urwid.GridFlow(
-        [app.view.button_store.apply_button[1]], 10, 1, 1, "center"
+    app.view.button_store.edit_button, app.view.button_store.edit_button_footer = create_both(
+        T_("Edit"), "edit enter", "attr"
     )
     # Common Save Button
-    app.view.button_store.save_button = cui.classes.button.GBoxButton(T_("Save"), app._press_button)
-    urwid.connect_signal(
-        app.view.button_store.save_button,
-        "click",
-        lambda button: app.handle_event("save enter"),
+    app.view.button_store.save_button, app.view.button_store.save_button_footer = create_both(
+        T_("Save"), "save enter", "grid"
     )
-    app.view.button_store.save_button = (len(app.view.button_store.save_button.label) + 6, app.view.button_store.save_button)
-    app.view.button_store.save_button_footer = urwid.GridFlow(
-        [app.view.button_store.save_button[1]], 10, 1, 1, "center"
+    # Common Details Button
+    app.view.button_store.details_button, app.view.button_store.details_button_footer = create_both(
+        T_("Details"), "details enter", "grid"
+    )
+    # Common Toggle Button
+    app.view.button_store.toggle_button, app.view.button_store.toggle_button_footer = create_both(
+        T_("Toggle"), "toggle enter", "grid"
+    )
+    # Common Apply Button
+    app.view.button_store.apply_button, app.view.button_store.apply_button_footer = create_both(
+        T_("Apply"), "apply enter", "grid"
     )
 
 
 def create_main_loop(app):
+    """Create urwid main loop"""
     urwid.set_encoding("utf-8")
     app.view.gscreen = cui.classes.application.GScreen()
     app.view.gscreen.screen = urwid.raw_display.Screen()
@@ -262,6 +202,7 @@ def create_main_loop(app):
 
 
 def check_repo_dialog(app, height):
+    """Check the repository selection dialog"""
     updateable = False
     url = 'download.grommunio.com/community/openSUSE_Leap_15.3/' \
           '?ssl_verify=no'
@@ -291,6 +232,7 @@ def check_repo_dialog(app, height):
 
 
 def init_localization(language: Union[str, str, Iterable[Union[str, str]], None] = ''):
+    """Initialize localisation"""
     locale.setlocale(locale.LC_ALL, language)
     try:
         locale.bindtextdomain('cui', 'locale' if os.path.exists("locale/de/LC_MESSAGES/cui.mo") else None)
@@ -495,19 +437,21 @@ _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
 
 
 def extract_bits(binary):
+    """Return extracted bits"""
     c = ""
     i = 0
-    rv = []
+    ret_val = []
     while c != "b":
         s = str(bin(binary))[::-1]
         c = s[i]
         if c == "1":
-            rv.append(2**i)
+            ret_val.append(2**i)
         i += 1
-    return rv
+    return ret_val
 
 
 def check_socket(host="127.0.0.1", port=22):
+    """Check if socket is open"""
     try:
         socket.setdefaulttimeout(3)
         socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
@@ -523,42 +467,44 @@ def tlen(tuple_list, idx=0):
     will return 8. It doesn't matter how many nested Lists there are.
     [(1, a), ..., (23, b)] will return the same as [[[(1, a), ...]], (23, b)]
     """
-    rv = 0
+    ret_val = 0
     tl = tuple_list
     if not tl:
         return 0
     if isinstance(tl, list):
         for elem in tl:
-            rv += tlen(elem, idx)
+            ret_val += tlen(elem, idx)
     elif isinstance(tl, tuple):
-        rv += len(tl[idx])
+        ret_val += len(tl[idx])
     elif isinstance(tl, str):
-        rv += len(tl)
+        ret_val += len(tl)
     else:
-        rv += 0
-    return rv
+        ret_val += 0
+    return ret_val
 
 
 def rebase_list(deep_list):
-    rv = []
+    """Extract all list components recursively"""
+    ret_val = []
     dl = deep_list
     if isinstance(dl, list):
         for elem in dl:
-            rv += rebase_list(elem)
+            ret_val += rebase_list(elem)
     else:
-        rv += [dl]
-    return rv
+        ret_val += [dl]
+    return ret_val
 
 
 def make_list_gtext(list_wowo_gtext):
+    """Convert all list components to GText if not already done"""
     wowolist = list_wowo_gtext
-    rv = []
+    ret_val = []
     for wowo in wowolist:
         if not isinstance(wowo, cui.classes.gwidgets.GText):
-            rv += [cui.classes.gwidgets.GText(wowo)]
+            ret_val += [cui.classes.gwidgets.GText(wowo)]
         else:
-            rv += [wowo]
-    return rv
+            ret_val += [wowo]
+    return ret_val
 
 
 def check_if_password_is_set(user):
@@ -566,8 +512,8 @@ def check_if_password_is_set(user):
     file = "/etc/shadow"
     items = {}
     if os.access(file, os.R_OK):
-        with open(file) as fh:
-            for line in fh:
+        with open(file, encoding="utf-8") as file_handle:
+            for line in file_handle:
                 parts = line.split(":")
                 username = parts[0]
                 password = parts[1]
@@ -605,30 +551,28 @@ def check_setup_state():
     def check_nginx_config():
         return check_socket("127.0.0.1", 8080)
 
-    rv = 0
+    ret_val = 0
     # check if pw is set
     if not check_if_password_is_set("root"):
-        rv += 1
+        ret_val += 1
     # check network config (2)
     if not check_network_config():
-        rv += 2
+        ret_val += 2
     # check grommunio-setup config (4)
     if not check_grommunio_setup():
-        rv += 4
+        ret_val += 4
     # check timesyncd config (8)
     if not check_timesyncd_config():
         # give 0 error points cause timesyncd configuration is not necessarily
         # needed.
-        rv += 0
+        ret_val += 0
     # check nginx config (16)
     if not check_nginx_config():
-        rv += 16
-    return rv
+        ret_val += 16
+    return ret_val
 
 
-def authenticate_user(
-    username: str, password: str, service: str = "login"
-) -> bool:
+def authenticate_user(username: str, password: str, service: str = "login") -> bool:
     """
     Authenticates username against password on service.
 
@@ -645,11 +589,12 @@ def authenticate_user(
 
 
 def get_os_release() -> Tuple[str, str]:
+    """Return os release"""
     osr: Path = Path("/etc/os-release")
     name: str = T_("No name found")
     version: str = T_("No version detectable")
-    with osr.open("r") as f:
-        for line in f:
+    with osr.open("r", encoding="utf-8") as file_handle:
+        for line in file_handle:
             if line.startswith("NAME"):
                 k, name = line.strip().split("=")
             elif line.startswith("VERSION"):
@@ -658,6 +603,7 @@ def get_os_release() -> Tuple[str, str]:
 
 
 def get_first_ip_not_localhost() -> str:
+    """Return first IP that is not localhost"""
     for ip in get_ip_list():
         if not ip.strip().startswith("127."):
             return ip.strip()
@@ -665,16 +611,18 @@ def get_first_ip_not_localhost() -> str:
 
 
 def get_ip_list() -> List[str]:
-    rv: List[str] = []
+    """Return list of IPs on this computer"""
+    ret_val: List[str] = []
     addrs = psutil.net_if_addrs()
     for dev, addrlist in addrs.items():
         for addr in addrlist:
             if addr.family == socket.AF_INET:
-                rv.append(addr.address)
-    return rv
+                ret_val.append(addr.address)
+    return ret_val
 
 
 def get_last_login_time():
+    """Return last login time as string"""
     p = subprocess.Popen(
         ["last", "-1", "root"],
         stderr=subprocess.DEVNULL,
@@ -692,8 +640,9 @@ def get_last_login_time():
 
 
 def get_load():
-    with open("/proc/loadavg", "r") as f:
-        out = f.read()
+    """Return current average load"""
+    with open("/proc/loadavg", "r", encoding="utf-8") as file_handle:
+        out = file_handle.read()
     lines = out.splitlines()
     load_1min = 0
     load_5min = 0
@@ -708,6 +657,7 @@ def get_load():
 
 
 def get_load_avg_format_list():
+    """Return list of average load"""
     load_avg = get_load()
     load_format = [("footer", T_(" Average load: "))]
     _ = [
@@ -719,117 +669,131 @@ def get_load_avg_format_list():
     return load_format[:-1]
 
 
+def get_system_info_top():
+    """Return top sysinfo"""
+    ret_val: List[Union[str, Tuple[str, str]]] = []
+    uname = platform.uname()
+    cpufreq = psutil.cpu_freq()
+    svmem = psutil.virtual_memory()
+    distro, version = get_os_release()
+    ret_val += [
+        "Console User Interface",
+        "\n",
+        "© 2022 ",
+        "grommunio GmbH",
+        "\n",
+    ]
+    if distro.lower().startswith("grammm") or distro.lower().startswith(
+            "grommunio"
+    ):
+        ret_val.append(f"Distribution: {distro} Version: {version}")
+        ret_val.append("\n")
+    ret_val.append("\n")
+    if cpufreq:
+        ret_val.append(
+            f"{psutil.cpu_count()} x {uname.processor} CPUs"
+            f" @ {get_hr(cpufreq.current * 1000 * 1000, 'Hz', 1000)}"
+        )
+    else:
+        ret_val.append(
+            f"{psutil.cpu_count(logical=False)} x {uname.processor} CPUs"
+        )
+    ret_val.append("\n")
+    ret_val.append(
+        T_("Memory {used} used of {total} ({available} free)").format(
+            used=get_hr(svmem.used),
+            total=get_hr(svmem.total),
+            available=get_hr(svmem.available)
+        )
+    )
+    ret_val.append("\n")
+    ret_val.append("\n")
+    return ret_val
+
+
+def get_system_info_bottom():
+    """Return bottom sysinfo"""
+    ret_val: List[Union[str, Tuple[str, str]]] = []
+    uname = platform.uname()
+    if_addrs = psutil.net_if_addrs()
+    boot_time_timestamp = psutil.boot_time()
+    bt = datetime.fromtimestamp(boot_time_timestamp)
+    proto = "http"
+    if check_setup_state() == 0:
+        ret_val += [
+            "\n",
+            T_("For further configuration, these URLs can be used:"),
+            "\n",
+        ]
+        ret_val.append("\n")
+        if uname.node.lower().startswith("localhost."):
+            ret_val.append(
+                (
+                    "important",
+                    T_("It is generally NOT recommended to use localhost as hostname."),
+                )
+            )
+            ret_val.append("\n")
+        ret_val.append(f"{proto}://{uname.node}:8080/\n")
+        for interface_name, interface_addresses in if_addrs.items():
+            if interface_name in ["lo"]:
+                continue
+            for address in interface_addresses:
+                if address.family != socket.AF_INET6:
+                    continue
+                adr = ipaddress.IPv6Address(address.address.split("%")[0])
+                if adr.is_link_local is True:
+                    continue
+                ret_val.append(
+                    f"{proto}://[{address.address}]:8080/ (interface {interface_name})\n"
+                )
+            for address in interface_addresses:
+                if address.family != socket.AF_INET:
+                    continue
+                ret_val.append(
+                    f"{proto}://{address.address}:8080/ (interface {interface_name})\n"
+                )
+    else:
+        ret_val.append("\n")
+        ret_val.append(
+            T_("There are still some tasks missing to run/use grommunio.")
+        )
+        ret_val.append("\n")
+        statelist = extract_bits(check_setup_state())
+        for state in statelist:
+            ret_val.append("\n")
+            ret_val.append(("important", STATES.get(state)))
+        ret_val.append("\n")
+    ret_val.append("\n")
+    ret_val.append(T_("Boot Time: "))
+    ret_val.append(("reverse", f"{bt.isoformat()}"))
+    ret_val.append("\n")
+    last_login = get_last_login_time()
+    if last_login != "":
+        ret_val.append(T_("Last login time: {%s}") % last_login)
+    ret_val.append("\n")
+    ret_val.append("\n")
+    ret_val.append(T_(f"Current language / PPID: {locale.getlocale()[0]} / {os.getppid()}"))
+    ret_val.append("\n")
+    return ret_val
+
+
 def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
     """
-    Creates list of information formatted in urwid stye.
+    Creates list of information formatted in urwid style.
 
     :param which: Kind of information to return. (top or bottom)
     :return: List of tuples or strings describing urwid attributes and content.
     """
-    rv: List[Union[str, Tuple[str, str]]] = []
+    ret_val: List[Union[str, Tuple[str, str]]] = []
     if which == "top":
-        uname = platform.uname()
-        cpufreq = psutil.cpu_freq()
-        svmem = psutil.virtual_memory()
-        distro, version = get_os_release()
-        rv += [
-            "Console User Interface",
-            "\n",
-            "© 2022 ",
-            "grommunio GmbH",
-            "\n",
-        ]
-        if distro.lower().startswith("grammm") or distro.lower().startswith(
-            "grommunio"
-        ):
-            rv.append(f"Distribution: {distro} Version: {version}")
-            rv.append("\n")
-        rv.append("\n")
-        if cpufreq:
-            rv.append(
-                f"{psutil.cpu_count()} x {uname.processor} CPUs"
-                f" @ {get_hr(cpufreq.current * 1000 * 1000, 'Hz', 1000)}"
-            )
-        else:
-            rv.append(
-                f"{psutil.cpu_count(logical=False)} x {uname.processor} CPUs"
-            )
-        rv.append("\n")
-        rv.append(
-            T_("Memory {used} used of {total} ({available} free)").format(
-                used=get_hr(svmem.used),
-                total=get_hr(svmem.total),
-                available=get_hr(svmem.available)
-            )
-        )
-        rv.append("\n")
-        rv.append("\n")
+        ret_val = get_system_info_top()
     elif which == "bottom":
-        uname = platform.uname()
-        if_addrs = psutil.net_if_addrs()
-        boot_time_timestamp = psutil.boot_time()
-        bt = datetime.fromtimestamp(boot_time_timestamp)
-        proto = "http"
-        if check_setup_state() == 0:
-            rv += [
-                "\n",
-                T_("For further configuration, these URLs can be used:"),
-                "\n",
-            ]
-            rv.append("\n")
-            if uname.node.lower().startswith("localhost."):
-                rv.append(
-                    (
-                        "important",
-                        T_("It is generally NOT recommended to use localhost as hostname."),
-                    )
-                )
-                rv.append("\n")
-            rv.append(f"{proto}://{uname.node}:8080/\n")
-            for interface_name, interface_addresses in if_addrs.items():
-                if interface_name in ["lo"]:
-                    continue
-                for address in interface_addresses:
-                    if address.family != socket.AF_INET6:
-                        continue
-                    adr = ipaddress.IPv6Address(address.address.split("%")[0])
-                    if adr.is_link_local is True:
-                        continue
-                    rv.append(
-                        f"{proto}://[{address.address}]:8080/ (interface {interface_name})\n"
-                    )
-                for address in interface_addresses:
-                    if address.family != socket.AF_INET:
-                        continue
-                    rv.append(
-                        f"{proto}://{address.address}:8080/ (interface {interface_name})\n"
-                    )
-        else:
-            rv.append("\n")
-            rv.append(
-                T_("There are still some tasks missing to run/use grommunio.")
-            )
-            rv.append("\n")
-            statelist = extract_bits(check_setup_state())
-            for state in statelist:
-                rv.append("\n")
-                rv.append(("important", STATES.get(state)))
-            rv.append("\n")
-        rv.append("\n")
-        rv.append(T_("Boot Time: "))
-        rv.append(("reverse", f"{bt.isoformat()}"))
-        rv.append("\n")
-        last_login = get_last_login_time()
-        if last_login != "":
-            rv.append(T_("Last login time: {%s}") % last_login)
-        rv.append("\n")
-        rv.append("\n")
-        rv.append(T_(f"Current language / PPID: {locale.getlocale()[0]} / {os.getppid()}"))
-        rv.append("\n")
+        ret_val = get_system_info_bottom()
     else:
-        rv.append(T_("Oops!"))
-        rv.append(T_("There should be nothing."))
-    return rv
+        ret_val.append(T_("Oops!"))
+        ret_val.append(T_("There should be nothing."))
+    return ret_val
 
 
 def pad(
@@ -847,15 +811,15 @@ def pad(
     text_len: int = len(str(text))
     diff: int = length - text_len
     suffix: str = sign * diff
-    rv: str
+    ret_val: str
     slice_pos: int
     if left_pad:
-        rv = f"{suffix}{text}"
+        ret_val = f"{suffix}{text}"
         slice_pos = length
     else:
-        rv = f"{text}{suffix}"
+        ret_val = f"{text}{suffix}"
         slice_pos = length * -1
-    return rv[:slice_pos]
+    return ret_val[:slice_pos]
 
 
 def get_hr(formatbytes, suffix="B", factor=1024):
@@ -870,6 +834,7 @@ def get_hr(formatbytes, suffix="B", factor=1024):
         if formatbytes < factor:
             return f"{formatbytes:.2f} {unit}{suffix}"
         formatbytes /= factor
+    return f"{formatbytes:.2f} {suffix}"
 
 
 def get_clockstring() -> str:
@@ -878,77 +843,81 @@ def get_clockstring() -> str:
 
     :return: The formatted clockstring.
     """
-    bt: datetime = datetime.now()
-    year: str = pad(bt.year, "0", 4)
-    month: str = pad(bt.month, "0", 2)
-    day: str = pad(bt.day, "0", 2)
-    hour: str = pad(bt.hour, "0", 2)
-    minute: str = pad(bt.minute, "0", 2)
-    second: str = pad(bt.second, "0", 2)
+    current_time: datetime = datetime.now()
+    year: str = pad(current_time.year, "0", 4)
+    month: str = pad(current_time.month, "0", 2)
+    day: str = pad(current_time.day, "0", 2)
+    hour: str = pad(current_time.hour, "0", 2)
+    minute: str = pad(current_time.minute, "0", 2)
+    second: str = pad(current_time.second, "0", 2)
     return f"{year}-{month}-{day} {hour}:{minute}:{second}"
 
 
 def get_footerbar(key_size=2, name_size=10):
     """Return footerbar description"""
-    rv = []
+    ret_val = []
     menu = {"F1": T_("Color"), "F2": T_("Login"), "F5": T_("Keyboard")}
     if os.getppid() != 1:
         menu["F10"] = T_("Exit")
     menu["L"] = T_("Logs")
     spacebar = "".join(" " for _ in range(name_size))
     for item in menu.items():
-        nr = ("footerbar.short", f"  {item[0]}"[-key_size:])
-        name = ("footerbar.long", f" {item[1]}{spacebar}"[:name_size])
-        field = [nr, name]
-        rv.append(field)
-    return rv
+        ret_val.append([
+            ("footerbar.short", f"  {item[0]}"[-key_size:]),
+            ("footerbar.long", f" {item[1]}{spacebar}"[:name_size])
+        ])
+    return ret_val
 
 
 def get_palette_list() -> List[str]:
-    global _PALETTES
+    """Return color palette keys"""
     return list(_PALETTES.keys())
 
 
 def get_next_palette_name(cur_palette: str = "") -> str:
+    """Return next color palette name"""
     palette_list = get_palette_list()
     i = iter(palette_list)
-    for p in i:
-        if p == palette_list[len(palette_list) - 1]:
+    for palette in i:
+        if palette == palette_list[len(palette_list) - 1]:
             return palette_list[0]
-        elif p == cur_palette:
+        if palette == cur_palette:
             return next(i)
     return palette_list[0]
 
 
 def get_palette(mode: str = "light") -> List[Tuple[str, ...]]:
-    global _PALETTES
-    rv: List[Tuple[str, ...]] = _PALETTES[mode]
-    return rv
+    """Return current color palette"""
+    ret_val: List[Tuple[str, ...]] = _PALETTES[mode]
+    return ret_val
 
 
-def fast_tail(file: str, n: int = 0) -> List[str]:
-    assert n >= 0, "Line count n must be greater equal 0."
-    pos: int = n + 1
+def fast_tail(file: str, line_count: int = 0) -> List[str]:
+    """Fast mini tail"""
+    assert line_count >= 0, "Line count n must be greater equal 0."
+    pos: int = line_count + 1
     lines: List[str] = []
     fname: Path = Path(file)
-    with fname.open("r") as f:
-        while len(lines) <= n:
+    with fname.open("r", encoding="utf-8") as file_handle:
+        while len(lines) <= line_count:
             try:
-                f.seek(-pos, 2)
+                file_handle.seek(-pos, 2)
             except IOError:
-                f.seek(0)
+                file_handle.seek(0)
                 break
             finally:
-                lines = list(f)
+                lines = list(file_handle)
             pos *= 2
-    return [line.strip() for line in lines[-n:]]
+    return [line.strip() for line in lines[-line_count:]]
 
 
 def lineconfig_read(file):
+    """Read file to items dictionary. lineconfig,
+    does NOT recognize quotes and backslashes."""
     items = {}
     try:
-        with open(file) as fh:
-            for line in fh:
+        with open(file, "r", encoding="utf-8") as file_handle:
+            for line in file_handle:
                 key, value = line.partition("=")[::2]
                 if "=" in line:
                     new_value = value.strip()
@@ -961,48 +930,50 @@ def lineconfig_read(file):
 
 
 def lineconfig_write(file, items):
-    with open(file, "w") as fh:
+    """Write items to file"""
+    with open(file, "w", encoding="utf-8") as file_handle:
         for key in items:
-            fh.write(key)
+            file_handle.write(key)
             if items[key] is not None:
-                fh.write("=")
-                fh.write(items[key])
-            fh.write("\n")
+                file_handle.write("=")
+                file_handle.write(items[key])
+            file_handle.write("\n")
 
 
-'''
-minishell is like lineconfig, but must recognize quotes and backslashes.
-'''
 def minishell_read(file):
+    """Read file to items dictionary. minishell is like lineconfig,
+    but must recognize quotes and backslashes."""
     items = {}
     try:
-        with open(file) as fh:
-            for line in fh:
+        with open(file, "r", encoding="utf-8") as file_handle:
+            for line in file_handle:
                 if line.strip()[0:1] == "#":
                     continue
-                r = shlex.split(line.rstrip('\n'))
-                if len(r) < 1:
+                res = shlex.split(line.rstrip('\n'))
+                if len(res) < 1:
                     continue
-                r = r[0].partition("=")
-                if len(r) != 3:
+                res = res[0].partition("=")
+                if len(res) != 3:
                     continue
-                items[r[0]] = r[2]
+                items[res[0]] = res[2]
     except IOError:
         pass
     return items
 
 
 def minishell_write(file, items):
-    with open(file, "w") as fh:
+    """Write items to file"""
+    with open(file, "w", encoding="utf-8") as file_handle:
         for key in items:
-            fh.write(key)
+            file_handle.write(key)
             if items[key] is not None:
-                fh.write("=")
-                fh.write(shlex.quote(items[key]))
-            fh.write("\n")
+                file_handle.write("=")
+                file_handle.write(shlex.quote(items[key]))
+            file_handle.write("\n")
 
 
 def get_current_kbdlayout():
+    """Return current keyboard layout"""
     items = minishell_read("/etc/vconsole.conf")
     return items.get("KEYMAP", "us").strip('"')
 
@@ -1011,21 +982,21 @@ def reset_system_passwd(new_pw: str) -> bool:
     """Reset the system password."""
     if new_pw:
         if new_pw != "":
-            proc = subprocess.Popen(
+            with subprocess.Popen(
                 ["passwd"],
                 stdin=subprocess.PIPE,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
-            )
-            proc.stdin.write(f"{new_pw}\n{new_pw}\n".encode())
-            proc.stdin.flush()
-            i = 0
-            while i < 10 and proc.poll() is None:
-                time.sleep(0.1)
-                i += 1
-            proc.terminate()
-            proc.kill()
-            return proc.returncode == 0
+            ) as proc:
+                proc.stdin.write(f"{new_pw}\n{new_pw}\n".encode())
+                proc.stdin.flush()
+                i = 0
+                while i < 10 and proc.poll() is None:
+                    time.sleep(0.1)
+                    i += 1
+                proc.terminate()
+                proc.kill()
+                return proc.returncode == 0
     return False
 
 
@@ -1036,12 +1007,11 @@ def reset_aapi_passwd(new_pw: str) -> bool:
             exe = "grammm-admin"
             if Path("/usr/sbin/grommunio-admin").exists():
                 exe = "grommunio-admin"
-            proc = subprocess.Popen(
+            with subprocess.Popen(
                 [exe, "passwd", "--password", new_pw],
                 stderr=subprocess.DEVNULL,
                 stdout=subprocess.DEVNULL,
-            )
-
-            return proc.wait() == 0
+            ) as proc:
+                return proc.wait() == 0
     return False
 
