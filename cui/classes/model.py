@@ -1084,15 +1084,15 @@ class ApplicationModel(BaseApplication):
 
     def get_focused_menu(self, menu: urwid.ListBox, event: Any) -> int:
         """
-        Returns id of focused menu item. Returns current id on enter or 1-9 or
-        click, and returns the next id if
+        Returns idx of focused menu item. Returns current idx on enter or 1-9 or
+        click, and returns the next idx if
         key is up or down.
 
-        :param menu: The menu from which you want to know the id.
+        :param menu: The menu from which you want to know the idx.
         :type: urwid.ListBox
         :param event: The event passed to the menu.
         :type: Any
-        :returns: The id of the selected menu item. (>=1)
+        :returns: The idx of the selected menu item. (>=1)
         :rtype: int
         """
         self.view.top_main_menu.current_menu_focus = super().view.top_main_menu.get_focused_menu(
@@ -1107,13 +1107,13 @@ class ApplicationModel(BaseApplication):
         self, menu: urwid.ListBox, event: Any, description_box: urwid.ListBox = None
     ) -> int:
         """
-        Handles standard menu behaviour and returns the focused id, if any.
+        Handles standard menu behaviour and returns the focused idx, if any.
 
         :param menu: The menu to be handled.
         :param event: The event to be handled.
         :param description_box: The urwid.ListBox containing the menu content that
         may be refreshed with the next description.
-        :return: The id of the menu having the focus (1+)
+        :return: The idx of the menu having the focus (1+)
         """
         if event == "esc":
             return 1

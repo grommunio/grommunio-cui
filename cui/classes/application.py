@@ -254,19 +254,19 @@ class MainMenu:
 
     def get_focused_menu(self, menu: urwid.ListBox, event: Any) -> int:
         """
-        Returns id of focused menu item. Returns current id on enter or 1-9 or click, and
-            returns the next id if key is up or down.
+        Returns idx of focused menu item. Returns current idx on enter or 1-9 or click, and
+            returns the next idx if key is up or down.
 
         - **Parameters**:
 
-            The menu as a urwid.ListBox combined with any event to resolve the current id.
+            The menu as a urwid.ListBox combined with any event to resolve the current idx.
 
-            :param menu: The menu from which you want to know the id.
+            :param menu: The menu from which you want to know the idx.
             :type: urwid.ListBox
             :param event: The event passed to the menu. The event can be a keystroke also
                 as a mouse click.
             :type: Any
-            :returns: The id of the selected menu item. (>=1)
+            :returns: The idx of the selected menu item. (>=1)
             :rtype: int
 
         """

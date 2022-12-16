@@ -517,7 +517,7 @@ def check_socket(host="127.0.0.1", port=22):
 
 
 def tlen(tuple_list, idx=0):
-    """Return length of all id'th element in a tuple over all tuple lists.
+    """Return length of all idx'th element in a tuple over all tuple lists.
     The tuples can be nested in list in list in list ...
     tlen([(1, 'bla'), (2, 'blubb')], 1)
     will return 8. It doesn't matter how many nested Lists there are.
