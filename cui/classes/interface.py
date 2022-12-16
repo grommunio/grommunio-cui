@@ -1,11 +1,11 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # SPDX-FileCopyrightText: 2021 grommunio GmbH
-
+"""The module contains the BaseApplication that provides the common interface of Application."""
 from typing import Any
 import urwid
 
 
-class BaseApplication(object):
+class BaseApplication:
     """
     Interface for accessing the Application object.
     """
@@ -15,6 +15,7 @@ class BaseApplication(object):
 
     @property
     def view(self):
+        """The view component"""
         return self._view
 
     @view.setter
@@ -23,6 +24,7 @@ class BaseApplication(object):
 
     @property
     def control(self):
+        """The control component"""
         return self._control
 
     @control.setter
@@ -31,17 +33,16 @@ class BaseApplication(object):
 
     def handle_event(self, event: Any):
         """
+        Handles user input to the console UI. The method in this handler is not implemented,
+        so subclasses have to overwrite this method.
 
-        Handles user input to the console UI. The method in this handler is not implemented, so subclasses have to
-        overwrite this method.
-
-            :param event: A mouse or keyboard input sequence. While the mouse event has the form ('mouse press or
-                release', button, column, line), the key stroke is represented as is a single key or even the
-                represented value like 'enter', 'up', 'down', etc.
+            :param event: A mouse or keyboard input sequence. While the mouse event has the
+            form ('mouse press or release', button, column, line), the key stroke is represented
+            as is a single key or even the represented value like 'enter', 'up', 'down', etc.
             :type: Any
         """
         raise NotImplementedError(
-            f"{self.__class__}.handle_event() must not be called directly in {self.__name__} "
+            f"{self.__class__}.handle_event() must not be called directly in {self} "
             f"and has to be implemented in sub classes."
         )
 
@@ -54,7 +55,7 @@ class BaseApplication(object):
             align (str): The alignment of the printed text
         """
         raise NotImplementedError(
-            f"{self.__class__}.print(string, align) must'nt be called directly in {self.__name__}"
+            f"{self.__class__}.print(string, align) must'nt be called directly in {self}"
             f"and has to be implemented in sub classes."
         )
 
@@ -74,7 +75,3 @@ class WidgetDrawer(urwid.WidgetWrap):
     @label.setter
     def label(self, label: str):
         self._label = label
-
-    def render(self, size, focus=False):
-        """Render the widget."""
-        return super(WidgetDrawer, self).render(size, focus)
