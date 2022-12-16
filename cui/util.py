@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # SPDX-FileCopyrightText: 2021 grommunio GmbH
+"""The module contains all cui utilities/functions"""
 import os
 import subprocess
 import sys
@@ -10,7 +11,6 @@ import locale
 import platform
 import socket
 import shlex
-from getpass import getuser
 from typing import Any, Dict, List, Tuple, Union, Iterable
 from datetime import datetime
 
@@ -29,16 +29,8 @@ def _(msg):
     return msg
 
 
-def reset_states():
-    global STATES, _
-    new_states = {}
-    for k in STATES.keys():
-        new_states[k] = _(STATES[k])
-    STATES = new_states
-    return STATES
-
-
 def get_button_type(key, open_func_on_ok, mb_func, cancel_msgbox_params, size):
+    """Return button type (ok, cancel, save, add, ....)"""
     def open_cancel_msg(msg_params, mb_size):
         mb_func(
             msg_params,
@@ -84,102 +76,6 @@ def restart_gui():
             env[k] = locale_conf.get(k)
         os.execve(sys.executable, [sys.executable] + sys.argv, env)
     return ret_val
-
-
-def create_application_buttons(app):
-    """Create all application buttons"""
-
-    def create_button(label, event, button_func, handle_event_func):
-        res = cui.classes.button.GBoxButton(label, button_func)
-        urwid.connect_signal(
-            res,
-            "click",
-            lambda button: handle_event_func(event),
-        )
-        res = (len(res.label) + 6, res)
-        return res
-
-    def create_button_footer(button_ref: Any, which: str = "attrmap"):
-        if not isinstance(button_ref, Tuple):
-            button_ref = (len(button_ref.label) + 6, button_ref)
-        res = urwid.AttrMap(urwid.Columns([
-            ("weight", 1, cui.classes.gwidgets.GText("")),
-            ("weight", 1, urwid.Columns([
-                ("weight", 1, cui.classes.gwidgets.GText("")),
-                button_ref,
-                ("weight", 1, cui.classes.gwidgets.GText("")),
-            ]),),
-            ("weight", 1, cui.classes.gwidgets.GText("")),
-        ]), "buttonbar", )
-        if which.startswith("grid"):
-            res = urwid.GridFlow([button_ref[1]], 10, 1, 1, "center")
-        return res
-
-    def create_both(label, event, which: str = "attr"):
-        but = create_button(label, event, app._press_button, app.handle_event)
-        return but, create_button_footer(but, which)
-
-    # Login Dialog
-    app.view.login_window.login_header = urwid.AttrMap(
-        cui.classes.gwidgets.GText(("header", _("Login")), align="center"), "header"
-    )
-    app.view.button_store.user_edit = cui.classes.gwidgets.GEdit(
-        (_("Username: "),), edit_text=getuser(), edit_pos=0
-    )
-    app.view.button_store.pass_edit = cui.classes.gwidgets.GEdit(
-        _("Password: "), edit_text="", edit_pos=0, mask="*"
-    )
-    app.view.login_window.login_body = urwid.Pile(
-        [
-            app.view.button_store.user_edit,
-            app.view.button_store.pass_edit,
-        ]
-    )
-    login_button = cui.classes.button.GBoxButton(_("Login"), app._check_login)
-    urwid.connect_signal(
-        login_button,
-        "click",
-        lambda button: app.handle_event("login enter"),
-    )
-    app.view.login_window.login_footer = urwid.AttrMap(
-        urwid.Columns([cui.classes.gwidgets.GText(""), login_button, cui.classes.gwidgets.GText("")]), "buttonbar"
-    )
-    # Common OK Button
-    app.view.button_store.ok_button, app.view.button_store.ok_button_footer = create_both(
-        _("OK"), "ok enter", "attr"
-    )
-    # Common Cancel Button
-    app.view.button_store.cancel_button, app.view.button_store.cancel_button_footer = create_both(
-        _("Cancel"), "cancel enter", "grid"
-    )
-    # Common close Button
-    app.view.button_store.close_button, app.view.button_store.close_button_footer = create_both(
-        _("Close"), "close enter", "attr"
-    )
-    # Common Add Button
-    app.view.button_store.add_button, app.view.button_store.add_button_footer = create_both(
-        _("Add"), "add enter", "grid"
-    )
-    # Common Edit Button
-    app.view.button_store.edit_button, app.view.button_store.edit_button_footer = create_both(
-        _("Edit"), "edit enter", "attr"
-    )
-    # Common Save Button
-    app.view.button_store.save_button, app.view.button_store.save_button_footer = create_both(
-        _("Save"), "save enter", "grid"
-    )
-    # Common Details Button
-    app.view.button_store.details_button, app.view.button_store.details_button_footer = create_both(
-        _("Details"), "details enter", "grid"
-    )
-    # Common Toggle Button
-    app.view.button_store.toggle_button, app.view.button_store.toggle_button_footer = create_both(
-        _("Toggle"), "toggle enter", "grid"
-    )
-    # Common Apply Button
-    app.view.button_store.apply_button, app.view.button_store.apply_button_footer = create_both(
-        _("Apply"), "apply enter", "grid"
-    )
 
 
 def create_main_loop(app):
@@ -231,16 +127,40 @@ def check_repo_dialog(app, height):
     return updateable, url
 
 
+STATES = {
+    1: _("System password is not set."),
+    2: _("Network configuration is missing."),
+    4: _("grommunio-setup has not been run yet."),
+    8: _("timesyncd configuration is missing."),
+    16: _("nginx is not running."),
+}
+
+
+def reset_states():
+    """Reset states"""
+    # pylint: disable=global-statement
+    # because that is needed for on the fly translation
+    global STATES
+    new_states = {}
+    if STATES:
+        for key, val in STATES.items():
+            new_states[key] = _(val)
+    STATES = new_states
+    return STATES
+
+
 def init_localization(language: Union[str, str, Iterable[Union[str, str]], None] = ''):
     """Initialize localisation"""
     locale.setlocale(locale.LC_ALL, language)
     try:
-        locale.bindtextdomain('cui', 'locale' if os.path.exists("locale/de/LC_MESSAGES/cui.mo") else None)
+        locale.bindtextdomain(
+            'cui', 'locale' if os.path.exists("locale/de/LC_MESSAGES/cui.mo") else None
+        )
         locale.textdomain('cui')
         _ = locale.gettext
         reset_states()
         return _
-    except OSError as _:
+    except OSError:
         def _(msg):
             """
             Function for tagging text for translations.
@@ -249,14 +169,6 @@ def init_localization(language: Union[str, str, Iterable[Union[str, str]], None]
         reset_states()
         return _
 
-
-STATES = {
-    1: _("System password is not set."),
-    2: _("Network configuration is missing."),
-    4: _("grommunio-setup has not been run yet."),
-    8: _("timesyncd configuration is missing."),
-    16: _("nginx is not running."),
-}
 
 _ = init_localization()
 
@@ -658,9 +570,9 @@ def get_load_avg_format_list():
     """Return list of average load"""
     load_avg = get_load()
     load_format = [("footer", _(" Average load: "))]
-    for i, t in enumerate([1, 5, 15]):
-        load_format.append(("footer", f"{t} min:")) or \
-        load_format.append(("footer", f" {load_avg[i]:0.2f}")) or \
+    for i, time_unit in enumerate([1, 5, 15]):
+        load_format.append(("footer", f"{time_unit} min:"))
+        load_format.append(("footer", f" {load_avg[i]:0.2f}"))
         load_format.append(("footer", " | "))
     return load_format[:-1]
 
@@ -856,7 +768,7 @@ def get_footerbar(key_size=2, name_size=10):
     if os.getppid() != 1:
         menu["F10"] = _("Exit")
     menu["L"] = _("Logs")
-    spacebar = "".join(" " for _ in range(name_size))
+    spacebar = "".join(" " for i in range(name_size))
     for item in menu.items():
         ret_val.append([
             ("footerbar.short", f"  {item[0]}"[-key_size:]),
@@ -1010,4 +922,3 @@ def reset_aapi_passwd(new_pw: str) -> bool:
             ) as proc:
                 return proc.wait() == 0
     return False
-

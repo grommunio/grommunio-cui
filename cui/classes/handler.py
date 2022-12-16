@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# SPDX-FileCopyrightText: 2022 grommunio GmbH
+"""The module contains the handling code of grommunio-cui"""
 import os
 from getpass import getuser
 from typing import Any
@@ -5,14 +8,16 @@ from typing import Any
 import urwid
 
 import cui.classes
-from cui.symbol import LOG_VIEWER, MAIN, MESSAGE_BOX, INPUT_BOX, TERMINAL, PASSWORD, LOGIN, REBOOT, SHUTDOWN, \
-    MAIN_MENU, UNSUPPORTED, ADMIN_WEB_PW, TIMESYNCD, REPO_SELECTION, KEYBOARD_SWITCH, PRODUCTION
+from cui.symbol import LOG_VIEWER, MAIN, MESSAGE_BOX, INPUT_BOX, TERMINAL, PASSWORD, LOGIN, \
+    REBOOT, SHUTDOWN, MAIN_MENU, UNSUPPORTED, ADMIN_WEB_PW, TIMESYNCD, REPO_SELECTION, \
+    KEYBOARD_SWITCH, PRODUCTION
 from cui import util, parameter
 from cui.classes.model import ApplicationModel
 from cui.util import _
 
 
 class ApplicationHandler(ApplicationModel):
+    """Add the handler functionality in this class"""
     def handle_event(self, event: Any):
         """
         Handles user input to the console UI.
@@ -34,7 +39,8 @@ class ApplicationHandler(ApplicationModel):
         """Handle keyboard event."""
         # event was a key stroke
         key: str = str(event)
-        if self.control.log_control.log_finished and self.control.app_control.current_window != LOG_VIEWER:
+        if self.control.log_control.log_finished and \
+                self.control.app_control.current_window != LOG_VIEWER:
             self.control.log_control.log_finished = False
         (func, var) = {
             MAIN: (self._key_ev_main, key),
@@ -67,7 +73,9 @@ class ApplicationHandler(ApplicationModel):
                     0 if getuser() == "" else 1
                 )  # focus on passwd if user detected
                 frame: parameter.Frame = parameter.Frame(
-                    body=urwid.LineBox(urwid.Padding(urwid.Filler(self.view.login_window.login_body))),
+                    body=urwid.LineBox(urwid.Padding(
+                        urwid.Filler(self.view.login_window.login_body)
+                    )),
                     header=self.view.login_window.login_header,
                     footer=self.view.login_window.login_footer,
                     focus_part="body",
@@ -86,8 +94,10 @@ class ApplicationHandler(ApplicationModel):
     def _key_ev_mbox(self, key):
         """Handle event on message box."""
         if key.endswith("enter") or key == "esc":
-            if self.control.app_control.message_box_caller not in (self.control.app_control.current_window, MESSAGE_BOX):
-                self.control.app_control.current_window = self.control.app_control.message_box_caller
+            if self.control.app_control.message_box_caller not in \
+                    (self.control.app_control.current_window, MESSAGE_BOX):
+                self.control.app_control.current_window = \
+                    self.control.app_control.message_box_caller
                 self.control.app_control.body = self.control.app_control.message_box_caller_body
             if self.view.gscreen.old_layout:
                 self.view.gscreen.layout = self.view.gscreen.old_layout
@@ -96,7 +106,8 @@ class ApplicationHandler(ApplicationModel):
                 LOGIN, MAIN_MENU, TIMESYNCD, REPO_SELECTION
             ]:
                 if self.control.app_control.key_counter.get(key, 0) < 10:
-                    self.control.app_control.key_counter[key] = self.control.app_control.key_counter.get(key, 0) + 1
+                    self.control.app_control.key_counter[key] = \
+                        self.control.app_control.key_counter.get(key, 0) + 1
                     self.handle_event(key)
                 else:
                     self.control.app_control.key_counter[key] = 0
@@ -113,7 +124,8 @@ class ApplicationHandler(ApplicationModel):
                 )
             else:
                 self.control.app_control.last_input_box_value = ""
-            self.control.app_control.current_window = self.control.app_control.current_window_input_box
+            self.control.app_control.current_window = \
+                self.control.app_control.current_window_input_box
             self.control.app_control.body = self.control.app_control.input_box_caller_body
             if self.view.gscreen.old_layout:
                 self.view.gscreen.layout = self.view.gscreen.old_layout
@@ -172,7 +184,7 @@ class ApplicationHandler(ApplicationModel):
         """Handle event on login menu."""
         self._handle_standard_tab_behaviour(key)
         if key.endswith("enter"):
-            self._check_login()
+            self.check_login()
         elif key == "esc":
             self._open_mainframe()
 
@@ -213,7 +225,9 @@ class ApplicationHandler(ApplicationModel):
             raise urwid.ExitMainLoop()
 
         menu_selected: int = self._handle_standard_menu_behaviour(
-            self.view.top_main_menu.main_menu_list, key, self.view.top_main_menu.main_menu.base_widget.body[1]
+            self.view.top_main_menu.main_menu_list,
+            key,
+            self.view.top_main_menu.main_menu.base_widget.body[1]
         )
         if key.endswith("enter") or key in range(ord("1"), ord("9") + 1):
             (func, val) = {
@@ -256,8 +270,13 @@ class ApplicationHandler(ApplicationModel):
                 "right": +1,
             }.get(key, 0)
             self.control.log_control.current_log_unit += unit_offset
-            self.control.log_control.log_line_count = max(min(self.control.log_control.log_line_count, 10000), 200)
-            self.control.log_control.current_log_unit = max(min(self.control.log_control.current_log_unit, len(self.control.log_control.log_units) - 1), 0)
+            self.control.log_control.log_line_count = \
+                max(min(self.control.log_control.log_line_count, 10000), 200)
+            self.control.log_control.current_log_unit = max(min(
+                self.control.log_control.current_log_unit,
+                len(self.control.log_control.log_units) - 1),
+                0
+            )
             self._open_log_viewer(
                 self._get_log_unit_by_id(self.control.log_control.current_log_unit),
                 self.control.log_control.log_line_count,

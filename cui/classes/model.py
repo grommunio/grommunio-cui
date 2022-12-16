@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# SPDX-FileCopyrightText: 2022 grommunio GmbH
+"""The module contains the application model of the grommunio-cui"""
 import datetime
 import os
 import re
@@ -15,6 +18,7 @@ from systemd import journal
 from yaml import SafeLoader
 
 import cui.classes
+import cui.classes.button
 from cui.symbol import LOG_VIEWER, MAIN, MESSAGE_BOX, INPUT_BOX, PASSWORD, LOGIN, REBOOT, \
     SHUTDOWN, MAIN_MENU, ADMIN_WEB_PW, TIMESYNCD, REPO_SELECTION, KEYBOARD_SWITCH
 from cui import util, parameter
@@ -43,7 +47,7 @@ class ApplicationModel(BaseApplication):
         self.control.app_control.loop = util.create_main_loop(self)
         self.control.app_control.loop.set_alarm_in(1, self._update_clock)
 
-        util.create_application_buttons(self)
+        cui.classes.button.create_application_buttons(self)
 
         self.view.top_main_menu.refresh_main_menu()
 
@@ -87,6 +91,7 @@ class ApplicationModel(BaseApplication):
         # self.print(_("Idle"))
 
     def handle_event(self, event: Any):
+        self.print(event)
         super().handle_event(event)
 
     def _process_changed_repo_config(self, height, repo_res):
@@ -94,7 +99,7 @@ class ApplicationModel(BaseApplication):
         footer = GText(_('Fetching GPG-KEY file and refreshing '
                           'repositories. This may take a while ...'))
         self.control.app_control.progressbar = self._create_progress_bar()
-        pad = urwid.Padding(self.control.app_control.progressbar)  # do not use pg! use self.control.app_control.progressbar.
+        pad = urwid.Padding(self.control.app_control.progressbar)
         fil = urwid.Filler(pad)
         linebox = urwid.LineBox(fil)
         frame: parameter.Frame = parameter.Frame(linebox, header, footer)
@@ -455,7 +460,9 @@ class ApplicationModel(BaseApplication):
                 else:
                     post.append(src[:-8])
         header = (
-            _("Use the arrow keys to switch between logfiles. <urwid.LEFT> and <RIGHT> switch the logfile, while <+> and <-> changes the line count to view. (%s)") % self.control.log_control.log_line_count
+            _("Use the arrow keys to switch between logfiles. <urwid.LEFT> and <RIGHT> "
+              "switch the logfile, while <+> and <-> changes the line count to view. "
+              "(%s)") % self.control.log_control.log_line_count
         )
         self.control.log_control.log_viewer = urwid.LineBox(
             urwid.AttrMap(
@@ -567,7 +574,9 @@ class ApplicationModel(BaseApplication):
         self.control.app_control.current_window = TIMESYNCD
         header = urwid.AttrMap(GText(_("Timesyncd Configuration"), urwid.CENTER), "header")
         self._prepare_timesyncd_config()
-        self._open_conf_dialog(self.timesyncd_body, header, [self.view.button_store.ok_button, self.view.button_store.cancel_button])
+        self._open_conf_dialog(self.timesyncd_body, header, [
+            self.view.button_store.ok_button, self.view.button_store.cancel_button
+        ])
 
     def _open_conf_dialog(
             self,
@@ -640,7 +649,9 @@ class ApplicationModel(BaseApplication):
         self.control.app_control.current_window = REPO_SELECTION
         header = urwid.AttrMap(GText(_("Software repository selection"), urwid.CENTER), "header")
         self._prepare_repo_config()
-        self._open_conf_dialog(self.control.menu_control.repo_selection_body, header, [self.view.button_store.save_button, self.view.button_store.cancel_button])
+        self._open_conf_dialog(self.control.menu_control.repo_selection_body, header, [
+            self.view.button_store.save_button, self.view.button_store.cancel_button
+        ])
 
     def _prepare_repo_config(self):
         """Prepare repository configuration form."""
@@ -682,7 +693,9 @@ class ApplicationModel(BaseApplication):
                 vblank, GEdit(_('Password: '), edit_text=default_pw), vblank
             ])
         ]
-        self.control.menu_control.repo_selection_body = urwid.LineBox(urwid.Padding(urwid.Filler(urwid.Pile(body_content), urwid.TOP)))
+        self.control.menu_control.repo_selection_body = urwid.LineBox(
+            urwid.Padding(urwid.Filler(urwid.Pile(body_content), urwid.TOP))
+        )
 
     def _open_setup_wizard(self):
         """Open grommunio setup wizard."""
@@ -717,7 +730,7 @@ class ApplicationModel(BaseApplication):
         self.prepare_mainscreen()
         self.control.app_control.loop.widget = self.control.app_control.body
 
-    def _check_login(self):
+    def check_login(self):
         """
         Checks login data and switch to authenticate on if successful.
         """
@@ -729,9 +742,8 @@ class ApplicationModel(BaseApplication):
             return
         msg = _("checking user %s with pass ") % self.view.button_store.user_edit.get_edit_text()
         if self.control.app_control.current_window == LOGIN:
-            if util.authenticate_user(
-                self.view.button_store.user_edit.get_edit_text(), self.view.button_store.pass_edit.get_edit_text()
-            ):
+            if util.authenticate_user(self.view.button_store.user_edit.get_edit_text(),
+                                      self.view.button_store.pass_edit.get_edit_text()):
                 self.view.button_store.pass_edit.set_edit_text("")
                 self._open_main_menu()
             else:
@@ -743,7 +755,7 @@ class ApplicationModel(BaseApplication):
                 )
                 self.print(_("Login wrong! (%s)") % msg)
 
-    def _press_button(self, button: urwid.Widget, *args, **kwargs):
+    def press_button(self, button: urwid.Widget, *args, **kwargs):
         """
         Handles general events if a button is pressed.
 
@@ -838,7 +850,9 @@ class ApplicationModel(BaseApplication):
                     "focus" if kbd == self.view.header.get_kbdlayout() else "selectable",
                 )
             )
-        self.control.menu_control.keyboard_list = ScrollBar(Scrollable(urwid.Pile(self.control.menu_control.keyboard_content)))
+        self.control.menu_control.keyboard_list = ScrollBar(Scrollable(
+            urwid.Pile(self.control.menu_control.keyboard_content)
+        ))
         self.control.menu_control.keyboard_switch_body = self.control.menu_control.keyboard_list
 
     def redraw(self):
@@ -911,7 +925,10 @@ class ApplicationModel(BaseApplication):
         if self.view.gscreen.debug:
             col_list += [urwid.Columns([gdebug])]
         self.view.main_footer.footer_content = col_list
-        self.view.main_footer.footer = urwid.AttrMap(urwid.Pile(self.view.main_footer.footer_content), "footer")
+        self.view.main_footer.footer = urwid.AttrMap(
+            urwid.Pile(self.view.main_footer.footer_content),
+            "footer"
+        )
         swap_widget = getattr(self.control.app_control, "body", None)
         if swap_widget:
             swap_widget.footer = self.view.main_footer.footer
@@ -920,7 +937,9 @@ class ApplicationModel(BaseApplication):
 
     def _create_progress_bar(self, max_progress=100):
         """Create progressbar"""
-        self.control.app_control.progressbar = urwid.ProgressBar('PB.normal', 'PB.complete', 0, max_progress, 'PB.satt')
+        self.control.app_control.progressbar = urwid.ProgressBar(
+            'PB.normal', 'PB.complete', 0, max_progress, 'PB.satt'
+        )
         return self.control.app_control.progressbar
 
     def _draw_progress(self, progress, max_progress=100):
@@ -951,7 +970,8 @@ class ApplicationModel(BaseApplication):
 
             elif self.control.app_control.current_window == MESSAGE_BOX:
                 if key.endswith('enter') or key == 'esc':
-                    self.control.app_control.current_window = self.control.app_control.message_box_caller
+                    self.control.app_control.current_window =
+                            self.control.app_control.message_box_caller
                     self.control.app_control.body = self.control.app_control.message_box_caller_body
                     self.reset_layout()
 
@@ -965,7 +985,9 @@ class ApplicationModel(BaseApplication):
             self.control.app_control.message_box_caller = self.control.app_control.current_window
             self.control.app_control.message_box_caller_body = self.control.app_control.loop.widget
             self.control.app_control.current_window = MESSAGE_BOX
-        body = urwid.LineBox(urwid.Padding(urwid.Filler(urwid.Pile([GText(mb_params.msg, urwid.CENTER)]), urwid.TOP)))
+        body = urwid.LineBox(urwid.Padding(
+            urwid.Filler(urwid.Pile([GText(mb_params.msg, urwid.CENTER)]), urwid.TOP)
+        ))
         footer = self._create_footer(view_buttons.view_ok, view_buttons.view_cancel)
 
         if mb_params.title is None:
@@ -982,7 +1004,9 @@ class ApplicationModel(BaseApplication):
 
     def input_box(
             self,
-            ib_params: parameter.InputBoxParams = parameter.InputBoxParams(None, None, "", False, None, True),
+            ib_params: parameter.InputBoxParams = parameter.InputBoxParams(
+                None, None, "", False, None, True
+            ),
             alignment: parameter.Alignment = parameter.Alignment(urwid.CENTER, urwid.MIDDLE),
             size: parameter.Size = parameter.Size(45, 9),
             view_buttons: parameter.ViewOkCancel = parameter.ViewOkCancel(True, False)
@@ -996,13 +1020,15 @@ class ApplicationModel(BaseApplication):
         (f.e. **self**.handle_event) and you MUST set
         the self.control.app_control.app_control.current_window_input_box
 
-            self.control.app_control.app_control.current_window_input_box = _ANY_OF_YOUR_CURRENT_WINDOWS
+            self.control.app_control.app_control.current_window_input_box =
+                    _ANY_OF_YOUR_CURRENT_WINDOWS
             self.input_box('Y/n', 'Question', 'yes')
 
             # and later on event handling
             elif self.control.app_control.current_window == _ANY_OF_YOUR_CURRENT_WINDOWS:
                 if key.endswith('enter') or key == 'esc':
-                    self.control.app_control.current_window = self.control.app_control.input_box_caller  # here you
+                    self.control.app_control.current_window =
+                            self.control.app_control.input_box_caller  # here you
                                          # have to set the current window
 
         Args:
@@ -1025,7 +1051,11 @@ class ApplicationModel(BaseApplication):
                         [
                             GText(ib_params.msg, urwid.CENTER),
                             GEdit(
-                                "", ib_params.input_text, ib_params.multiline, urwid.CENTER, mask=ib_params.mask
+                                "",
+                                ib_params.input_text,
+                                ib_params.multiline,
+                                urwid.CENTER,
+                                mask=ib_params.mask
                             ),
                         ]
                     ),
@@ -1162,7 +1192,9 @@ class ApplicationModel(BaseApplication):
                 last = 0
             current = part.base_widget.focus_position
             # Reduce last and current by non selectables
-            non_sels_current = current + 1 - count_selectables(part.base_widget.widget_list, current)
+            non_sels_current = current + 1 - count_selectables(
+                part.base_widget.widget_list, current
+            )
             non_sels_last = last + 1 - count_selectables(part.base_widget.widget_list, last)
             last = last - non_sels_last
             current = current - non_sels_current
