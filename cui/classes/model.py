@@ -1098,9 +1098,6 @@ class ApplicationModel(BaseApplication):
         self.view.top_main_menu.current_menu_focus = super().view.top_main_menu.get_focused_menu(
             menu, event
         )
-        if not self.view.top_main_menu.last_menu_focus == self.view.top_main_menu.current_menu_focus:
-            cid: int = self.view.top_main_menu.last_menu_focus - 1
-            nid: int = self.view.top_main_menu.current_menu_focus - 1
         return self.view.top_main_menu.current_menu_focus
 
     def _handle_standard_menu_behaviour(
