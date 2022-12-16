@@ -14,7 +14,6 @@ from cui.classes.application import Header, MainFrame, GScreen, ButtonStore
 from cui.classes.handler import ApplicationHandler
 from cui.classes.scroll import ScrollBar, Scrollable
 from cui.classes.button import GButton, GBoxButton
-from cui.classes.menu import MenuItem, MultiMenuItem
 from cui.classes.interface import BaseApplication, WidgetDrawer
 from cui.symbol import PRODUCTION, MAIN, MAIN_MENU, TERMINAL, LOGIN, REBOOT, SHUTDOWN, \
     UNSUPPORTED, PASSWORD, MESSAGE_BOX, INPUT_BOX, LOG_VIEWER, ADMIN_WEB_PW, TIMESYNCD, \

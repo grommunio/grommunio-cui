@@ -15,12 +15,12 @@ from systemd import journal
 from yaml import SafeLoader
 
 import cui.classes
-from cui.symbol import LOG_VIEWER, MAIN, MESSAGE_BOX, INPUT_BOX, TERMINAL, PASSWORD, LOGIN, REBOOT, SHUTDOWN, \
-    MAIN_MENU, UNSUPPORTED, ADMIN_WEB_PW, TIMESYNCD, REPO_SELECTION, KEYBOARD_SWITCH, PRODUCTION
+from cui.symbol import LOG_VIEWER, MAIN, MESSAGE_BOX, INPUT_BOX, PASSWORD, LOGIN, REBOOT, \
+    SHUTDOWN, MAIN_MENU, ADMIN_WEB_PW, TIMESYNCD, REPO_SELECTION, KEYBOARD_SWITCH
 from cui import util, parameter
 from cui.util import T_
 from cui.classes.interface import BaseApplication, WidgetDrawer
-from cui.classes.menu import MultiMenuItem, MenuItem
+from cui.classes.menu import MenuItem
 from cui.classes.button import GButton, GBoxButton
 from cui.classes.application import Header, MainFrame
 from cui.classes.gwidgets import GText, GEdit
@@ -63,7 +63,6 @@ class ApplicationModel(BaseApplication):
         self._prepare_timesyncd_config()
 
         # some settings
-        MultiMenuItem.application = self
         GButton.application = self
 
     def prepare_mainscreen(self):
@@ -1102,15 +1101,6 @@ class ApplicationModel(BaseApplication):
         if not self.view.top_main_menu.last_menu_focus == self.view.top_main_menu.current_menu_focus:
             cid: int = self.view.top_main_menu.last_menu_focus - 1
             nid: int = self.view.top_main_menu.current_menu_focus - 1
-            current_widget: urwid.Widget = menu.body[cid].base_widget
-            next_widget: urwid.Widget = menu.body[nid].base_widget
-            if isinstance(current_widget, MultiMenuItem) and isinstance(next_widget, MultiMenuItem):
-                cmmi: MultiMenuItem = current_widget
-                nmmi: MultiMenuItem = next_widget
-                cmmi.mark_as_dirty()
-                nmmi.mark_as_dirty()
-                nmmi.set_focus()
-                cmmi.refresh_content()
         return self.view.top_main_menu.current_menu_focus
 
     def _handle_standard_menu_behaviour(
