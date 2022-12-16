@@ -24,7 +24,7 @@ try:
 except ImportError:
     import trollius as asyncio
 
-T_ = util.init_localization()
+_ = util.init_localization()
 
 
 class Application(ApplicationHandler):
@@ -36,10 +36,10 @@ def create_application() -> Tuple[Union[Application, None], bool]:
     urwid.set_encoding("utf-8")
     production = True
     if "--help" in sys.argv:
-        print(T_("Usage: {%s} [OPTIONS]") % sys.argv[0])
-        print(T_("\tOPTIONS:"))
-        print(T_("\t\t--help: Show this message."))
-        print(T_("\t\t-v/--debug: Verbose/Debugging mode."))
+        print(_("Usage: {%s} [OPTIONS]") % sys.argv[0])
+        print(_("\tOPTIONS:"))
+        print(_("\t\t--help: Show this message."))
+        print(_("\t\t-v/--debug: Verbose/Debugging mode."))
         return None, PRODUCTION
     app = Application()
     if "-v" in sys.argv:

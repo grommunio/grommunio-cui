@@ -9,7 +9,7 @@ from cui.symbol import LOG_VIEWER, MAIN, MESSAGE_BOX, INPUT_BOX, TERMINAL, PASSW
     MAIN_MENU, UNSUPPORTED, ADMIN_WEB_PW, TIMESYNCD, REPO_SELECTION, KEYBOARD_SWITCH, PRODUCTION
 from cui import util, parameter
 from cui.classes.model import ApplicationModel
-from cui.util import T_
+from cui.util import _
 
 
 class ApplicationHandler(ApplicationModel):
@@ -130,14 +130,14 @@ class ApplicationHandler(ApplicationModel):
     def _key_ev_pass(self, key):
         """Handle event on system password reset menu."""
         self._handle_standard_tab_behaviour(key)
-        success_msg = T_("NOTHING")
+        success_msg = _("NOTHING")
         if key.lower().endswith("enter"):
             if key.lower().startswith("hidden"):
                 button_type = key.lower().split(" ")[1]
             else:
                 button_type = "ok"
             if button_type == "ok":
-                success_msg = T_("was successful")
+                success_msg = _("was successful")
                 pw1 = self.control.app_control.loop.widget.top_w.base_widget.body.base_widget[
                     2
                 ].edit_text
@@ -148,22 +148,22 @@ class ApplicationHandler(ApplicationModel):
                     res = util.reset_system_passwd(pw1)
                 else:
                     res = 2
-                    success_msg = T_("failed due to mismatching password values")
+                    success_msg = _("failed due to mismatching password values")
                 if not res:
-                    success_msg = T_("failed")
+                    success_msg = _("failed")
                 self._open_main_menu()
             else:
-                success_msg = T_("aborted")
+                success_msg = _("aborted")
                 self._open_main_menu()
         elif key.lower().find("cancel") >= 0 or key.lower() in ["esc"]:
-            success_msg = T_("aborted")
+            success_msg = _("aborted")
             self._open_main_menu()
         if key.lower().endswith("enter") or key in ["esc", "enter"]:
             self.control.app_control.current_window = self.control.app_control.input_box_caller
             self.message_box(
                 parameter.MsgBoxParams(
-                    T_(f"System password reset {success_msg}!"),
-                    T_("System password reset"),
+                    _(f"System password reset {success_msg}!"),
+                    _("System password reset"),
                 ),
                 size=parameter.Size(height=10)
             )
@@ -207,7 +207,7 @@ class ApplicationHandler(ApplicationModel):
             self._run_yast_module("language")
             post = cui.classes.parser.ConfigParser(infile='/etc/locale.conf')
             if pre != post:
-                util.T_ = util.restart_gui()
+                util._ = util.restart_gui()
 
         def exit_main_loop():
             raise urwid.ExitMainLoop()
@@ -303,14 +303,14 @@ class ApplicationHandler(ApplicationModel):
     def _key_ev_aapi(self, key):
         """Handle event on admin api password reset menu."""
         self._handle_standard_tab_behaviour(key)
-        success_msg = T_("NOTHING")
+        success_msg = _("NOTHING")
         if key.lower().endswith("enter"):
             if key.lower().startswith("hidden"):
                 button_type = key.lower().split(" ")[1]
             else:
                 button_type = "ok"
             if button_type == "ok":
-                success_msg = T_("was successful")
+                success_msg = _("was successful")
                 pw1 = self.control.app_control.loop.widget.top_w.base_widget.body.base_widget[
                     2
                 ].edit_text
@@ -321,22 +321,22 @@ class ApplicationHandler(ApplicationModel):
                     res = util.reset_aapi_passwd(pw1)
                 else:
                     res = 2
-                    success_msg = T_("failed due to mismatching password values")
+                    success_msg = _("failed due to mismatching password values")
                 if not res:
-                    success_msg = T_("failed")
+                    success_msg = _("failed")
                 self._open_main_menu()
             else:
-                success_msg = T_("aborted")
+                success_msg = _("aborted")
                 self._open_main_menu()
         elif key.lower().find("cancel") >= 0 or key.lower() in ["esc"]:
-            success_msg = T_("aborted")
+            success_msg = _("aborted")
             self._open_main_menu()
         if key.lower().endswith("enter") or key in ["esc", "enter"]:
             self.control.app_control.current_window = self.control.app_control.input_box_caller
             self.message_box(
                 parameter.MsgBoxParams(
-                    T_(f"Admin password reset {success_msg}!"),
-                    T_("Admin password reset"),
+                    _(f"Admin password reset {success_msg}!"),
+                    _("Admin password reset"),
                 ),
                 size=parameter.Size(height=10)
             )
@@ -355,7 +355,7 @@ class ApplicationHandler(ApplicationModel):
                 if repo_res.get("config", None) == config2:
                     self.message_box(
                         parameter.MsgBoxParams(
-                            T_('The repo file has not been changed.')
+                            _('The repo file has not been changed.')
                         ),
                         size=parameter.Size(height=height-1)
                     )

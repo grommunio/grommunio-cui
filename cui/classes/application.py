@@ -20,7 +20,7 @@ from cui.classes.scroll import ScrollBar
 from cui.classes.menu import MenuItem
 from cui.classes.button import GBoxButton
 
-T_ = cui.util.init_localization()
+_ = cui.util.init_localization()
 
 
 class Header:
@@ -34,10 +34,10 @@ class Header:
         tb_header: GText
 
         def __init__(self):
-            self.text_header = [T_("grommunio console user interface")]
+            self.text_header = [_("grommunio console user interface")]
             self.text_header += ["\n"]
             self.text_header += [
-                T_("Active keyboard layout: {kbd}; color set: {colormode}.")
+                _("Active keyboard layout: {kbd}; color set: {colormode}.")
             ]
 
         def debug_out(self, msg):
@@ -96,7 +96,7 @@ class Header:
         self.info.authorized_options = ""
         text_intro = [
             "\n",
-            T_("If you need help, press the 'L' key to view logs."),
+            _("If you need help, press the 'L' key to view logs."),
             "\n",
         ]
         self.tb.tb_intro = GText(
@@ -313,66 +313,66 @@ class MainMenu:
             return item
 
         self.app.view.top_main_menu.menu_description = create_menu_description(
-            T_("Main Menu"),
-            T_("Here you can do the main actions"),
+            _("Main Menu"),
+            _("Here you can do the main actions"),
         )
         # Main Menu
         items = {
-            T_("Language configuration"): create_menu_description(
-                T_("Language"),
-                T_("Opens the yast2 configurator for setting language settings.")
+            _("Language configuration"): create_menu_description(
+                _("Language"),
+                _("Opens the yast2 configurator for setting language settings.")
             ),
-            T_("Change system password"): create_menu_description(
-                T_("Password change"),
-                T_("Opens a dialog for changing the password of the system root user. "
+            _("Change system password"): create_menu_description(
+                _("Password change"),
+                _("Opens a dialog for changing the password of the system root user. "
                    "When a password is set, you can login via ssh and rerun grommunio-cui."),
             ),
-            T_("Network interface configuration"): create_menu_description(
-                T_("Configuration of network"),
-                T_("Opens the yast2 configurator for setting up devices, interfaces, "
+            _("Network interface configuration"): create_menu_description(
+                _("Configuration of network"),
+                _("Opens the yast2 configurator for setting up devices, interfaces, "
                    "IP addresses, DNS and more.")
             ),
-            T_("Timezone configuration"): create_menu_description(
-                T_("Timezone"),
-                T_("Opens the yast2 configurator for setting country and timezone settings.")
+            _("Timezone configuration"): create_menu_description(
+                _("Timezone"),
+                _("Opens the yast2 configurator for setting country and timezone settings.")
             ),
-            T_("timesyncd configuration"): create_menu_description(
-                T_("timesyncd"),
-                T_("Opens a simple configurator for configuring systemd-timesyncd as a "
+            _("timesyncd configuration"): create_menu_description(
+                _("timesyncd"),
+                _("Opens a simple configurator for configuring systemd-timesyncd as a "
                    "lightweight NTP client for time synchronization.")
             ),
-            T_("Select software repositories"): create_menu_description(
-                T_("Software repositories selection"),
-                T_("Opens dialog for choosing software repositories."),
+            _("Select software repositories"): create_menu_description(
+                _("Software repositories selection"),
+                _("Opens dialog for choosing software repositories."),
             ),
-            T_("Update the system"): create_menu_description(
-                T_("System update"),
-                T_("Executes the system package manager for the installation of newer "
+            _("Update the system"): create_menu_description(
+                _("System update"),
+                _("Executes the system package manager for the installation of newer "
                    "component versions."),
             ),
-            T_("grommunio setup wizard"): create_menu_description(
-                T_("Setup wizard"),
-                T_("Executes the grommunio-setup script for the initial configuration of "
+            _("grommunio setup wizard"): create_menu_description(
+                _("Setup wizard"),
+                _("Executes the grommunio-setup script for the initial configuration of "
                    "grommunio databases, TLS certificates, services and the administration "
                    "web user interface.")
             ),
-            T_("Change admin-web password"): create_menu_description(
-                T_("Password change"),
-                T_("Opens a dialog for changing the password used by the administration "
+            _("Change admin-web password"): create_menu_description(
+                _("Password change"),
+                _("Opens a dialog for changing the password used by the administration "
                    "web interface.")
             ),
-            T_("Terminal"): create_menu_description(
-                T_("Terminal"),
-                T_("Starts terminal for advanced system configuration.")
+            _("Terminal"): create_menu_description(
+                _("Terminal"),
+                _("Starts terminal for advanced system configuration.")
             ),
-            T_("Reboot"): create_menu_description(T_("Reboot system."), GText("")),
-            T_("Shutdown"): create_menu_description(
-                T_("Shutdown system."),
-                T_("Shuts down the system and powers off."),
+            _("Reboot"): create_menu_description(_("Reboot system."), GText("")),
+            _("Shutdown"): create_menu_description(
+                _("Shutdown system."),
+                _("Shuts down the system and powers off."),
             ),
         }
         if os.getppid() != 1:
-            items["Exit"] = urwid.Pile([GText(T_("Exit CUI"), urwid.CENTER)])
+            items["Exit"] = urwid.Pile([GText(_("Exit CUI"), urwid.CENTER)])
         self.app.view.top_main_menu.main_menu_list = self._prepare_menu_list(items)
         if self.app.control.app_control.current_window == cui.symbol.MAIN_MENU \
                 and self.app.view.top_main_menu.current_menu_focus > 0:
@@ -558,7 +558,7 @@ class ApplicationControl:
     log_file_caller: str = ""
     log_file_caller_body: urwid.Widget = None
     current_event = ""
-    current_bottom_info = T_("Idle")
+    current_bottom_info = _("Idle")
     menu_items: List[str] = []
     body: urwid.Widget
     loop: urwid.MainLoop

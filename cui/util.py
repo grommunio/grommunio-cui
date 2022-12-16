@@ -24,16 +24,16 @@ import urwid
 import cui
 
 
-def T_(msg):
+def _(msg):
     """Dummy func"""
     return msg
 
 
 def reset_states():
-    global STATES, T_
+    global STATES, _
     new_states = {}
     for k in STATES.keys():
-        new_states[k] = T_(STATES[k])
+        new_states[k] = _(STATES[k])
     STATES = new_states
     return STATES
 
@@ -52,8 +52,8 @@ def get_button_type(key, open_func_on_ok, mb_func, cancel_msgbox_params, size):
         if val.startswith("hidden"):
             val = " ".join(val.split(" ")[1:])
         else:
-            val = T_("Cancel").lower()
-        if val == T_("Cancel").lower():
+            val = _("Cancel").lower()
+        if val == _("Cancel").lower():
             open_cancel_msg(cancel_msgbox_params, size)
     elif val == 'esc':
         open_func_on_ok()
@@ -63,14 +63,14 @@ def get_button_type(key, open_func_on_ok, mb_func, cancel_msgbox_params, size):
 
 def restart_gui():
     """Restart complete GUI to source language in again."""
-    ret_val = T_
+    ret_val = _
     langfile = '/etc/sysconfig/language'
     config = cui.classes.parser.ConfigParser(infile=langfile)
     config['ROOT_USES_LANG'] = '"yes"'
     config.write()
     # assert os.getenv('PPID') == 1, 'Gugg mal rein da!'
     locale_conf = minishell_read('/etc/locale.conf')
-    # T_ = util.init_localization()
+    # _ = util.init_localization()
     # mainapp()
     if os.getppid() == 1:
         ret_val = init_localization(language=locale_conf.get('LANG', ''))
@@ -121,13 +121,13 @@ def create_application_buttons(app):
 
     # Login Dialog
     app.view.login_window.login_header = urwid.AttrMap(
-        cui.classes.gwidgets.GText(("header", T_("Login")), align="center"), "header"
+        cui.classes.gwidgets.GText(("header", _("Login")), align="center"), "header"
     )
     app.view.button_store.user_edit = cui.classes.gwidgets.GEdit(
-        (T_("Username: "),), edit_text=getuser(), edit_pos=0
+        (_("Username: "),), edit_text=getuser(), edit_pos=0
     )
     app.view.button_store.pass_edit = cui.classes.gwidgets.GEdit(
-        T_("Password: "), edit_text="", edit_pos=0, mask="*"
+        _("Password: "), edit_text="", edit_pos=0, mask="*"
     )
     app.view.login_window.login_body = urwid.Pile(
         [
@@ -135,7 +135,7 @@ def create_application_buttons(app):
             app.view.button_store.pass_edit,
         ]
     )
-    login_button = cui.classes.button.GBoxButton(T_("Login"), app._check_login)
+    login_button = cui.classes.button.GBoxButton(_("Login"), app._check_login)
     urwid.connect_signal(
         login_button,
         "click",
@@ -146,39 +146,39 @@ def create_application_buttons(app):
     )
     # Common OK Button
     app.view.button_store.ok_button, app.view.button_store.ok_button_footer = create_both(
-        T_("OK"), "ok enter", "attr"
+        _("OK"), "ok enter", "attr"
     )
     # Common Cancel Button
     app.view.button_store.cancel_button, app.view.button_store.cancel_button_footer = create_both(
-        T_("Cancel"), "cancel enter", "grid"
+        _("Cancel"), "cancel enter", "grid"
     )
     # Common close Button
     app.view.button_store.close_button, app.view.button_store.close_button_footer = create_both(
-        T_("Close"), "close enter", "attr"
+        _("Close"), "close enter", "attr"
     )
     # Common Add Button
     app.view.button_store.add_button, app.view.button_store.add_button_footer = create_both(
-        T_("Add"), "add enter", "grid"
+        _("Add"), "add enter", "grid"
     )
     # Common Edit Button
     app.view.button_store.edit_button, app.view.button_store.edit_button_footer = create_both(
-        T_("Edit"), "edit enter", "attr"
+        _("Edit"), "edit enter", "attr"
     )
     # Common Save Button
     app.view.button_store.save_button, app.view.button_store.save_button_footer = create_both(
-        T_("Save"), "save enter", "grid"
+        _("Save"), "save enter", "grid"
     )
     # Common Details Button
     app.view.button_store.details_button, app.view.button_store.details_button_footer = create_both(
-        T_("Details"), "details enter", "grid"
+        _("Details"), "details enter", "grid"
     )
     # Common Toggle Button
     app.view.button_store.toggle_button, app.view.button_store.toggle_button_footer = create_both(
-        T_("Toggle"), "toggle enter", "grid"
+        _("Toggle"), "toggle enter", "grid"
     )
     # Common Apply Button
     app.view.button_store.apply_button, app.view.button_store.apply_button_footer = create_both(
-        T_("Apply"), "apply enter", "grid"
+        _("Apply"), "apply enter", "grid"
     )
 
 
@@ -220,7 +220,7 @@ def check_repo_dialog(app, height):
         else:
             app.message_box(
                 cui.parameter.MsgBoxParams(
-                    T_('Please check the credentials for "supported"'
+                    _('Please check the credentials for "supported"'
                        '-version or use "community"-version.'),
                 ),
                 size=cui.parameter.Size(height=height + 1)
@@ -237,28 +237,28 @@ def init_localization(language: Union[str, str, Iterable[Union[str, str]], None]
     try:
         locale.bindtextdomain('cui', 'locale' if os.path.exists("locale/de/LC_MESSAGES/cui.mo") else None)
         locale.textdomain('cui')
-        T_ = locale.gettext
+        _ = locale.gettext
         reset_states()
-        return T_
+        return _
     except OSError as _:
-        def T_(msg):
+        def _(msg):
             """
             Function for tagging text for translations.
             """
             return msg
         reset_states()
-        return T_
+        return _
 
 
 STATES = {
-    1: T_("System password is not set."),
-    2: T_("Network configuration is missing."),
-    4: T_("grommunio-setup has not been run yet."),
-    8: T_("timesyncd configuration is missing."),
-    16: T_("nginx is not running."),
+    1: _("System password is not set."),
+    2: _("Network configuration is missing."),
+    4: _("grommunio-setup has not been run yet."),
+    8: _("timesyncd configuration is missing."),
+    16: _("nginx is not running."),
 }
 
-T_ = init_localization()
+_ = init_localization()
 
 _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
     "light": [
@@ -589,14 +589,14 @@ def authenticate_user(username: str, password: str, service: str = "login") -> b
 def get_os_release() -> Tuple[str, str]:
     """Return os release"""
     osr: Path = Path("/etc/os-release")
-    name: str = T_("No name found")
-    version: str = T_("No version detectable")
+    name: str = _("No name found")
+    version: str = _("No version detectable")
     with osr.open("r", encoding="utf-8") as file_handle:
         for line in file_handle:
             if line.startswith("NAME"):
-                _, name = line.strip().split("=")
+                name = line.strip().split("=")[1]
             elif line.startswith("VERSION"):
-                _, version = line.strip().split("=")
+                version = line.strip().split("=")[1]
     return name.strip('"'), version.strip('"')
 
 
@@ -657,13 +657,11 @@ def get_load():
 def get_load_avg_format_list():
     """Return list of average load"""
     load_avg = get_load()
-    load_format = [("footer", T_(" Average load: "))]
-    _ = [
-        load_format.append(("footer", f"{t} min:"))
-        or load_format.append(("footer", f" {load_avg[i]:0.2f}"))
-        or load_format.append(("footer", " | "))
-        for i, t in enumerate([1, 5, 15])
-    ]
+    load_format = [("footer", _(" Average load: "))]
+    for i, t in enumerate([1, 5, 15]):
+        load_format.append(("footer", f"{t} min:")) or \
+        load_format.append(("footer", f" {load_avg[i]:0.2f}")) or \
+        load_format.append(("footer", " | "))
     return load_format[:-1]
 
 
@@ -698,7 +696,7 @@ def get_system_info_top():
         )
     ret_val.append("\n")
     ret_val.append(
-        T_("Memory {used} used of {total} ({available} free)").format(
+        _("Memory {used} used of {total} ({available} free)").format(
             used=get_hr(svmem.used),
             total=get_hr(svmem.total),
             available=get_hr(svmem.available)
@@ -720,7 +718,7 @@ def get_system_info_bottom():
     if check_setup_state() == 0:
         ret_val += [
             "\n",
-            T_("For further configuration, these URLs can be used:"),
+            _("For further configuration, these URLs can be used:"),
             "\n",
         ]
         ret_val.append("\n")
@@ -728,7 +726,7 @@ def get_system_info_bottom():
             ret_val.append(
                 (
                     "important",
-                    T_("It is generally NOT recommended to use localhost as hostname."),
+                    _("It is generally NOT recommended to use localhost as hostname."),
                 )
             )
             ret_val.append("\n")
@@ -754,7 +752,7 @@ def get_system_info_bottom():
     else:
         ret_val.append("\n")
         ret_val.append(
-            T_("There are still some tasks missing to run/use grommunio.")
+            _("There are still some tasks missing to run/use grommunio.")
         )
         ret_val.append("\n")
         statelist = extract_bits(check_setup_state())
@@ -763,15 +761,15 @@ def get_system_info_bottom():
             ret_val.append(("important", STATES.get(state)))
         ret_val.append("\n")
     ret_val.append("\n")
-    ret_val.append(T_("Boot Time: "))
+    ret_val.append(_("Boot Time: "))
     ret_val.append(("reverse", f"{boot_time.isoformat()}"))
     ret_val.append("\n")
     last_login = get_last_login_time()
     if last_login != "":
-        ret_val.append(T_("Last login time: {%s}") % last_login)
+        ret_val.append(_("Last login time: {%s}") % last_login)
     ret_val.append("\n")
     ret_val.append("\n")
-    ret_val.append(T_(f"Current language / PPID: {locale.getlocale()[0]} / {os.getppid()}"))
+    ret_val.append(_(f"Current language / PPID: {locale.getlocale()[0]} / {os.getppid()}"))
     ret_val.append("\n")
     return ret_val
 
@@ -789,8 +787,8 @@ def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
     elif which == "bottom":
         ret_val = get_system_info_bottom()
     else:
-        ret_val.append(T_("Oops!"))
-        ret_val.append(T_("There should be nothing."))
+        ret_val.append(_("Oops!"))
+        ret_val.append(_("There should be nothing."))
     return ret_val
 
 
@@ -854,10 +852,10 @@ def get_clockstring() -> str:
 def get_footerbar(key_size=2, name_size=10):
     """Return footerbar description"""
     ret_val = []
-    menu = {"F1": T_("Color"), "F2": T_("Login"), "F5": T_("Keyboard")}
+    menu = {"F1": _("Color"), "F2": _("Login"), "F5": _("Keyboard")}
     if os.getppid() != 1:
-        menu["F10"] = T_("Exit")
-    menu["L"] = T_("Logs")
+        menu["F10"] = _("Exit")
+    menu["L"] = _("Logs")
     spacebar = "".join(" " for _ in range(name_size))
     for item in menu.items():
         ret_val.append([

@@ -18,7 +18,7 @@ import cui.classes
 from cui.symbol import LOG_VIEWER, MAIN, MESSAGE_BOX, INPUT_BOX, PASSWORD, LOGIN, REBOOT, \
     SHUTDOWN, MAIN_MENU, ADMIN_WEB_PW, TIMESYNCD, REPO_SELECTION, KEYBOARD_SWITCH
 from cui import util, parameter
-from cui.util import T_
+from cui.util import _
 from cui.classes.interface import BaseApplication, WidgetDrawer
 from cui.classes.menu import MenuItem
 from cui.classes.button import GButton, GBoxButton
@@ -55,7 +55,7 @@ class ApplicationModel(BaseApplication):
 
         # Log file viewer
         self.log_file_content: List[str] = [
-            T_("If this is not that what you expected to see, you probably have insufficient "
+            _("If this is not that what you expected to see, you probably have insufficient "
                "permissions."),
         ]
         self._prepare_log_viewer("NetworkManager", self.control.log_control.log_line_count)
@@ -84,14 +84,14 @@ class ApplicationModel(BaseApplication):
         )
         self.view.main_frame.mainframe = frame
         self.control.app_control.body = self.view.main_frame.mainframe
-        # self.print(T_("Idle"))
+        # self.print(_("Idle"))
 
     def handle_event(self, event: Any):
         super().handle_event(event)
 
     def _process_changed_repo_config(self, height, repo_res):
-        header = GText(T_("One moment, please ..."))
-        footer = GText(T_('Fetching GPG-KEY file and refreshing '
+        header = GText(_("One moment, please ..."))
+        footer = GText(_('Fetching GPG-KEY file and refreshing '
                           'repositories. This may take a while ...'))
         self.control.app_control.progressbar = self._create_progress_bar()
         pad = urwid.Padding(self.control.app_control.progressbar)  # do not use pg! use self.control.app_control.progressbar.
@@ -126,7 +126,7 @@ class ApplicationModel(BaseApplication):
         if got_keyfile:
             self.message_box(
                 parameter.MsgBoxParams(
-                    T_('Software repository selection has been '
+                    _('Software repository selection has been '
                        'updated.'),
                 ),
                 size=parameter.Size(height=height)
@@ -134,7 +134,7 @@ class ApplicationModel(BaseApplication):
         else:
             self.message_box(
                 parameter.MsgBoxParams(
-                    T_('Software repository selection has not been '
+                    _('Software repository selection has not been '
                        'updated. Something went wrong while importing '
                        'key file.'),
                 ),
@@ -156,7 +156,7 @@ class ApplicationModel(BaseApplication):
             key,
             self._open_main_menu,
             self.message_box,
-            T_('Software repository selection has been canceled.'),
+            _('Software repository selection has been canceled.'),
             size=parameter.Size(height=height)
         )
         return {
@@ -170,18 +170,18 @@ class ApplicationModel(BaseApplication):
     def _key_ev_timesyncd(self, key):
         """Handle event on timesyncd menu."""
         self._handle_standard_tab_behaviour(key)
-        success_msg = T_("was successful")
+        success_msg = _("was successful")
         button_type = util.get_button_type(
             key,
             self._open_main_menu,
             self.message_box,
             parameter.MsgBoxParams(
-                T_(f"Timesyncd configuration change {success_msg}!"),
-                T_("Timesyncd Configuration"),
+                _(f"Timesyncd configuration change {success_msg}!"),
+                _("Timesyncd Configuration"),
             ),
             size=parameter.Size(height=10)
         )
-        success_msg = T_("NOTHING")
+        success_msg = _("NOTHING")
         if button_type == "ok":
             # Save config and return to mainmenu
             self.control.menu_control.timesyncd_vars["NTP"] = self.timesyncd_body.base_widget[
@@ -199,13 +199,13 @@ class ApplicationModel(BaseApplication):
                 stdout=subprocess.DEVNULL,
             ) as ret_code:
                 res = ret_code.wait() == 0
-                success_msg = T_("was successful")
+                success_msg = _("was successful")
                 if not res:
-                    success_msg = T_("failed")
+                    success_msg = _("failed")
             self.message_box(
                 parameter.MsgBoxParams(
-                    T_(f"Timesyncd configuration change {success_msg}!"),
-                    T_("Timesyncd Configuration"),
+                    _(f"Timesyncd configuration change {success_msg}!"),
+                    _("Timesyncd Configuration"),
                 ),
                 size=parameter.Size(height=10)
             )
@@ -297,7 +297,7 @@ class ApplicationModel(BaseApplication):
         :param creator: The widget creating calling the function.
         :param option: On if True, off otherwise.
         """
-        self.print(T_(f"Creator ({creator}) clicked {option}."))
+        self.print(_(f"Creator ({creator}) clicked {option}."))
 
     def _open_terminal(self):
         """
@@ -308,7 +308,7 @@ class ApplicationModel(BaseApplication):
         print("\x1b[K")
         print(
             "\x1b[K \x1b[36m▼\x1b[0m",
-            T_("To return to the CUI, issue the `exit` command.")
+            _("To return to the CUI, issue the `exit` command.")
         )
         print("\x1b[J")
         # We have no environment, and so need su instead of just bash to launch
@@ -319,10 +319,10 @@ class ApplicationModel(BaseApplication):
 
     def _reboot_confirm(self):
         """Confirm reboot."""
-        msg = T_("Are you sure?\n")
-        msg += T_("After pressing OK, ")
-        msg += T_("the system will reboot.")
-        title = T_("Reboot")
+        msg = _("Are you sure?\n")
+        msg += _("After pressing OK, ")
+        msg += _("the system will reboot.")
+        title = _("Reboot")
         self.control.app_control.current_window = REBOOT
         self.message_box(
             parameter.MsgBoxParams(msg, title),
@@ -332,10 +332,10 @@ class ApplicationModel(BaseApplication):
 
     def _shutdown_confirm(self):
         """Confirm shutdown."""
-        msg = T_("Are you sure?\n")
-        msg += T_("After pressing OK, ")
-        msg += T_("the system will shut down and power off.")
-        title = T_("Shutdown")
+        msg = _("Are you sure?\n")
+        msg += _("After pressing OK, ")
+        msg += _("the system will shut down and power off.")
+        title = _("Shutdown")
         self.control.app_control.current_window = SHUTDOWN
         self.message_box(
             parameter.MsgBoxParams(msg, title),
@@ -348,13 +348,13 @@ class ApplicationModel(BaseApplication):
         Opens password changing dialog.
         """
         self._reset_layout()
-        self.print(T_("Changing system password"))
+        self.print(_("Changing system password"))
         self._open_change_system_pw_dialog()
 
     def _open_change_system_pw_dialog(self):
         """Open the change system password Dialog."""
-        title = T_("System Password Change")
-        msg = T_("Enter the new system password:")
+        title = _("System Password Change")
+        msg = _("Enter the new system password:")
         self._create_password_dialog(msg, title, PASSWORD)
 
     def _create_password_dialog(self, msg, title, current_window):
@@ -455,7 +455,7 @@ class ApplicationModel(BaseApplication):
                 else:
                     post.append(src[:-8])
         header = (
-            T_("Use the arrow keys to switch between logfiles. <urwid.LEFT> and <RIGHT> switch the logfile, while <+> and <-> changes the line count to view. (%s)") % self.control.log_control.log_line_count
+            _("Use the arrow keys to switch between logfiles. <urwid.LEFT> and <RIGHT> switch the logfile, while <+> and <-> changes the line count to view. (%s)") % self.control.log_control.log_line_count
         )
         self.control.log_control.log_viewer = urwid.LineBox(
             urwid.AttrMap(
@@ -523,7 +523,7 @@ class ApplicationModel(BaseApplication):
             self.control.app_control.log_file_caller = self.control.app_control.current_window
             self.control.app_control.log_file_caller_body = self.control.app_control.body
             self.control.app_control.current_window = LOG_VIEWER
-        self.print(T_("Log file viewer has to open file {%s} ...") % unit)
+        self.print(_("Log file viewer has to open file {%s} ...") % unit)
         self._prepare_log_viewer(unit, lines)
         self.control.app_control.body = self.control.log_control.log_viewer
         self.control.app_control.loop.widget = self.control.app_control.body
@@ -535,7 +535,7 @@ class ApplicationModel(BaseApplication):
         print("\x1b[K")
         print(
             "\x1b[K \x1b[36m▼\x1b[0m",
-            T_("Please wait while `yast2 %s` is being run.") % modulename
+            _("Please wait while `yast2 %s` is being run.") % modulename
         )
         print("\x1b[J")
         os.system(f"yast2 {modulename}")
@@ -556,16 +556,16 @@ class ApplicationModel(BaseApplication):
 
     def _open_reset_aapi_pw(self):
         """Open reset admin-API password."""
-        title = T_("admin-web Password Change")
-        msg = T_("Enter the new admin-web password:")
+        title = _("admin-web Password Change")
+        msg = _("Enter the new admin-web password:")
         self._create_password_dialog(msg, title, ADMIN_WEB_PW)
 
     def _open_timesyncd_conf(self):
         """Open timesyncd configuration form."""
         self._reset_layout()
-        self.print(T_("Opening timesyncd configuration"))
+        self.print(_("Opening timesyncd configuration"))
         self.control.app_control.current_window = TIMESYNCD
-        header = urwid.AttrMap(GText(T_("Timesyncd Configuration"), urwid.CENTER), "header")
+        header = urwid.AttrMap(GText(_("Timesyncd Configuration"), urwid.CENTER), "header")
         self._prepare_timesyncd_config()
         self._open_conf_dialog(self.timesyncd_body, header, [self.view.button_store.ok_button, self.view.button_store.cancel_button])
 
@@ -611,7 +611,7 @@ class ApplicationModel(BaseApplication):
         )
         ntp_server = ntp_from_file.split(" ")
         fallback_server = fallback_from_file.split(" ")
-        text = T_("Insert the NTP servers separated by <urwid.SPACE> char.")
+        text = _("Insert the NTP servers separated by <urwid.SPACE> char.")
         self.timesyncd_body = urwid.LineBox(
             urwid.Padding(
                 urwid.Filler(
@@ -636,9 +636,9 @@ class ApplicationModel(BaseApplication):
     def _open_repo_conf(self):
         """Open repository configuration form."""
         self._reset_layout()
-        self.print(T_("Opening repository selection"))
+        self.print(_("Opening repository selection"))
         self.control.app_control.current_window = REPO_SELECTION
-        header = urwid.AttrMap(GText(T_("Software repository selection"), urwid.CENTER), "header")
+        header = urwid.AttrMap(GText(_("Software repository selection"), urwid.CENTER), "header")
         self._prepare_repo_config()
         self._open_conf_dialog(self.control.menu_control.repo_selection_body, header, [self.view.button_store.save_button, self.view.button_store.cancel_button])
 
@@ -669,17 +669,17 @@ class ApplicationModel(BaseApplication):
         body_content = [
             blank,
             urwid.RadioButton(
-                rbg, T_('Use "community" repository'), state=is_community
+                rbg, _('Use "community" repository'), state=is_community
             ),
             blank,
             urwid.RadioButton(
-                rbg, T_('Use "supported" repository'), state=is_supported
+                rbg, _('Use "supported" repository'), state=is_supported
             ),
             urwid.Columns([
-                vblank, GEdit(T_('Username: '), edit_text=default_user), vblank
+                vblank, GEdit(_('Username: '), edit_text=default_user), vblank
             ]),
             urwid.Columns([
-                vblank, GEdit(T_('Password: '), edit_text=default_pw), vblank
+                vblank, GEdit(_('Password: '), edit_text=default_pw), vblank
             ])
         ]
         self.control.menu_control.repo_selection_body = urwid.LineBox(urwid.Padding(urwid.Filler(urwid.Pile(body_content), urwid.TOP)))
@@ -700,9 +700,9 @@ class ApplicationModel(BaseApplication):
         Opens amin menu,
         """
         self._reset_layout()
-        self.print(T_("Login successful"))
+        self.print(_("Login successful"))
         self.control.app_control.current_window = MAIN_MENU
-        self.view.header.set_authorized_options(T_(", <F4> for Main-Menu"))
+        self.view.header.set_authorized_options(_(", <F4> for Main-Menu"))
         self.prepare_mainscreen()
         self.control.app_control.body = self.view.top_main_menu.main_menu
         self.control.app_control.loop.widget = self.control.app_control.body
@@ -712,7 +712,7 @@ class ApplicationModel(BaseApplication):
         Opens main window. (Welcome screen)
         """
         self._reset_layout()
-        self.print(T_("Returning to main screen."))
+        self.print(_("Returning to main screen."))
         self.control.app_control.current_window = MAIN
         self.prepare_mainscreen()
         self.control.app_control.loop.widget = self.control.app_control.body
@@ -723,11 +723,11 @@ class ApplicationModel(BaseApplication):
         """
         if self.view.button_store.user_edit.get_edit_text() != getuser() and os.getegid() != 0:
             self.message_box(
-                parameter.MsgBoxParams(T_("You need root privileges to use another user.")),
+                parameter.MsgBoxParams(_("You need root privileges to use another user.")),
                 size=parameter.Size(height=10)
             )
             return
-        msg = T_("checking user %s with pass ") % self.view.button_store.user_edit.get_edit_text()
+        msg = _("checking user %s with pass ") % self.view.button_store.user_edit.get_edit_text()
         if self.control.app_control.current_window == LOGIN:
             if util.authenticate_user(
                 self.view.button_store.user_edit.get_edit_text(), self.view.button_store.pass_edit.get_edit_text()
@@ -737,11 +737,11 @@ class ApplicationModel(BaseApplication):
             else:
                 self.message_box(
                     parameter.MsgBoxParams(
-                        T_("Incorrect credentials. Access denied!"),
-                        T_("Password verification"),
+                        _("Incorrect credentials. Access denied!"),
+                        _("Password verification"),
                     )
                 )
-                self.print(T_("Login wrong! (%s)") % msg)
+                self.print(_("Login wrong! (%s)") % msg)
 
     def _press_button(self, button: urwid.Widget, *args, **kwargs):
         """
@@ -749,7 +749,7 @@ class ApplicationModel(BaseApplication):
 
         :param button: The button been clicked.
         """
-        label: str = T_("UNKNOWN LABEL")
+        label: str = _("UNKNOWN LABEL")
         if isinstance(button, (GButton, urwid.RadioButton, WidgetDrawer)):
             label = button.label
         self.control.app_control.last_pressed_button = label
@@ -785,7 +785,7 @@ class ApplicationModel(BaseApplication):
     def _open_keyboard_selection_menu(self):
         """Open keyboard selection menu form."""
         self._reset_layout()
-        self.print(T_("Opening keyboard configuration"))
+        self.print(_("Opening keyboard configuration"))
         self.control.app_control.last_current_window = self.control.app_control.current_window
         self.control.app_control.current_window = KEYBOARD_SWITCH
         header = None
@@ -969,7 +969,7 @@ class ApplicationModel(BaseApplication):
         footer = self._create_footer(view_buttons.view_ok, view_buttons.view_cancel)
 
         if mb_params.title is None:
-            title = T_("Message")
+            title = _("Message")
         else:
             title = mb_params.title
         frame: parameter.Frame = parameter.Frame(
@@ -1036,7 +1036,7 @@ class ApplicationModel(BaseApplication):
         footer = self._create_footer(view_buttons.view_ok, view_buttons.view_cancel)
 
         if ib_params.title is None:
-            title = T_("Input expected")
+            title = _("Input expected")
         else:
             title = ib_params.title
         frame: parameter.Frame = parameter.Frame(
@@ -1237,7 +1237,7 @@ class ApplicationModel(BaseApplication):
         """
         # Body
         if isinstance(frame.body, str) and frame.body == "":
-            body = GText(T_("No body"), align="center")
+            body = GText(_("No body"), align="center")
             body = urwid.Filler(body, valign="top")
             body = urwid.Padding(body, left=1, right=1)
             body = urwid.LineBox(body)
