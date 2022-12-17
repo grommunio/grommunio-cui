@@ -6,25 +6,20 @@ import os
 import re
 import subprocess
 import time
-from getpass import getuser
 from pathlib import Path
 from typing import Dict, Any, List, Tuple, Set
 
-import requests
 import urwid
 import yaml
-from requests import Response
 from systemd import journal
-from yaml import SafeLoader
 
 import cui.classes
 import cui.classes.button
-from cui.symbol import LOG_VIEWER, MAIN, MESSAGE_BOX, INPUT_BOX, PASSWORD, LOGIN, REBOOT, \
-    SHUTDOWN, MAIN_MENU, ADMIN_WEB_PW, TIMESYNCD, REPO_SELECTION, KEYBOARD_SWITCH
+from cui.symbol import LOG_VIEWER, MAIN, MESSAGE_BOX, INPUT_BOX, PASSWORD, \
+    MAIN_MENU, ADMIN_WEB_PW, TIMESYNCD, REPO_SELECTION, KEYBOARD_SWITCH
 from cui import util, parameter
 from cui.util import _
-from cui.classes.interface import BaseApplication, WidgetDrawer
-from cui.classes.menu import MenuItem
+from cui.classes.interface import BaseApplication
 from cui.classes.button import GButton, GBoxButton
 from cui.classes.application import Header, MainFrame
 from cui.classes.gwidgets import GText, GEdit
@@ -94,259 +89,12 @@ class ApplicationModel(BaseApplication):
         self.print(event)
         super().handle_event(event)
 
-    def _process_changed_repo_config(self, height, repo_res):
-        header = GText(_("One moment, please ..."))
-        footer = GText(_('Fetching GPG-KEY file and refreshing '
-                          'repositories. This may take a while ...'))
-        self.control.app_control.progressbar = self._create_progress_bar()
-        pad = urwid.Padding(self.control.app_control.progressbar)
-        fil = urwid.Filler(pad)
-        linebox = urwid.LineBox(fil)
-        frame: parameter.Frame = parameter.Frame(linebox, header, footer)
-        self.dialog(frame)
-        self._draw_progress(20)
-        res: Response = requests.get(repo_res.get("keyurl", None))
-        got_keyfile: bool = False
-        if res.status_code == 200:
-            self._draw_progress(30)
-            tmp = Path(repo_res.get("keyfile", None))
-            with tmp.open('w', encoding="utf-8") as file:
-                file.write(res.content.decode())
-            self._draw_progress(40)
-            with subprocess.Popen(
-                    ["rpm", "--import", repo_res.get("keyfile", None)],
-                    stderr=subprocess.DEVNULL,
-                    stdout=subprocess.DEVNULL,
-            ) as ret_code_rpm:
-                if ret_code_rpm.wait() == 0:
-                    self._draw_progress(60)
-                    with subprocess.Popen(
-                            ["zypper", "--non-interactive", "refresh"],
-                            stderr=subprocess.DEVNULL,
-                            stdout=subprocess.DEVNULL,
-                    ) as ret_code_zypper:
-                        if ret_code_zypper.wait() == 0:
-                            self._draw_progress(100)
-                            got_keyfile = True
-        if got_keyfile:
-            self.message_box(
-                parameter.MsgBoxParams(
-                    _('Software repository selection has been '
-                       'updated.'),
-                ),
-                size=parameter.Size(height=height)
-            )
-        else:
-            self.message_box(
-                parameter.MsgBoxParams(
-                    _('Software repository selection has not been '
-                       'updated. Something went wrong while importing '
-                       'key file.'),
-                ),
-                size=parameter.Size(height=height + 1)
-            )
-
-    def _init_repo_selection(self, key, height):
-        self._handle_standard_tab_behaviour(key)
-        keyurl = 'https://download.grommunio.com/RPM-GPG-KEY-grommunio'
-        keyfile = '/tmp/RPM-GPG-KEY-grommunio'
-        repofile = '/etc/zypp/repos.d/grommunio.repo'
-        config = cui.classes.parser.ConfigParser(infile=repofile)
-        # config.filename = repofile
-        if not config.get('grommunio'):
-            config['grommunio'] = {}
-            config['grommunio']['enabled'] = 1
-            config['grommunio']['auorefresh'] = 1
-        button_type = util.get_button_type(
-            key,
-            self._open_main_menu,
-            self.message_box,
-            _('Software repository selection has been canceled.'),
-            size=parameter.Size(height=height)
-        )
-        return {
-            "button_type": button_type,
-            "config": config,
-            "keyfile": keyfile,
-            "keyurl": keyurl,
-            "repofile": repofile
-        }
-
-    def _key_ev_timesyncd(self, key):
-        """Handle event on timesyncd menu."""
-        self._handle_standard_tab_behaviour(key)
-        success_msg = _("was successful")
-        button_type = util.get_button_type(
-            key,
-            self._open_main_menu,
-            self.message_box,
-            parameter.MsgBoxParams(
-                _(f"Timesyncd configuration change {success_msg}!"),
-                _("Timesyncd Configuration"),
-            ),
-            size=parameter.Size(height=10)
-        )
-        success_msg = _("NOTHING")
-        if button_type == "ok":
-            # Save config and return to mainmenu
-            self.control.menu_control.timesyncd_vars["NTP"] = self.timesyncd_body.base_widget[
-                1
-            ].edit_text
-            self.control.menu_control.timesyncd_vars[
-                "FallbackNTP"
-            ] = self.timesyncd_body.base_widget[2].edit_text
-            util.lineconfig_write(
-                "/etc/systemd/timesyncd.conf", self.control.menu_control.timesyncd_vars
-            )
-            with subprocess.Popen(
-                ["timedatectl", "set-ntp", "true"],
-                stderr=subprocess.DEVNULL,
-                stdout=subprocess.DEVNULL,
-            ) as ret_code:
-                res = ret_code.wait() == 0
-                success_msg = _("was successful")
-                if not res:
-                    success_msg = _("failed")
-            self.message_box(
-                parameter.MsgBoxParams(
-                    _(f"Timesyncd configuration change {success_msg}!"),
-                    _("Timesyncd Configuration"),
-                ),
-                size=parameter.Size(height=10)
-            )
-
-    def _key_ev_kbd_switch(self, key: str):
-        """Handle event on keyboard switch."""
-        self._handle_standard_tab_behaviour(key)
-        menu_id = self._handle_standard_menu_behaviour(
-            self.control.menu_control.keyboard_switch_body, key
-        )
-        stay = False
-        if (
-            key.lower().endswith("enter") and key.lower().startswith("hidden")
-        ) or key.lower() in ["space"]:
-            kbd = self.control.menu_control.keyboard_content[menu_id - 1]
-            self._set_kbd_layout(kbd)
-        elif key.lower() == "esc":
-            print()
-        else:
-            stay = True
-        if not stay:
-            self._return_to()
-
-    def _handle_mouse_event(self, event: Any):
-        """Handle mouse event while event is a mouse event in the
-        form ('mouse press or release', button, column, line)"""
-        event: Tuple[str, float, int, int] = tuple(event)
-        if event[0] == "mouse press" and event[1] == 1:
-            # self.handle_event('mouseclick left enter')
-            self.handle_event("my mouseclick left button")
-
     def _return_to(self):
         """Return to mainframe or mainmenu depending on situation and state."""
         if self.control.app_control.last_current_window in [MAIN_MENU]:
             self._open_main_menu()
         else:
             self._open_mainframe()
-
-    def _load_journal_units(self):
-        exe = "/usr/sbin/grommunio-admin"
-        out = ""
-        if Path(exe).exists():
-            with subprocess.Popen(
-                [exe, "config", "dump"],
-                stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-            ) as process:
-                out = process.communicate()[0]
-            if isinstance(out, bytes):
-                out = out.decode()
-        if out == "":
-            self.admin_api_config = {
-                "logs": {"gromox-http": {"source": "gromox-http.service"}}
-            }
-        else:
-            self.admin_api_config = yaml.load(out, Loader=SafeLoader)
-        self.control.log_control.log_units = self.admin_api_config.get(
-            "logs", {"gromox-http": {"source": "gromox-http.service"}}
-        )
-        for i, k in enumerate(self.control.log_control.log_units.keys()):
-            if k == "Gromox http":
-                self.control.log_control.current_log_unit = i
-                break
-
-    def _get_logging_formatter(self) -> str:
-        """Get logging formatter."""
-        default = (
-            self.admin_api_config.get("logging", {})
-            .get("formatters", {})
-            .get("mi-default", {})
-        )
-        return default.get(
-            "format",
-            '[%(asctime)s] [%(levelname)s] (%(module)s): "%(message)s"',
-        )
-
-    def _get_log_unit_by_id(self, idx) -> str:
-        """Get logging unit by idx."""
-        for i, k in enumerate(self.control.log_control.log_units.keys()):
-            if idx == i:
-                return self.control.log_control.log_units[k].get("source")[:-8]
-        return ""
-
-    def handle_click(self, creator: urwid.Widget, option: bool = False):
-        """
-        Handles urwid.RadioButton clicks.
-
-        :param creator: The widget creating calling the function.
-        :param option: On if True, off otherwise.
-        """
-        self.print(_(f"Creator ({creator}) clicked {option}."))
-
-    def _open_terminal(self):
-        """
-        Jump to a shell prompt
-        """
-        self.control.app_control.loop.stop()
-        self.view.gscreen.screen.tty_signal_keys(*self.view.gscreen.old_termios)
-        print("\x1b[K")
-        print(
-            "\x1b[K \x1b[36m▼\x1b[0m",
-            _("To return to the CUI, issue the `exit` command.")
-        )
-        print("\x1b[J")
-        # We have no environment, and so need su instead of just bash to launch
-        # a proper PAM session and set $HOME, etc.
-        os.system("/usr/bin/su -l")
-        self.view.gscreen.screen.tty_signal_keys(*self.view.gscreen.blank_termios)
-        self.control.app_control.loop.start()
-
-    def _reboot_confirm(self):
-        """Confirm reboot."""
-        msg = _("Are you sure?\n")
-        msg += _("After pressing OK, ")
-        msg += _("the system will reboot.")
-        title = _("Reboot")
-        self.control.app_control.current_window = REBOOT
-        self.message_box(
-            parameter.MsgBoxParams(msg, title),
-            size=parameter.Size(width=80, height=10),
-            view_buttons=parameter.ViewOkCancel(view_ok=True, view_cancel=True)
-        )
-
-    def _shutdown_confirm(self):
-        """Confirm shutdown."""
-        msg = _("Are you sure?\n")
-        msg += _("After pressing OK, ")
-        msg += _("the system will shut down and power off.")
-        title = _("Shutdown")
-        self.control.app_control.current_window = SHUTDOWN
-        self.message_box(
-            parameter.MsgBoxParams(msg, title),
-            size=parameter.Size(width=80, height=10),
-            view_buttons=parameter.ViewOkCancel(view_ok=True, view_cancel=True)
-        )
 
     def _open_change_password(self):
         """
@@ -409,6 +157,52 @@ class ApplicationModel(BaseApplication):
                 ]
             ),
         )
+
+    def _load_journal_units(self):
+        exe = "/usr/sbin/grommunio-admin"
+        out = ""
+        if Path(exe).exists():
+            with subprocess.Popen(
+                [exe, "config", "dump"],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            ) as process:
+                out = process.communicate()[0]
+            if isinstance(out, bytes):
+                out = out.decode()
+        if out == "":
+            self.admin_api_config = {
+                "logs": {"gromox-http": {"source": "gromox-http.service"}}
+            }
+        else:
+            self.admin_api_config = yaml.load(out, Loader=yaml.SafeLoader)
+        self.control.log_control.log_units = self.admin_api_config.get(
+            "logs", {"gromox-http": {"source": "gromox-http.service"}}
+        )
+        for i, k in enumerate(self.control.log_control.log_units.keys()):
+            if k == "Gromox http":
+                self.control.log_control.current_log_unit = i
+                break
+
+    def _get_logging_formatter(self) -> str:
+        """Get logging formatter."""
+        default = (
+            self.admin_api_config.get("logging", {})
+            .get("formatters", {})
+            .get("mi-default", {})
+        )
+        return default.get(
+            "format",
+            '[%(asctime)s] [%(levelname)s] (%(module)s): "%(message)s"',
+        )
+
+    def _get_log_unit_by_id(self, idx) -> str:
+        """Get logging unit by idx."""
+        for i, k in enumerate(self.control.log_control.log_units.keys()):
+            if idx == i:
+                return self.control.log_control.log_units[k].get("source")[:-8]
+        return ""
 
     def _prepare_log_viewer(self, unit: str = "syslog", lines: int = 0):
         """
@@ -534,32 +328,6 @@ class ApplicationModel(BaseApplication):
         self._prepare_log_viewer(unit, lines)
         self.control.app_control.body = self.control.log_control.log_viewer
         self.control.app_control.loop.widget = self.control.app_control.body
-
-    def _run_yast_module(self, modulename: str):
-        """Run yast module `modulename`."""
-        self.control.app_control.loop.stop()
-        self.view.gscreen.screen.tty_signal_keys(*self.view.gscreen.old_termios)
-        print("\x1b[K")
-        print(
-            "\x1b[K \x1b[36m▼\x1b[0m",
-            _("Please wait while `yast2 %s` is being run.") % modulename
-        )
-        print("\x1b[J")
-        os.system(f"yast2 {modulename}")
-        self.view.gscreen.screen.tty_signal_keys(*self.view.gscreen.blank_termios)
-        self.control.app_control.loop.start()
-
-    def _run_zypper(self, subcmd: str):
-        """Run zypper modul `subcmd`."""
-        self.control.app_control.loop.stop()
-        self.view.gscreen.screen.tty_signal_keys(*self.view.gscreen.old_termios)
-        print("\x1b[K")
-        print("\x1b[K \x1b[36m▼\x1b[0m Please wait while zypper is invoked.")
-        print("\x1b[J")
-        os.system(f"zypper {subcmd}")
-        input("\n \x1b[36m▼\x1b[0m Press ENTER to return to the CUI.")
-        self.view.gscreen.screen.tty_signal_keys(*self.view.gscreen.blank_termios)
-        self.control.app_control.loop.start()
 
     def _open_reset_aapi_pw(self):
         """Open reset admin-API password."""
@@ -730,70 +498,6 @@ class ApplicationModel(BaseApplication):
         self.prepare_mainscreen()
         self.control.app_control.loop.widget = self.control.app_control.body
 
-    def check_login(self):
-        """
-        Checks login data and switch to authenticate on if successful.
-        """
-        if self.view.button_store.user_edit.get_edit_text() != getuser() and os.getegid() != 0:
-            self.message_box(
-                parameter.MsgBoxParams(_("You need root privileges to use another user.")),
-                size=parameter.Size(height=10)
-            )
-            return
-        msg = _("checking user %s with pass ") % self.view.button_store.user_edit.get_edit_text()
-        if self.control.app_control.current_window == LOGIN:
-            if util.authenticate_user(self.view.button_store.user_edit.get_edit_text(),
-                                      self.view.button_store.pass_edit.get_edit_text()):
-                self.view.button_store.pass_edit.set_edit_text("")
-                self._open_main_menu()
-            else:
-                self.message_box(
-                    parameter.MsgBoxParams(
-                        _("Incorrect credentials. Access denied!"),
-                        _("Password verification"),
-                    )
-                )
-                self.print(_("Login wrong! (%s)") % msg)
-
-    def press_button(self, button: urwid.Widget, *args, **kwargs):
-        """
-        Handles general events if a button is pressed.
-
-        :param button: The button been clicked.
-        """
-        label: str = _("UNKNOWN LABEL")
-        if isinstance(button, (GButton, urwid.RadioButton, WidgetDrawer)):
-            label = button.label
-        self.control.app_control.last_pressed_button = label
-        if self.control.app_control.current_window not in [MAIN]:
-            self.print(
-                f"{self.__class__}.press_button(button={button}, "
-                f"*args={args}, kwargs={kwargs})"
-            )
-            self.handle_event(f"{label} enter")
-
-    def _switch_next_colormode(self):
-        """Switch to next color scheme."""
-        original = self.view.header.get_colormode()
-        color_name = util.get_next_palette_name(original)
-        palette = util.get_palette(color_name)
-        show_next = color_name
-        self.view.header.set_colormode(show_next)
-        self.view.header.refresh_header()
-        self.control.app_control.loop.screen.register_palette(palette)
-        self.control.app_control.loop.screen.clear()
-
-    def _set_kbd_layout(self, layout):
-        """Set and save selected keyboard layout."""
-        # Do read the file again so newly added keys do not get lost
-        file = "/etc/vconsole.conf"
-        var = util.minishell_read(file)
-        var["KEYMAP"] = layout
-        util.minishell_write(file, var)
-        os.system("systemctl restart systemd-vconsole-setup")
-        self.view.header.set_kbdlayout(layout)
-        self.view.header.refresh_head_text()
-
     def _open_keyboard_selection_menu(self):
         """Open keyboard selection menu form."""
         self._reset_layout()
@@ -812,6 +516,17 @@ class ApplicationModel(BaseApplication):
         alignment: parameter.Alignment = parameter.Alignment(urwid.CENTER, urwid.MIDDLE)
         size: parameter.Size = parameter.Size(30, 10)
         self.dialog(frame, alignment=alignment, size=size)
+
+    def _set_kbd_layout(self, layout):
+        """Set and save selected keyboard layout."""
+        # Do read the file again so newly added keys do not get lost
+        file = "/etc/vconsole.conf"
+        var = util.minishell_read(file)
+        var["KEYMAP"] = layout
+        util.minishell_write(file, var)
+        os.system("systemctl restart systemd-vconsole-setup")
+        self.view.header.set_kbdlayout(layout)
+        self.view.header.refresh_head_text()
 
     def _prepare_kbd_config(self):
         """Prepare keyboard config form."""
@@ -1111,118 +826,6 @@ class ApplicationModel(BaseApplication):
         cols += [("weight", 1, GText(""))]
         footer = urwid.AttrMap(urwid.Columns(cols), "buttonbar")
         return footer
-
-    def get_focused_menu(self, menu: urwid.ListBox, event: Any) -> int:
-        """
-        Returns idx of focused menu item. Returns current idx on enter or 1-9 or
-        click, and returns the next idx if
-        key is up or down.
-
-        :param menu: The menu from which you want to know the idx.
-        :type: urwid.ListBox
-        :param event: The event passed to the menu.
-        :type: Any
-        :returns: The idx of the selected menu item. (>=1)
-        :rtype: int
-        """
-        self.view.top_main_menu.current_menu_focus = super().view.top_main_menu.get_focused_menu(
-            menu, event
-        )
-        return self.view.top_main_menu.current_menu_focus
-
-    def _handle_standard_menu_behaviour(
-        self, menu: urwid.ListBox, event: Any, description_box: urwid.ListBox = None
-    ) -> int:
-        """
-        Handles standard menu behaviour and returns the focused idx, if any.
-
-        :param menu: The menu to be handled.
-        :param event: The event to be handled.
-        :param description_box: The urwid.ListBox containing the menu content that
-        may be refreshed with the next description.
-        :return: The idx of the menu having the focus (1+)
-        """
-        if event == "esc":
-            return 1
-        idx: int = self.get_focused_menu(menu, event)
-        if str(event) not in ["up", "down"]:
-            return idx
-        if description_box is not None:
-            focused_item: MenuItem = menu.body[idx - 1].base_widget
-            description_box.body[0] = focused_item.get_description()
-        return idx
-
-    def _handle_standard_tab_behaviour(self, key: str = "tab"):
-        """
-        Handles standard tabulator behaviour in dialogs. Switching from body
-        to footer and vice versa.
-
-        :param key: The key to be handled.
-        """
-        top_keys = ['shift tab', 'up', 'left', 'meta tab']
-        bottom_keys = ['tab', 'down', 'right']
-
-        def switch_body_footer():
-            if self.view.gscreen.layout.focus_position == "body":
-                self.view.gscreen.layout.focus_position = "footer"
-            elif self.view.gscreen.layout.focus_position == "footer":
-                self.view.gscreen.layout.focus_position = "body"
-
-        def count_selectables(widget_list, up_to: int = None):
-            if up_to is None:
-                up_to = len(widget_list) - 1
-            limit = up_to + 1
-            non_sels = 0
-            sels = 0
-            for widget in widget_list:
-                if widget.selectable():
-                    sels = sels + 1
-                else:
-                    non_sels = non_sels + 1
-                if non_sels + sels == limit:
-                    break
-            return sels
-
-        def jump_part(part):
-            """Within this function we ignore all not _selectables."""
-            first = 0
-            try:
-                last = len(part.base_widget.widget_list) - 1
-            except IndexError:
-                last = 0
-            current = part.base_widget.focus_position
-            # Reduce last and current by non selectables
-            non_sels_current = current + 1 - count_selectables(
-                part.base_widget.widget_list, current
-            )
-            non_sels_last = last + 1 - count_selectables(part.base_widget.widget_list, last)
-            last = last - non_sels_last
-            current = current - non_sels_current
-            if current <= first and key in top_keys \
-                    and self.view.gscreen.layout.focus_part == 'footer':
-                switch_body_footer()
-            if current >= last and key in bottom_keys \
-                    and self.view.gscreen.layout.focus_part == 'body':
-                switch_body_footer()
-            else:
-                move: int = 0
-                if first <= current < last and key in bottom_keys:
-                    move = 1
-                elif first < current <= last and key in top_keys:
-                    move = -1
-                new_focus = part.base_widget.focus_position + move
-                while 0 <= new_focus < len(part.base_widget.widget_list):
-                    if part.base_widget.widget_list[new_focus].selectable():
-                        part.base_widget.focus_position = new_focus
-                        break
-                    new_focus += move
-        # self.print(f"key is {key}")
-        if key.endswith("tab") or key.endswith("down") or key.endswith('up'):
-            current_part = self.view.gscreen.layout.focus_part
-            if current_part == 'body':
-                jump_part(self.view.gscreen.layout.body)
-            elif current_part == 'footer':
-                jump_part(self.view.gscreen.layout.footer)
 
     def set_debug(self, yes: bool):
         """
