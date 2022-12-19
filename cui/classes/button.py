@@ -166,9 +166,10 @@ def create_application_buttons(app):
         "click",
         lambda button: app.handle_event("login enter"),
     )
-    app.view.login_window.login_footer = urwid.AttrMap(
-        urwid.Columns([cui.classes.gwidgets.GText(""), login_button, cui.classes.gwidgets.GText("")]), "buttonbar"
-    )
+    app.view.login_window.login_footer = urwid.AttrMap(urwid.Columns([
+        cui.classes.gwidgets.GText(""),
+        login_button, cui.classes.gwidgets.GText("")
+    ]), "buttonbar")
     # Common OK Button
     app.view.button_store.ok_button, app.view.button_store.ok_button_footer = create_both(
         _("OK"), "ok enter", "attr"
