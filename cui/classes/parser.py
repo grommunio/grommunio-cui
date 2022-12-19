@@ -1,7 +1,10 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# SPDX-FileCopyrightText: 2022 grommunio GmbH
+"""The module containing the parser classes"""
 import configparser
-import configobj
 import io
 from typing import Iterable, Tuple, List
+import configobj
 
 
 class SectionlessConfigParser(configparser.RawConfigParser):
@@ -20,9 +23,11 @@ class SectionlessConfigParser(configparser.RawConfigParser):
         self.set_default_section(default_section or '__config__')
 
     def get_default_section(self):
+        """Return the default section of the configfile"""
         return self._default_section
 
     def set_default_section(self, section):
+        """Set the default section of the configfile"""
         self.add_section(section)
 
         # move all values from the previous default section to the new one
@@ -44,8 +49,8 @@ class SectionlessConfigParser(configparser.RawConfigParser):
         read_ok = []
         for filename in filenames:
             try:
-                with open(filename) as fp:
-                    self.readfp(fp)
+                with open(filename, "r", encoding='utf-8') as file_handle:
+                    self.readfp(file_handle)
             except IOError:
                 continue
             else:
@@ -53,7 +58,7 @@ class SectionlessConfigParser(configparser.RawConfigParser):
 
         return read_ok
 
-    def readfp(self, fp, filename=None, *args, **kwargs):
+    def readfp(self, fp, filename=None):
         if isinstance(fp, io.TextIOWrapper):
             local_fp: io.TextIOWrapper = fp
         else:
@@ -80,7 +85,7 @@ class SectionlessConfigParser(configparser.RawConfigParser):
             self.remove_section(self._default_section)
 
             for (key, value) in default_section_items:
-                fp.write("{0} = {1}\n".format(key, value))
+                fp.write(f"{key} = {value}\n")
 
             fp.write("\n")
         except configparser.NoSectionError:
@@ -94,13 +99,15 @@ class SectionlessConfigParser(configparser.RawConfigParser):
 
 
 class ConfigParser(configobj.ConfigObj):
+    """Config file parser class to read and write config files"""
     space_around_delimiters = None
     _delimiters = "=:"
 
-    def __init__(self, delimiters='=:', space_around_delimiter=None, *args, **kwargs):
-        infile = kwargs.pop('infile', None)
+    def __init__(self, *args, delimiters='=:', space_around_delimiter=None, **kwargs):
+        kwargs["infile"] = kwargs.pop('infile', args[0] if len(args) > 0 else None)
+
         # configobj.ConfigObj(self, *args, **kwargs)
-        super().__init__(infile=infile, *args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.space_around_delimiters = space_around_delimiter
         self._delimiters = delimiters
 
@@ -112,35 +119,32 @@ class ConfigParser(configobj.ConfigObj):
         else:
             val = repr(this_entry)
         if self.space_around_delimiters:
-            d = " {} ".format(self._delimiters[0])
+            delim = f" {self._delimiters[0]} "
         else:
-            d = self._delimiters[0]
-        return '%s%s%s%s%s' % (indent_string,
-                               self._decode_element(self._quote(entry, multiline=False)),
-                               self._a_to_u(d),
-                               val,
-                               self._decode_element(comment))
+            delim = self._delimiters[0]
+        return f"{indent_string}{self._decode_element(self._quote(entry, multiline=False))}" \
+               f"{self._a_to_u(delim)}{val}{self._decode_element(comment)}"
 
     def _unquote(self, value):
         """Disable unquoting of " chars"""
         return value
 
     def _quote(self, value, multiline=True):
-        """Disable super classes quote method for our case, but destroying multiline support here :("""
         return value
 
 
 if __name__ == '__main__':
-    testfile = '/etc/sysconfig/language'
-    testfile_out = f'{testfile}.out'
+    TESTFILE = '/etc/sysconfig/language'
+    testfile_out = f'{TESTFILE}.out'
     c_old = SectionlessConfigParser(allow_no_value=True)
-    c_old.read(testfile)
+    c_old.read(TESTFILE)
     v_old = c_old.get(c_old.get_default_section(), 'ROOT_USES_LANG')
     print(f"v_old = {v_old}")
     c_old.set(c_old.get_default_section(), 'ROOT_USES_LANG', '"yes"')
-    c_old.write(open(testfile_out, 'w'))
+    with open(testfile_out, 'w', encoding='utf-8') as test_fh:
+        c_old.write(test_fh)
     print('now use ConfigParser instead of config')
-    c = ConfigParser(infile=testfile)
+    c = ConfigParser(infile=TESTFILE)
     v = c.get('ROOT_USES_LANG')
     print(f"v = {v}")
     c['ROOT_USES_LANG'] = '"yes"'
