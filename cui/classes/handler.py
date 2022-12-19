@@ -629,6 +629,7 @@ class ApplicationHandler(ApplicationModel):
             if util.authenticate_user(self.view.button_store.user_edit.get_edit_text(),
                                       self.view.button_store.pass_edit.get_edit_text()):
                 self.view.button_store.pass_edit.set_edit_text("")
+                self.view.header.set_authorized_options(_(", <F4> for Main-Menu"))
                 self._open_main_menu()
             else:
                 self.message_box(

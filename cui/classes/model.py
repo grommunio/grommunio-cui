@@ -483,7 +483,6 @@ class ApplicationModel(BaseApplication):
         self._reset_layout()
         self.print(_("Login successful"))
         self.control.app_control.current_window = MAIN_MENU
-        self.view.header.set_authorized_options(_(", <F4> for Main-Menu"))
         self.prepare_mainscreen()
         self.control.app_control.body = self.view.top_main_menu.main_menu
         self.control.app_control.loop.widget = self.control.app_control.body

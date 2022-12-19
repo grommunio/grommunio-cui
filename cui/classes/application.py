@@ -26,14 +26,35 @@ _ = cui.util.init_localization()
 class Header:
     """The Header class holds all header information and widgets"""
 
+    class Info:
+        """The Info class contains additional information"""
+        header: GText
+        app: BaseApplication
+        authorized_options: str = ""
+        kbdlayout: str = cui.util.get_current_kbdlayout()
+        # The default color palette
+        colormode: str = "light"
+
+        def debug_out(self, msg):
+            """Prints all elements of the class. """
+            for elem in dir(self):
+                print(elem)
+            print(msg)
+
+        @property
+        def user_is_authorized(self):
+            return self.authorized_options != ""
+
     class TextBlock:
         """TextBlock containing all tb widgets."""
+        text_header: List[Union[str, tuple]]
         tb_sysinfo_top: Optional[GText]
         tb_sysinfo_bottom: Optional[GText]
         tb_intro: Optional[GText]
         tb_header: GText
 
-        def __init__(self):
+        def __init__(self, info):
+            self.info_ref = info
             self.text_header = [_("grommunio console user interface")]
             self.text_header += ["\n"]
             self.text_header += [
@@ -49,36 +70,14 @@ class Header:
         @property
         def text(self):
             """Returns the text as string. """
-            return "".join(self.text_header)
-
-    class Info:
-        """The Info class contains additional information"""
-        text_header: List[Union[str, tuple]]
-        header: GText
-        app: BaseApplication
-        authorized_options: str = ""
-        kbdlayout: str = cui.util.get_current_kbdlayout()
-        # The default color palette
-        colormode: str = "light"
-
-        def debug_out(self, msg):
-            """Prints all elements of the class. """
-            for elem in dir(self):
-                print(elem)
-            print(msg)
-
-        @property
-        def text(self):
-            """Returns the text as string. """
             return "".join(self.text_header).format(
-                colormode=self.colormode,
-                kbd=self.kbdlayout,
-                authorized_options=self.authorized_options,
+                kbd=self.info_ref.kbdlayout,
+                colormode=self.info_ref.colormode,
+                authorized_options=self.info_ref.authorized_options,
             )
 
-
     info: Info = Info()
-    tb: TextBlock = TextBlock()
+    tb: TextBlock = TextBlock(info)
     _app: BaseApplication
 
     def __init__(
