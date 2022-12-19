@@ -58,7 +58,7 @@ class Header:
             self.text_header = [_("grommunio console user interface")]
             self.text_header += ["\n"]
             self.text_header += [
-                _("Active keyboard layout: {kbd}; color set: {colormode}.")
+                _("Active keyboard layout: {kbd}; color set: {colormode}{authorized_options}.")
             ]
 
         def debug_out(self, msg):
@@ -146,7 +146,7 @@ class Header:
             urwid.Padding(self.tb.tb_header, align=urwid.CENTER), "header"
         )
         if getattr(self.info, "app", None):
-            if getattr(self.info.app, "footer", None):
+            if getattr(self.info.app, "view", None):
                 self.info.app.view.top_main_menu.refresh_main_menu()
 
     def refresh_head_text(self):
@@ -709,7 +709,7 @@ class Footer:
 class View:
     """The view class contains all view elements that are visible"""
     main_frame: MainFrame
-    header: Header
+    header: Header = Header()
     top_main_menu: MainMenu
     main_footer: Footer = Footer()
     gscreen: GScreen

@@ -66,7 +66,7 @@ class ApplicationModel(BaseApplication):
 
     def prepare_mainscreen(self):
         """Prepare main screen."""
-        self.view.header = Header()
+        # self.view.header = Header()
         self.view.main_frame = MainFrame(self)
         self.view.header.refresh_header()
         self.view.main_frame.vsplitbox = urwid.Pile(
@@ -486,6 +486,7 @@ class ApplicationModel(BaseApplication):
         self.prepare_mainscreen()
         self.control.app_control.body = self.view.top_main_menu.main_menu
         self.control.app_control.loop.widget = self.control.app_control.body
+        self.redraw()
 
     def _open_mainframe(self):
         """
@@ -576,6 +577,9 @@ class ApplicationModel(BaseApplication):
         if getattr(self.control.app_control, "loop", None):
             if self.control.app_control.loop:
                 self.control.app_control.loop.draw_screen()
+        if getattr(self, "view", None):
+            if getattr(self.view, "header", None):
+                self.view.header.refresh_header()
 
     def _reset_layout(self):
         """
