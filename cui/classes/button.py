@@ -9,6 +9,8 @@ import cui
 from cui.classes.interface import BaseApplication, WidgetDrawer
 from cui.util import _
 
+_ = cui.util.init_localization()
+
 
 class GButton(urwid.Button):
     """

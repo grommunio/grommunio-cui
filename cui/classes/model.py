@@ -25,6 +25,8 @@ from cui.classes.application import Header, MainFrame
 from cui.classes.gwidgets import GText, GEdit
 from cui.classes.scroll import ScrollBar, Scrollable
 
+_ = cui.util.init_localization()
+
 
 class ApplicationModel(BaseApplication):
     """

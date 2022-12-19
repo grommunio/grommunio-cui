@@ -29,6 +29,52 @@ def _(msg):
     return msg
 
 
+STATES = {
+    1: _("System password is not set."),
+    2: _("Network configuration is missing."),
+    4: _("grommunio-setup has not been run yet."),
+    8: _("timesyncd configuration is missing."),
+    16: _("nginx is not running."),
+}
+
+
+def reset_states():
+    """Reset states"""
+    # pylint: disable=global-statement
+    # because that is needed for on the fly translation
+    global STATES
+    new_states = {}
+    if STATES:
+        for key, val in STATES.items():
+            new_states[key] = _(val)
+    STATES = new_states
+    return STATES
+
+
+def init_localization(language: Union[str, str, Iterable[Union[str, str]], None] = ''):
+    """Initialize localisation"""
+    locale.setlocale(locale.LC_ALL, language)
+    try:
+        locale.bindtextdomain(
+            'cui', 'locale' if os.path.exists("locale/de/LC_MESSAGES/cui.mo") else None
+        )
+        locale.textdomain('cui')
+        _ = locale.gettext
+        reset_states()
+        return _
+    except OSError:
+        def _(msg):
+            """
+            Function for tagging text for translations.
+            """
+            return msg
+        reset_states()
+        return _
+
+
+_ = init_localization()
+
+
 def get_button_type(key, open_func_on_ok, mb_func, cancel_msgbox_params, size):
     """Return button type (ok, cancel, save, add, ....)"""
     def open_cancel_msg(msg_params, mb_size):
@@ -126,51 +172,6 @@ def check_repo_dialog(app, height):
         updateable = True
     return updateable, url
 
-
-STATES = {
-    1: _("System password is not set."),
-    2: _("Network configuration is missing."),
-    4: _("grommunio-setup has not been run yet."),
-    8: _("timesyncd configuration is missing."),
-    16: _("nginx is not running."),
-}
-
-
-def reset_states():
-    """Reset states"""
-    # pylint: disable=global-statement
-    # because that is needed for on the fly translation
-    global STATES
-    new_states = {}
-    if STATES:
-        for key, val in STATES.items():
-            new_states[key] = _(val)
-    STATES = new_states
-    return STATES
-
-
-def init_localization(language: Union[str, str, Iterable[Union[str, str]], None] = ''):
-    """Initialize localisation"""
-    locale.setlocale(locale.LC_ALL, language)
-    try:
-        locale.bindtextdomain(
-            'cui', 'locale' if os.path.exists("locale/de/LC_MESSAGES/cui.mo") else None
-        )
-        locale.textdomain('cui')
-        _ = locale.gettext
-        reset_states()
-        return _
-    except OSError:
-        def _(msg):
-            """
-            Function for tagging text for translations.
-            """
-            return msg
-        reset_states()
-        return _
-
-
-_ = init_localization()
 
 _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
     "light": [

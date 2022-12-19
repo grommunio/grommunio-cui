@@ -22,6 +22,8 @@ from cui.classes.interface import WidgetDrawer
 from cui.classes.button import GButton
 from cui.classes.gwidgets import GText
 
+_ = cui.util.init_localization()
+
 
 class ApplicationHandler(ApplicationModel):
     """Add the handler functionality in this class"""
