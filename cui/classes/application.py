@@ -307,7 +307,7 @@ class MainMenu:
     def refresh_main_menu(self):
         """Refresh main menu."""
 
-        def create_menu_description(description, description_title):
+        def create_menu_description(description_title, description):
             item: urwid.Pile = urwid.Pile([
                 GText(description_title, urwid.CENTER)
                 if not isinstance(description_title, GText)
