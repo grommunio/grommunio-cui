@@ -43,6 +43,7 @@ class Header:
 
         @property
         def user_is_authorized(self):
+            """Return if user is authenticated"""
             return self.authorized_options != ""
 
     class TextBlock:
@@ -58,6 +59,7 @@ class Header:
             self.refresh_content()
 
         def refresh_content(self):
+            """Refresh header'S textblock content and translate"""
             # from pudb.remote import set_trace;set_trace(term_size=(230, 60))
             self.text_header = [_("grommunio console user interface")]
             self.text_header += ["\n"]
@@ -117,6 +119,7 @@ class Header:
         self.refresh_content()
 
     def refresh_content(self):
+        """Refresh header content and translate"""
         self.tb.refresh_content()
 
     def set_app(self, application: BaseApplication):

@@ -21,7 +21,7 @@ from cui import util, parameter
 from cui.util import _
 from cui.classes.interface import BaseApplication
 from cui.classes.button import GButton, GBoxButton
-from cui.classes.application import Header, MainFrame
+from cui.classes.application import MainFrame
 from cui.classes.gwidgets import GText, GEdit
 from cui.classes.scroll import ScrollBar, Scrollable
 
