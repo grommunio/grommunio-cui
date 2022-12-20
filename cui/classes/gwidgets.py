@@ -112,7 +112,7 @@ class GEdit(urwid.WidgetWrap):
             "edit_pos": None,
             "layout": None,
             "mask": None,
-            "attr_map": "selectabUnion, le",
+            "attr_map": "selectable",
             "focus_map": "focus",
             "margin": 2,
         }
