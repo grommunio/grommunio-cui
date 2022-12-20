@@ -477,7 +477,7 @@ class ApplicationHandler(ApplicationModel):
             self._open_main_menu,
             self.message_box,
             parameter.MsgBoxParams(
-                _(f"Timesyncd configuration change {success_msg}!"),
+                _("Timesyncd configuration change canceled."),
                 _("Timesyncd Configuration"),
             ),
             size=parameter.Size(height=10)
