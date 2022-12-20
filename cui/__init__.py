@@ -55,14 +55,14 @@ def create_application() -> Tuple[Union[Application, None], bool]:
     return app, production
 
 
-def main_app():
+def main_app(immediate_restart: bool = False):
     """Starts main application."""
     # application, PRODUCTION = create_application()
     application = create_application()[0]
     # application.set_debug(True)
     # application.gscreen.quiet = False
     # # PRODUCTION = False
-    application.start()
+    application.start(immediate_restart)
     print("\n\x1b[J")
 
 

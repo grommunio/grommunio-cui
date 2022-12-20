@@ -850,12 +850,14 @@ class ApplicationModel(BaseApplication):
         self.print(self.control.app_control.current_bottom_info)
         cb_loop.set_alarm_in(1, self._update_clock, data)
 
-    def start(self):
+    def start(self, immediate_restart: bool = False):
         """
         Starts the console UI
         """
         # set_trace(term_size=(129, 18))
         # set_trace()
+        if immediate_restart:
+            raise urwid.ExitMainLoop()
         self.control.app_control.loop.run()
         if self.view.gscreen.old_termios is not None:
             self.view.gscreen.screen.tty_signal_keys(*self.view.gscreen.old_termios)

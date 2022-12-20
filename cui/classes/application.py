@@ -55,11 +55,32 @@ class Header:
 
         def __init__(self, info):
             self.info_ref = info
+            self.refresh_content()
+
+        def refresh_content(self):
+            # from pudb.remote import set_trace;set_trace(term_size=(230, 60))
             self.text_header = [_("grommunio console user interface")]
             self.text_header += ["\n"]
             self.text_header += [
                 _("Active keyboard layout: {kbd}; color set: {colormode}{authorized_options}.")
             ]
+            text_intro = [
+                "\n",
+                _("If you need help, press the 'L' key to view logs."),
+                "\n",
+            ]
+            self.tb_intro = GText(
+                text_intro, align=urwid.CENTER, wrap=urwid.SPACE
+            )
+            text_sysinfo_top = cui.util.get_system_info("top")
+            self.tb_sysinfo_top = GText(
+                text_sysinfo_top, align=urwid.LEFT, wrap=urwid.SPACE
+            )
+            text_sysinfo_bottom = cui.util.get_system_info("bottom")
+            self.tb_sysinfo_bottom = GText(
+                text_sysinfo_bottom, align=urwid.LEFT, wrap=urwid.SPACE
+            )
+            self.tb_header = GText(self.text, align=urwid.CENTER, wrap=urwid.SPACE,)
 
         def debug_out(self, msg):
             """Prints all elements of the class. """
@@ -93,23 +114,10 @@ class Header:
         if application:
             self.info.app = application
         self.info.authorized_options = ""
-        text_intro = [
-            "\n",
-            _("If you need help, press the 'L' key to view logs."),
-            "\n",
-        ]
-        self.tb.tb_intro = GText(
-            text_intro, align=urwid.CENTER, wrap=urwid.SPACE
-        )
-        text_sysinfo_top = cui.util.get_system_info("top")
-        self.tb.tb_sysinfo_top = GText(
-            text_sysinfo_top, align=urwid.LEFT, wrap=urwid.SPACE
-        )
-        text_sysinfo_bottom = cui.util.get_system_info("bottom")
-        self.tb.tb_sysinfo_bottom = GText(
-            text_sysinfo_bottom, align=urwid.LEFT, wrap=urwid.SPACE
-        )
-        self.tb.tb_header = GText(self.tb.text, align=urwid.CENTER, wrap=urwid.SPACE,)
+        self.refresh_content()
+
+    def refresh_content(self):
+        self.tb.refresh_content()
 
     def set_app(self, application: BaseApplication):
         """Set the main app"""

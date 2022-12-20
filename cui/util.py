@@ -111,8 +111,9 @@ def restart_gui():
     # _ = util.init_localization()
     # mainapp()
     if os.getppid() == 1:
+        # from pudb.remote import set_trace; set_trace(term_size=(230, 60))
         ret_val = init_localization(language=locale_conf.get('LANG', ''))
-        cui.main_app()
+        cui.main_app(True)
         # raise ExitMainLoop()
     else:
         env = {}
