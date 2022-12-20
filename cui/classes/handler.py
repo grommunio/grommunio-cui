@@ -457,7 +457,10 @@ class ApplicationHandler(ApplicationModel):
             key,
             self._open_main_menu,
             self.message_box,
-            _('Software repository selection has been canceled.'),
+            cui.parameter.MsgBoxParams(
+                _('Software repository selection has been canceled.'),
+                _('Repository selection')
+            ),
             size=parameter.Size(height=height)
         )
         return {
