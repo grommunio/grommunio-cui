@@ -112,8 +112,8 @@ class GEdit(urwid.WidgetWrap):
             "edit_pos": None,
             "layout": None,
             "mask": None,
-            "attr_map": "selectable",
-            "focus_map": "focus",
+            "attr_map": "GEdit.selectable",
+            "focus_map": "GEdit.focus",
             "margin": 2,
         }
         for (i, key) in enumerate(params.keys()):
