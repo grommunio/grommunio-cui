@@ -1,61 +1,178 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # SPDX-FileCopyrightText: 2021 grommunio GmbH
+"""The module contains all cui utilities/functions"""
 import os
 import subprocess
+import sys
+import time
 from pathlib import Path
-
-from pamela import authenticate, PAMError
-from typing import Any, Dict, List, Tuple, Union, Iterable
-from datetime import datetime
 import ipaddress
 import locale
 import platform
-import psutil
 import socket
 import shlex
+from typing import Any, Dict, List, Tuple, Union, Iterable
+from datetime import datetime
+
+import psutil
+import requests
+from pamela import authenticate, PAMError
+
+from requests import Response
+
+import urwid
+import cui
 
 
-def T_(msg):
+def _(msg):
     """Dummy func"""
     return msg
 
 
+STATES = {
+    1: _("System password is not set."),
+    2: _("Network configuration is missing."),
+    4: _("grommunio-setup has not been run yet."),
+    8: _("timesyncd configuration is missing."),
+    16: _("nginx is not running."),
+}
+
+
 def reset_states():
-    global STATES, T_
+    """Reset states"""
+    # pylint: disable=global-statement
+    # because that is needed for on the fly translation
+    global STATES
     new_states = {}
-    for k in STATES.keys():
-        new_states[k] = T_(STATES[k])
+    if STATES:
+        for key, val in STATES.items():
+            new_states[key] = _(val)
     STATES = new_states
     return STATES
 
 
 def init_localization(language: Union[str, str, Iterable[Union[str, str]], None] = ''):
+    """Initialize localisation"""
     locale.setlocale(locale.LC_ALL, language)
     try:
-        locale.bindtextdomain('cui', 'locale' if os.path.exists("locale/de/LC_MESSAGES/cui.mo") else None)
+        locale.bindtextdomain(
+            'cui', 'locale' if os.path.exists("locale/de/LC_MESSAGES/cui.mo") else None
+        )
         locale.textdomain('cui')
-        T_ = locale.gettext
+        _ = locale.gettext
         reset_states()
-        return T_
-    except OSError as e:
-        def T_(msg):
+        return _
+    except OSError:
+        def _(msg):
             """
             Function for tagging text for translations.
             """
             return msg
         reset_states()
-        return T_
+        return _
 
 
-STATES = {
-    1: T_("System password is not set."),
-    2: T_("Network configuration is missing."),
-    4: T_("grommunio-setup has not been run yet."),
-    8: T_("timesyncd configuration is missing."),
-    16: T_("nginx is not running."),
-}
+_ = init_localization()
 
-T_ = init_localization()
+
+def get_button_type(key, open_func_on_ok, mb_func, cancel_msgbox_params, size):
+    """Return button type (ok, cancel, save, add, ....)"""
+    def open_cancel_msg(msg_params, mb_size):
+        mb_func(
+            msg_params,
+            size=mb_size
+        )
+
+    val: str = key.lower()
+    if val.endswith("enter"):
+        val = " ".join(val.split(" ")[:-1])
+        open_func_on_ok()
+        if val.startswith("hidden"):
+            val = " ".join(val.split(" ")[1:])
+        else:
+            val = _("Cancel").lower()
+        if val == _("Cancel").lower():
+            open_cancel_msg(cancel_msgbox_params, size)
+    elif val == 'esc':
+        open_func_on_ok()
+        open_cancel_msg(cancel_msgbox_params, size)
+    return val
+
+
+def restart_gui():
+    """Restart complete GUI to source language in again."""
+    ret_val = _
+    langfile = '/etc/sysconfig/language'
+    config = cui.classes.parser.ConfigParser(infile=langfile)
+    config['ROOT_USES_LANG'] = '"yes"'
+    config.write()
+    # assert os.getenv('PPID') == 1, 'Gugg mal rein da!'
+    locale_conf = minishell_read('/etc/locale.conf')
+    # _ = util.init_localization()
+    # mainapp()
+    if os.getppid() == 1:
+        # from pudb.remote import set_trace; set_trace(term_size=(230, 60))
+        ret_val = init_localization(language=locale_conf.get('LANG', ''))
+        cui.main_app(True)
+        # raise ExitMainLoop()
+    else:
+        env = {}
+        for k in os.environ:
+            env[k] = os.environ.get(k)
+        for k in locale_conf:
+            env[k] = locale_conf.get(k)
+        os.execve(sys.executable, [sys.executable] + sys.argv, env)
+    return ret_val
+
+
+def create_main_loop(app):
+    """Create urwid main loop"""
+    urwid.set_encoding("utf-8")
+    app.view.gscreen = cui.classes.application.GScreen()
+    app.view.gscreen.screen = urwid.raw_display.Screen()
+    app.view.gscreen.old_termios = app.view.gscreen.screen.tty_signal_keys()
+    app.view.gscreen.blank_termios = ["undefined" for _ in range(0, 5)]
+    app.view.gscreen.screen.tty_signal_keys(*app.view.gscreen.blank_termios)
+    app.prepare_mainscreen()
+    # Loop
+    return urwid.MainLoop(
+        app.control.app_control.body,
+        get_palette(app.view.header.get_colormode()),
+        unhandled_input=app.handle_event,
+        screen=app.view.gscreen.screen,
+        handle_mouse=False,
+    )
+
+
+def check_repo_dialog(app, height):
+    """Check the repository selection dialog"""
+    updateable = False
+    url = 'download.grommunio.com/community/openSUSE_Leap_15.3/' \
+          '?ssl_verify=no'
+    if app.control.menu_control.repo_selection_body.base_widget[3].state:
+        # supported selected
+        user = app.control.menu_control.repo_selection_body.base_widget[4][1].edit_text
+        password = app.control.menu_control.repo_selection_body.base_widget[5][1].edit_text
+        testurl = "https://download.grommunio.com/supported/open" \
+                  "SUSE_Leap_15.3/repodata/repomd.xml"
+        req: Response = requests.get(testurl, auth=(user, password))
+        if req.status_code == 200:
+            url = f'{user}:{password}@download.grommunio.com/supported/open' \
+                  'SUSE_Leap_15.3/?ssl_verify=no'
+            updateable = True
+        else:
+            app.message_box(
+                cui.parameter.MsgBoxParams(
+                    _('Please check the credentials for "supported"'
+                       '-version or use "community"-version.'),
+                ),
+                size=cui.parameter.Size(height=height + 1)
+            )
+    else:
+        # community selected
+        updateable = True
+    return updateable, url
+
 
 _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
     "light": [
@@ -96,7 +213,7 @@ _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
         ("footerbar.short", "white", "black", "", "#fff", "#111"),
         ("footerbar.long", "white", "dark blue", "", "#111", "#00a"),
         ("GEdit.selectable", "black", "light gray", "", "", ""),
-        ("GEdit.focus", "black", "white", "", "", ""),
+        ("GEdit.focus", "dark gray", "white", "", "", ""),
         ("PB.normal", "black", "white", "", "", ""),
         ("PB.complete", "white", "black", "", "", ""),
         ("PB.satt", "dark gray", "light gray", "", "", ""),
@@ -138,8 +255,8 @@ _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
         ("MMI.focus", "white", "dark gray", "", "#fff", "#888"),
         ("footerbar.short", "black", "white", "", "#111", "#fff"),
         ("footerbar.long", "black", "dark cyan", "", "#fff", "#111"),
-        ("GEdit.selectable", "light gray", "black", "", "", ""),
-        ("GEdit.focus", "light gray", "dark gray", "", "", ""),
+        ("GEdit.selectable", "light gray", "dark gray", "", "", ""),
+        ("GEdit.focus", "white", "black", "", "", ""),
         ("PB.normal", "white", "black", "", "", ""),
         ("PB.complete", "black", "white", "", "", ""),
         ("PB.satt", "light gray", "dark gray", "", "", ""),
@@ -225,7 +342,7 @@ _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
         ("footerbar.short", "black", "white", "", "#111", "#fff"),
         ("footerbar.long", "black", "yellow", "", "#fff", "#888"),
         ("GEdit.selectable", "light gray", "black", "", "", ""),
-        ("GEdit.focus", "light gray", "dark gray", "", "", ""),
+        ("GEdit.focus", "white", "dark gray", "", "", ""),
         ("PB.normal", "white", "black", "", "", ""),
         ("PB.complete", "black", "white", "", "", ""),
         ("PB.satt", "light gray", "dark gray", "", "", ""),
@@ -234,19 +351,21 @@ _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
 
 
 def extract_bits(binary):
-    c = ""
+    """Return extracted bits"""
+    char = ""
     i = 0
-    rv = []
-    while c != "b":
-        s = str(bin(binary))[::-1]
-        c = s[i]
-        if c == "1":
-            rv.append(2**i)
+    ret_val = []
+    while char != "b":
+        string = str(bin(binary))[::-1]
+        char = string[i]
+        if char == "1":
+            ret_val.append(2**i)
         i += 1
-    return rv
+    return ret_val
 
 
 def check_socket(host="127.0.0.1", port=22):
+    """Check if socket is open"""
     try:
         socket.setdefaulttimeout(3)
         socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
@@ -256,50 +375,48 @@ def check_socket(host="127.0.0.1", port=22):
 
 
 def tlen(tuple_list, idx=0):
-    """Return length of all id'th element in a tuple over all tuple lists.
+    """Return length of all idx'th element in a tuple over all tuple lists.
     The tuples can be nested in list in list in list ...
     tlen([(1, 'bla'), (2, 'blubb')], 1)
     will return 8. It doesn't matter how many nested Lists there are.
     [(1, a), ..., (23, b)] will return the same as [[[(1, a), ...]], (23, b)]
     """
-    rv = 0
-    tl = tuple_list
-    if not tl:
+    ret_val = 0
+    if not tuple_list:
         return 0
-    if isinstance(tl, list):
-        for elem in tl:
-            rv += tlen(elem, idx)
-    elif isinstance(tl, tuple):
-        rv += len(tl[idx])
-    elif isinstance(tl, str):
-        rv += len(tl)
+    if isinstance(tuple_list, list):
+        for elem in tuple_list:
+            ret_val += tlen(elem, idx)
+    elif isinstance(tuple_list, tuple):
+        ret_val += len(tuple_list[idx])
+    elif isinstance(tuple_list, str):
+        ret_val += len(tuple_list)
     else:
-        rv += 0
-    return rv
+        ret_val += 0
+    return ret_val
 
 
 def rebase_list(deep_list):
-    rv = []
-    dl = deep_list
-    if isinstance(dl, list):
-        for elem in dl:
-            rv += rebase_list(elem)
+    """Extract all list components recursively"""
+    ret_val = []
+    if isinstance(deep_list, list):
+        for elem in deep_list:
+            ret_val += rebase_list(elem)
     else:
-        rv += [dl]
-    return rv
+        ret_val += [deep_list]
+    return ret_val
 
 
 def make_list_gtext(list_wowo_gtext):
-    from cui import GText
-
+    """Convert all list components to GText if not already done"""
     wowolist = list_wowo_gtext
-    rv = []
+    ret_val = []
     for wowo in wowolist:
-        if not isinstance(wowo, GText):
-            rv += [GText(wowo)]
+        if not isinstance(wowo, cui.classes.gwidgets.GText):
+            ret_val += [cui.classes.gwidgets.GText(wowo)]
         else:
-            rv += [wowo]
-    return rv
+            ret_val += [wowo]
+    return ret_val
 
 
 def check_if_password_is_set(user):
@@ -307,8 +424,8 @@ def check_if_password_is_set(user):
     file = "/etc/shadow"
     items = {}
     if os.access(file, os.R_OK):
-        with open(file) as fh:
-            for line in fh:
+        with open(file, encoding="utf-8") as file_handle:
+            for line in file_handle:
                 parts = line.split(":")
                 username = parts[0]
                 password = parts[1]
@@ -346,30 +463,28 @@ def check_setup_state():
     def check_nginx_config():
         return check_socket("127.0.0.1", 8080)
 
-    rv = 0
+    ret_val = 0
     # check if pw is set
     if not check_if_password_is_set("root"):
-        rv += 1
+        ret_val += 1
     # check network config (2)
     if not check_network_config():
-        rv += 2
+        ret_val += 2
     # check grommunio-setup config (4)
     if not check_grommunio_setup():
-        rv += 4
+        ret_val += 4
     # check timesyncd config (8)
     if not check_timesyncd_config():
         # give 0 error points cause timesyncd configuration is not necessarily
         # needed.
-        rv += 0
+        ret_val += 0
     # check nginx config (16)
     if not check_nginx_config():
-        rv += 16
-    return rv
+        ret_val += 16
+    return ret_val
 
 
-def authenticate_user(
-    username: str, password: str, service: str = "login"
-) -> bool:
+def authenticate_user(username: str, password: str, service: str = "login") -> bool:
     """
     Authenticates username against password on service.
 
@@ -386,44 +501,48 @@ def authenticate_user(
 
 
 def get_os_release() -> Tuple[str, str]:
+    """Return os release"""
     osr: Path = Path("/etc/os-release")
-    name: str = T_("No name found")
-    version: str = T_("No version detectable")
-    with osr.open("r") as f:
-        for line in f:
+    name: str = _("No name found")
+    version: str = _("No version detectable")
+    with osr.open("r", encoding="utf-8") as file_handle:
+        for line in file_handle:
             if line.startswith("NAME"):
-                k, name = line.strip().split("=")
+                name = line.strip().split("=")[1]
             elif line.startswith("VERSION"):
-                k, version = line.strip().split("=")
+                version = line.strip().split("=")[1]
     return name.strip('"'), version.strip('"')
 
 
 def get_first_ip_not_localhost() -> str:
-    for ip in get_ip_list():
-        if not ip.strip().startswith("127."):
-            return ip.strip()
+    """Return first IP that is not localhost"""
+    for ip_addr in get_ip_list():
+        if not ip_addr.strip().startswith("127."):
+            return ip_addr.strip()
     return ""
 
 
 def get_ip_list() -> List[str]:
-    rv: List[str] = []
+    """Return list of IPs on this computer"""
+    ret_val: List[str] = []
     addrs = psutil.net_if_addrs()
-    for dev, addrlist in addrs.items():
+    for _, addrlist in addrs.items():
         for addr in addrlist:
             if addr.family == socket.AF_INET:
-                rv.append(addr.address)
-    return rv
+                ret_val.append(addr.address)
+    return ret_val
 
 
 def get_last_login_time():
-    p = subprocess.Popen(
+    """Return last login time as string"""
+    with subprocess.Popen(
         ["last", "-1", "root"],
         stderr=subprocess.DEVNULL,
         stdout=subprocess.PIPE,
-    )
-    res, _ = p.communicate()
-    out = bytes(res).decode()
-    lines = out.splitlines()
+    ) as proc:
+        res, _ = proc.communicate()
+        out = bytes(res).decode()
+        lines = out.splitlines()
     last_login = ""
     if len(lines) > 0:
         parts = out.splitlines()[0].split("              ")
@@ -433,8 +552,9 @@ def get_last_login_time():
 
 
 def get_load():
-    with open("/proc/loadavg", "r") as f:
-        out = f.read()
+    """Return current average load"""
+    with open("/proc/loadavg", "r", encoding="utf-8") as file_handle:
+        out = file_handle.read()
     lines = out.splitlines()
     load_1min = 0
     load_5min = 0
@@ -449,128 +569,141 @@ def get_load():
 
 
 def get_load_avg_format_list():
+    """Return list of average load"""
     load_avg = get_load()
-    load_format = [("footer", T_(" Average load: "))]
-    _ = [
-        load_format.append(("footer", f"{t} min:"))
-        or load_format.append(("footer", f" {load_avg[i]:0.2f}"))
-        or load_format.append(("footer", " | "))
-        for i, t in enumerate([1, 5, 15])
-    ]
+    load_format = [("footer", _(" Average load: "))]
+    for i, time_unit in enumerate([1, 5, 15]):
+        load_format.append(("footer", f"{time_unit} min:"))
+        load_format.append(("footer", f" {load_avg[i]:0.2f}"))
+        load_format.append(("footer", " | "))
     return load_format[:-1]
+
+
+def get_system_info_top():
+    """Return top sysinfo"""
+    ret_val: List[Union[str, Tuple[str, str]]] = []
+    uname = platform.uname()
+    cpufreq = psutil.cpu_freq()
+    svmem = psutil.virtual_memory()
+    distro, version = get_os_release()
+    ret_val += [
+        "Console User Interface",
+        "\n",
+        "© 2022 ",
+        "grommunio GmbH",
+        "\n",
+    ]
+    if distro.lower().startswith("grammm") or distro.lower().startswith(
+            "grommunio"
+    ):
+        ret_val.append(f"Distribution: {distro} Version: {version}")
+        ret_val.append("\n")
+    ret_val.append("\n")
+    if cpufreq:
+        ret_val.append(
+            f"{psutil.cpu_count()} x {uname.processor} CPUs"
+            f" @ {get_hr(cpufreq.current * 1000 * 1000, 'Hz', 1000)}"
+        )
+    else:
+        ret_val.append(
+            f"{psutil.cpu_count(logical=False)} x {uname.processor} CPUs"
+        )
+    ret_val.append("\n")
+    ret_val.append(
+        _("Memory {used} used of {total} ({available} free)").format(
+            used=get_hr(svmem.used),
+            total=get_hr(svmem.total),
+            available=get_hr(svmem.available)
+        )
+    )
+    ret_val.append("\n")
+    ret_val.append("\n")
+    return ret_val
+
+
+def get_system_info_bottom():
+    """Return bottom sysinfo"""
+    ret_val: List[Union[str, Tuple[str, str]]] = []
+    uname = platform.uname()
+    if_addrs = psutil.net_if_addrs()
+    boot_time_timestamp = psutil.boot_time()
+    boot_time = datetime.fromtimestamp(boot_time_timestamp)
+    proto = "http"
+    if check_setup_state() == 0:
+        ret_val += [
+            "\n",
+            _("For further configuration, these URLs can be used:"),
+            "\n",
+        ]
+        ret_val.append("\n")
+        if uname.node.lower().startswith("localhost."):
+            ret_val.append(
+                (
+                    "important",
+                    _("It is generally NOT recommended to use localhost as hostname."),
+                )
+            )
+            ret_val.append("\n")
+        ret_val.append(f"{proto}://{uname.node}:8080/\n")
+        for interface_name, interface_addresses in if_addrs.items():
+            if interface_name in ["lo"]:
+                continue
+            for address in interface_addresses:
+                if address.family != socket.AF_INET6:
+                    continue
+                adr = ipaddress.IPv6Address(address.address.split("%")[0])
+                if adr.is_link_local is True:
+                    continue
+                ret_val.append(
+                    f"{proto}://[{address.address}]:8080/ (interface {interface_name})\n"
+                )
+            for address in interface_addresses:
+                if address.family != socket.AF_INET:
+                    continue
+                ret_val.append(
+                    f"{proto}://{address.address}:8080/ (interface {interface_name})\n"
+                )
+    else:
+        ret_val.append("\n")
+        ret_val.append(
+            _("There are still some tasks missing to run/use grommunio.")
+        )
+        ret_val.append("\n")
+        statelist = extract_bits(check_setup_state())
+        for state in statelist:
+            ret_val.append("\n")
+            ret_val.append(("important", STATES.get(state)))
+        ret_val.append("\n")
+    ret_val.append("\n")
+    ret_val.append(_("Boot Time: "))
+    ret_val.append(("reverse", f"{boot_time.isoformat()}"))
+    ret_val.append("\n")
+    last_login = get_last_login_time()
+    if last_login != "":
+        ret_val.append(_("Last login time: {%s}") % last_login)
+    ret_val.append("\n")
+    ret_val.append("\n")
+    ret_val.append(_(f"Current language / PPID: {locale.getlocale()[0]} / {os.getppid()}"))
+    ret_val.append("\n")
+    return ret_val
 
 
 def get_system_info(which: str) -> List[Union[str, Tuple[str, str]]]:
     """
-    Creates list of information formatted in urwid stye.
+    Creates list of information formatted in urwid style.
 
     :param which: Kind of information to return. (top or bottom)
     :return: List of tuples or strings describing urwid attributes and content.
     """
-    rv: List[Union[str, Tuple[str, str]]] = []
+    ret_val: List[Union[str, Tuple[str, str]]] = []
     if which == "top":
-        uname = platform.uname()
-        cpufreq = psutil.cpu_freq()
-        svmem = psutil.virtual_memory()
-        distro, version = get_os_release()
-        rv += [
-            "Console User Interface",
-            "\n",
-            "© 2022 ",
-            "grommunio GmbH",
-            "\n",
-        ]
-        if distro.lower().startswith("grammm") or distro.lower().startswith(
-            "grommunio"
-        ):
-            rv.append(f"Distribution: {distro} Version: {version}")
-            rv.append("\n")
-        rv.append("\n")
-        if cpufreq:
-            rv.append(
-                f"{psutil.cpu_count()} x {uname.processor} CPUs"
-                f" @ {get_hr(cpufreq.current * 1000 * 1000, 'Hz', 1000)}"
-            )
-        else:
-            rv.append(
-                f"{psutil.cpu_count(logical=False)} x {uname.processor} CPUs"
-            )
-        rv.append("\n")
-        rv.append(
-            T_("Memory {used} used of {total} ({available} free)").format(
-                used=get_hr(svmem.used),
-                total=get_hr(svmem.total),
-                available=get_hr(svmem.available)
-            )
-        )
-        rv.append("\n")
-        rv.append("\n")
+        ret_val = get_system_info_top()
     elif which == "bottom":
-        uname = platform.uname()
-        if_addrs = psutil.net_if_addrs()
-        boot_time_timestamp = psutil.boot_time()
-        bt = datetime.fromtimestamp(boot_time_timestamp)
-        proto = "http"
-        if check_setup_state() == 0:
-            rv += [
-                "\n",
-                T_("For further configuration, these URLs can be used:"),
-                "\n",
-            ]
-            rv.append("\n")
-            if uname.node.lower().startswith("localhost."):
-                rv.append(
-                    (
-                        "important",
-                        T_("It is generally NOT recommended to use localhost as hostname."),
-                    )
-                )
-                rv.append("\n")
-            rv.append(f"{proto}://{uname.node}:8080/\n")
-            for interface_name, interface_addresses in if_addrs.items():
-                if interface_name in ["lo"]:
-                    continue
-                for address in interface_addresses:
-                    if address.family != socket.AF_INET6:
-                        continue
-                    adr = ipaddress.IPv6Address(address.address.split("%")[0])
-                    if adr.is_link_local is True:
-                        continue
-                    rv.append(
-                        f"{proto}://[{address.address}]:8080/ (interface {interface_name})\n"
-                    )
-                for address in interface_addresses:
-                    if address.family != socket.AF_INET:
-                        continue
-                    rv.append(
-                        f"{proto}://{address.address}:8080/ (interface {interface_name})\n"
-                    )
-        else:
-            rv.append("\n")
-            rv.append(
-                T_("There are still some tasks missing to run/use grommunio.")
-            )
-            rv.append("\n")
-            statelist = extract_bits(check_setup_state())
-            for state in statelist:
-                rv.append("\n")
-                rv.append(("important", STATES.get(state)))
-            rv.append("\n")
-        rv.append("\n")
-        rv.append(T_("Boot Time: "))
-        rv.append(("reverse", f"{bt.isoformat()}"))
-        rv.append("\n")
-        last_login = get_last_login_time()
-        if last_login != "":
-            rv.append(T_("Last login time: {%s}") % last_login)
-        rv.append("\n")
-        rv.append("\n")
-        rv.append(T_(f"Current language / PPID: {locale.getlocale()[0]} / {os.getppid()}"))
-        rv.append("\n")
+        ret_val = get_system_info_bottom()
     else:
-        rv.append(T_("Oops!"))
-        rv.append(T_("There should be nothing."))
-    return rv
+        ret_val.append(_("Oops!"))
+        ret_val.append(_("There should be nothing."))
+    return ret_val
 
 
 def pad(
@@ -588,15 +721,15 @@ def pad(
     text_len: int = len(str(text))
     diff: int = length - text_len
     suffix: str = sign * diff
-    rv: str
+    ret_val: str
     slice_pos: int
     if left_pad:
-        rv = f"{suffix}{text}"
+        ret_val = f"{suffix}{text}"
         slice_pos = length
     else:
-        rv = f"{text}{suffix}"
+        ret_val = f"{text}{suffix}"
         slice_pos = length * -1
-    return rv[:slice_pos]
+    return ret_val[:slice_pos]
 
 
 def get_hr(formatbytes, suffix="B", factor=1024):
@@ -611,6 +744,7 @@ def get_hr(formatbytes, suffix="B", factor=1024):
         if formatbytes < factor:
             return f"{formatbytes:.2f} {unit}{suffix}"
         formatbytes /= factor
+    return f"{formatbytes:.2f} {suffix}"
 
 
 def get_clockstring() -> str:
@@ -619,77 +753,81 @@ def get_clockstring() -> str:
 
     :return: The formatted clockstring.
     """
-    bt: datetime = datetime.now()
-    year: str = pad(bt.year, "0", 4)
-    month: str = pad(bt.month, "0", 2)
-    day: str = pad(bt.day, "0", 2)
-    hour: str = pad(bt.hour, "0", 2)
-    minute: str = pad(bt.minute, "0", 2)
-    second: str = pad(bt.second, "0", 2)
+    current_time: datetime = datetime.now()
+    year: str = pad(current_time.year, "0", 4)
+    month: str = pad(current_time.month, "0", 2)
+    day: str = pad(current_time.day, "0", 2)
+    hour: str = pad(current_time.hour, "0", 2)
+    minute: str = pad(current_time.minute, "0", 2)
+    second: str = pad(current_time.second, "0", 2)
     return f"{year}-{month}-{day} {hour}:{minute}:{second}"
 
 
 def get_footerbar(key_size=2, name_size=10):
     """Return footerbar description"""
-    rv = []
-    menu = {"F1": T_("Color"), "F2": T_("Login"), "F5": T_("Keyboard")}
+    ret_val = []
+    menu = {"F1": _("Color"), "F2": _("Login"), "F5": _("Keyboard")}
     if os.getppid() != 1:
-        menu["F10"] = T_("Exit")
-    menu["L"] = T_("Logs")
-    spacebar = "".join(" " for _ in range(name_size))
+        menu["F10"] = _("Exit")
+    menu["L"] = _("Logs")
+    spacebar = "".join(" " for i in range(name_size))
     for item in menu.items():
-        nr = ("footerbar.short", f"  {item[0]}"[-key_size:])
-        name = ("footerbar.long", f" {item[1]}{spacebar}"[:name_size])
-        field = [nr, name]
-        rv.append(field)
-    return rv
+        ret_val.append([
+            ("footerbar.short", f"  {item[0]}"[-key_size:]),
+            ("footerbar.long", f" {item[1]}{spacebar}"[:name_size])
+        ])
+    return ret_val
 
 
 def get_palette_list() -> List[str]:
-    global _PALETTES
+    """Return color palette keys"""
     return list(_PALETTES.keys())
 
 
 def get_next_palette_name(cur_palette: str = "") -> str:
+    """Return next color palette name"""
     palette_list = get_palette_list()
     i = iter(palette_list)
-    for p in i:
-        if p == palette_list[len(palette_list) - 1]:
+    for palette in i:
+        if palette == palette_list[len(palette_list) - 1]:
             return palette_list[0]
-        elif p == cur_palette:
+        if palette == cur_palette:
             return next(i)
     return palette_list[0]
 
 
 def get_palette(mode: str = "light") -> List[Tuple[str, ...]]:
-    global _PALETTES
-    rv: List[Tuple[str, ...]] = _PALETTES[mode]
-    return rv
+    """Return current color palette"""
+    ret_val: List[Tuple[str, ...]] = _PALETTES[mode]
+    return ret_val
 
 
-def fast_tail(file: str, n: int = 0) -> List[str]:
-    assert n >= 0, "Line count n must be greater equal 0."
-    pos: int = n + 1
+def fast_tail(file: str, line_count: int = 0) -> List[str]:
+    """Fast mini tail"""
+    assert line_count >= 0, "Line count n must be greater equal 0."
+    pos: int = line_count + 1
     lines: List[str] = []
     fname: Path = Path(file)
-    with fname.open("r") as f:
-        while len(lines) <= n:
+    with fname.open("r", encoding="utf-8") as file_handle:
+        while len(lines) <= line_count:
             try:
-                f.seek(-pos, 2)
+                file_handle.seek(-pos, 2)
             except IOError:
-                f.seek(0)
+                file_handle.seek(0)
                 break
             finally:
-                lines = list(f)
+                lines = list(file_handle)
             pos *= 2
-    return [line.strip() for line in lines[-n:]]
+    return [line.strip() for line in lines[-line_count:]]
 
 
 def lineconfig_read(file):
+    """Read file to items dictionary. lineconfig,
+    does NOT recognize quotes and backslashes."""
     items = {}
     try:
-        with open(file) as fh:
-            for line in fh:
+        with open(file, "r", encoding="utf-8") as file_handle:
+            for line in file_handle:
                 key, value = line.partition("=")[::2]
                 if "=" in line:
                     new_value = value.strip()
@@ -702,47 +840,87 @@ def lineconfig_read(file):
 
 
 def lineconfig_write(file, items):
-    with open(file, "w") as fh:
+    """Write items to file"""
+    with open(file, "w", encoding="utf-8") as file_handle:
         for key in items:
-            fh.write(key)
+            file_handle.write(key)
             if items[key] is not None:
-                fh.write("=")
-                fh.write(items[key])
-            fh.write("\n")
+                file_handle.write("=")
+                file_handle.write(items[key])
+            file_handle.write("\n")
 
 
-'''
-minishell is like lineconfig, but must recognize quotes and backslashes.
-'''
 def minishell_read(file):
+    """Read file to items dictionary. minishell is like lineconfig,
+    but must recognize quotes and backslashes."""
     items = {}
     try:
-        with open(file) as fh:
-            for line in fh:
+        with open(file, "r", encoding="utf-8") as file_handle:
+            for line in file_handle:
                 if line.strip()[0:1] == "#":
                     continue
-                r = shlex.split(line.rstrip('\n'))
-                if len(r) < 1:
+                res = shlex.split(line.rstrip('\n'))
+                if len(res) < 1:
                     continue
-                r = r[0].partition("=")
-                if len(r) != 3:
+                res = res[0].partition("=")
+                if len(res) != 3:
                     continue
-                items[r[0]] = r[2]
+                items[res[0]] = res[2]
     except IOError:
         pass
     return items
 
 
 def minishell_write(file, items):
-    with open(file, "w") as fh:
+    """Write items to file"""
+    with open(file, "w", encoding="utf-8") as file_handle:
         for key in items:
-            fh.write(key)
+            file_handle.write(key)
             if items[key] is not None:
-                fh.write("=")
-                fh.write(shlex.quote(items[key]))
-            fh.write("\n")
+                file_handle.write("=")
+                file_handle.write(shlex.quote(items[key]))
+            file_handle.write("\n")
 
 
 def get_current_kbdlayout():
+    """Return current keyboard layout"""
     items = minishell_read("/etc/vconsole.conf")
     return items.get("KEYMAP", "us").strip('"')
+
+
+def reset_system_passwd(new_pw: str) -> bool:
+    """Reset the system password."""
+    if new_pw:
+        if new_pw != "":
+            with subprocess.Popen(
+                ["passwd"],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            ) as proc:
+                proc.stdin.write(f"{new_pw}\n{new_pw}\n".encode())
+                proc.stdin.flush()
+                i = 0
+                while i < 10 and proc.poll() is None:
+                    time.sleep(0.1)
+                    i += 1
+                proc.terminate()
+                proc.kill()
+                return proc.returncode == 0
+    return False
+
+
+def reset_aapi_passwd(new_pw: str) -> bool:
+    """Reset admin-API password."""
+    if new_pw:
+        if new_pw != "":
+            exe = "grammm-admin"
+            if Path("/usr/sbin/grommunio-admin").exists():
+                exe = "grommunio-admin"
+            with subprocess.Popen(
+                [exe, "passwd", "--password", new_pw],
+                stderr=subprocess.DEVNULL,
+                stdout=subprocess.DEVNULL,
+            ) as proc:
+                return proc.wait() == 0
+    return False

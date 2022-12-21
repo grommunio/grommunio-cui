@@ -17,11 +17,12 @@ all: ${mo_files}
 	msgfmt -o $@ $<
 
 install: ${mo_files}
-	${MKDIR_P} ${DESTDIR}${pkglibexecdir}/cui ${DESTDIR}${sbindir} ${DESTDIR}${unitdir}
+	${MKDIR_P} ${DESTDIR}${pkglibexecdir}/cui/classes ${DESTDIR}${sbindir} ${DESTDIR}${unitdir}
 	cp -afv getty *.py ${DESTDIR}${pkglibexecdir}/
 	cp -afv setlogcons.service ${DESTDIR}${unitdir}/
 	# overwrite desired
 	cp -afv cui/*.py ${DESTDIR}${pkglibexecdir}/cui/
+	cp -afv cui/classes/*.py ${DESTDIR}${pkglibexecdir}/cui/classes/
 	${SED} 's!@pkglibexecdir@!${pkglibexecdir}!g' <grommunio-cui.in >${DESTDIR}${sbindir}/grommunio-cui
 	chmod a+x ${DESTDIR}${sbindir}/grommunio-cui
 	${SED} 's!@pkglibexecdir@!${pkglibexecdir}!g' <grommunio-cui@.service.in >${DESTDIR}${unitdir}/grommunio-cui@.service
