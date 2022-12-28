@@ -145,15 +145,17 @@ def create_main_loop(app):
 
 
 def get_distribution_level():
+    """Return the distribution level depending on os-release"""
     if lineconfig_read('/etc/os-release').get('VERSION', '"2022.05.2"').startswith('"2022.12'):
         return '15.4'
     return '15.3'
 
 
-def get_repo_url(user: str = None, pw: str = None):
+def get_repo_url(user: str = None, password: str = None):
+    """Return the repository url depending on os-release"""
     distro_level = get_distribution_level()
-    if user and pw:
-        url = f'{user}:{pw}@download.grommunio.com/supported/openSUSE_Leap_{distro_level}/'
+    if user and password:
+        url = f'{user}:{password}@download.grommunio.com/supported/openSUSE_Leap_{distro_level}/'
     else:
         url = f'download.grommunio.com/community/openSUSE_Leap_{distro_level}/'
     return ''.join([url, '?ssl_verify=no'])
@@ -433,7 +435,7 @@ def make_list_gtext(list_wowo_gtext):
 
 
 def check_if_password_is_set(user):
-    """Check if user exists in /etc/shadow and has his pw set."""
+    """Check if user exists in /etc/shadow and has his password set."""
     file = "/etc/shadow"
     items = {}
     if os.access(file, os.R_OK):
