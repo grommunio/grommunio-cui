@@ -144,34 +144,47 @@ def create_main_loop(app):
     )
 
 
+def get_distribution_level():
+    if lineconfig_read('/etc/os-release').get('VERSION', '"2022.05.2"').startswith('"2022.12'):
+        return '15.4'
+    return '15.3'
+
+
+def get_repo_url(user: str = None, pw: str = None):
+    distro_level = get_distribution_level()
+    if user and pw:
+        url = f'{user}:{pw}@download.grommunio.com/supported/openSUSE_Leap_{distro_level}/'
+    else:
+        url = f'download.grommunio.com/community/openSUSE_Leap_{distro_level}/'
+    return ''.join([url, '?ssl_verify=no'])
+
+
 def check_repo_dialog(app, height):
     """Check the repository selection dialog"""
     updateable = False
-    url = 'download.grommunio.com/community/openSUSE_Leap_15.3/' \
-          '?ssl_verify=no'
     if app.control.menu_control.repo_selection_body.base_widget[3].state:
         # supported selected
         user = app.control.menu_control.repo_selection_body.base_widget[4][1].edit_text
         password = app.control.menu_control.repo_selection_body.base_widget[5][1].edit_text
-        testurl = "https://download.grommunio.com/supported/open" \
-                  "SUSE_Leap_15.3/repodata/repomd.xml"
+        testurl = f"https://download.grommunio.com/supported/open" \
+                  f"SUSE_Leap_{get_distribution_level()}/repodata/repomd.xml"
         req: Response = requests.get(testurl, auth=(user, password))
         if req.status_code == 200:
-            url = f'{user}:{password}@download.grommunio.com/supported/open' \
-                  'SUSE_Leap_15.3/?ssl_verify=no'
             updateable = True
         else:
             app.message_box(
                 cui.parameter.MsgBoxParams(
                     _('Please check the credentials for "supported"'
-                       '-version or use "community"-version.'),
+                      '-version or use "community"-version.'),
                 ),
                 size=cui.parameter.Size(height=height + 1)
             )
     else:
         # community selected
         updateable = True
-    return updateable, url
+        user = None
+        password = None
+    return updateable, get_repo_url(user, password)
 
 
 _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
