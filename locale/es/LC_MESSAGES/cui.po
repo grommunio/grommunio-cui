@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2022-12-10 17:31+0100\n"
-"PO-Revision-Date: 2022-12-10 17:04+0000\n"
+"PO-Revision-Date: 2023-01-03 10:48+0000\n"
 "Last-Translator: Mike Williams <mike.williams@grammm.com>\n"
 "Language-Team: Spanish <https://hosted.weblate.org/projects/grommunio/"
 "grommunio-cui/es/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.15-dev\n"
+"X-Generator: Weblate 4.15.1-dev\n"
 
 #: cui/__init__.py:111
 msgid "Idle"
@@ -131,7 +131,7 @@ msgstr ""
 
 #: cui/__init__.py:380
 msgid "Timezone"
-msgstr ""
+msgstr "Zona horaria"
 
 #: cui/__init__.py:383
 msgid "Opens the yast2 configurator for setting country and timezone settings."
