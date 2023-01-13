@@ -3,7 +3,7 @@ tty="$1"
 shift
 exec <"/dev/$tty" >"/dev/$tty" 2>"/dev/$tty"
 echo
-echo -e " \x1b[36m▼\x1b[0m Loading grommunio console user interface"
+echo " [36m▼[0m Loading grommunio console user interface"
 echo
 if [ -d /usr/libexec/grommunio-cui ]; then
 	PYTHONPATH="/usr/libexec/grommunio-cui:/usr/libexec/grommunio-cui/cui" exec "/usr/bin/python3" \
