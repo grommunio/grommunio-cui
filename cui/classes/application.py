@@ -159,6 +159,7 @@ class Header:
         if getattr(self.info, "app", None):
             if getattr(self.info.app, "view", None):
                 self.info.app.view.top_main_menu.refresh_main_menu()
+        self.refresh_content()
 
     def refresh_head_text(self):
         """Refresh head text."""
