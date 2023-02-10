@@ -21,7 +21,7 @@ from cui import util, parameter
 from cui.util import _
 from cui.classes.interface import BaseApplication
 from cui.classes.button import GButton, GBoxButton
-from cui.classes.application import MainFrame
+from cui.classes.application import MainFrame, setup_state
 from cui.classes.gwidgets import GText, GEdit
 from cui.classes.scroll import ScrollBar, Scrollable
 
@@ -37,6 +37,7 @@ class ApplicationModel(BaseApplication):
     control: cui.classes.application.Control
 
     def __init__(self):
+        setup_state.set_setup_states()
         self.admin_api_config = {}
         self.view = cui.classes.application.View(self)
         self.control = cui.classes.application.Control(MAIN)
@@ -858,6 +859,8 @@ class ApplicationModel(BaseApplication):
         # set_trace()
         if immediate_restart:
             raise urwid.ExitMainLoop()
+        self.prepare_mainscreen()
+        self.control.app_control.loop.widget = self.control.app_control.body
         self.control.app_control.loop.run()
         if self.view.gscreen.old_termios is not None:
             self.view.gscreen.screen.tty_signal_keys(*self.view.gscreen.old_termios)

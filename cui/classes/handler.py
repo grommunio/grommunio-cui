@@ -11,6 +11,7 @@ import requests
 import urwid
 
 import cui.classes
+from cui.classes.application import setup_state
 from cui.classes.menu import MenuItem
 from cui.symbol import LOG_VIEWER, MAIN, MESSAGE_BOX, INPUT_BOX, TERMINAL, PASSWORD, LOGIN, \
     REBOOT, SHUTDOWN, MAIN_MENU, UNSUPPORTED, ADMIN_WEB_PW, TIMESYNCD, REPO_SELECTION, \
@@ -259,6 +260,7 @@ class ApplicationHandler(ApplicationModel):
             else:
                 func()
         elif key == "esc":
+            setup_state.set_setup_states()
             self._open_mainframe()
 
     def _key_ev_logview(self, key):

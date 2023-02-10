@@ -2,6 +2,7 @@
 # SPDX-FileCopyrightText: 2022 grommunio GmbH
 """In this module all application classes are hold."""
 import os
+import subprocess
 from typing import Optional, List, Union, Tuple, Any, Dict
 
 import urwid
@@ -21,6 +22,78 @@ from cui.classes.menu import MenuItem
 from cui.classes.button import GBoxButton
 
 _ = cui.util.init_localization()
+
+
+class SetupState:
+    """Stores states of setup and returns a combined binary number"""
+    is_system_pw_upset: bool = False
+    is_network_upset: bool = False
+    is_grommunio_upset: bool = False
+    is_tymsyncd_upset: bool = False
+    is_nginx_upset: bool = False
+
+    def check_network_config(self):
+        return cui.util.check_socket("127.0.0.1", 22)
+
+    def check_grommunio_setup(self):
+        # return os.path.isfile('/etc/grommunio/setup_done')
+        return os.path.isfile("/etc/grammm/setup_done") or os.path.isfile(
+            "/etc/grommunio-common/setup_done"
+        )
+
+    def check_timesyncd_config(self):
+        out = subprocess.check_output(["timedatectl", "status"]).decode()
+        items = {}
+        for line in out.splitlines():
+            key, value = line.partition(":")[::2]
+            items[key.strip()] = value.strip()
+        if (
+            items.get("Network time on") == "yes"
+            and items.get("NTP synchronized") == "yes"
+        ):
+            return True
+        return False
+
+    def check_nginx_config(self):
+        return cui.util.check_socket("127.0.0.1", 8080)
+
+    def set_setup_states(self):
+        # check if pw is set
+        self.is_system_pw_upset = cui.util.check_if_password_is_set("root")
+        # check network config (2)
+        self.is_network_upset = self.check_network_config()
+        # check grommunio-setup config (4)
+        self.is_grommunio_upset = self.check_grommunio_setup()
+        # check timesyncd config (8)
+        self.is_tymsyncd_upset = self.check_timesyncd_config()
+            # give 0 error points cause timesyncd configuration is not necessarily
+            # needed.
+        # check nginx config (16)
+        self.is_nginx_upseet = self.check_nginx_config()
+
+    def check_setup_state(self):
+        ret_val = 0
+        # check if pw is set
+        if not self.is_system_pw_upset:
+            ret_val += 1
+        # check network config (2)
+        if not self.is_network_upset:
+            ret_val += 2
+        # check grommunio-setup config (4)
+        if not self.is_grommunio_upset:
+            ret_val += 4
+        # check timesyncd config (8)
+        if not self.is_tymsyncd_upset:
+            # give 0 error points cause timesyncd configuration is not necessarily
+            # needed.
+            ret_val += 0
+        # check nginx config (16)
+        if not self.is_nginx_upset:
+            ret_val += 16
+        return ret_val
+
+
+setup_state: SetupState = SetupState()
 
 
 class Header:

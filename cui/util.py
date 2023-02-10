@@ -450,55 +450,6 @@ def check_if_password_is_set(user):
     return False
 
 
-def check_setup_state():
-    """Check states of setup and returns a combined binary number"""
-
-    def check_network_config():
-        return check_socket("127.0.0.1", 22)
-
-    def check_grommunio_setup():
-        # return os.path.isfile('/etc/grommunio/setup_done')
-        return os.path.isfile("/etc/grammm/setup_done") or os.path.isfile(
-            "/etc/grommunio-common/setup_done"
-        )
-
-    def check_timesyncd_config():
-        out = subprocess.check_output(["timedatectl", "status"]).decode()
-        items = {}
-        for line in out.splitlines():
-            key, value = line.partition(":")[::2]
-            items[key.strip()] = value.strip()
-        if (
-            items.get("Network time on") == "yes"
-            and items.get("NTP synchronized") == "yes"
-        ):
-            return True
-        return False
-
-    def check_nginx_config():
-        return check_socket("127.0.0.1", 8080)
-
-    ret_val = 0
-    # check if pw is set
-    if not check_if_password_is_set("root"):
-        ret_val += 1
-    # check network config (2)
-    if not check_network_config():
-        ret_val += 2
-    # check grommunio-setup config (4)
-    if not check_grommunio_setup():
-        ret_val += 4
-    # check timesyncd config (8)
-    if not check_timesyncd_config():
-        # give 0 error points cause timesyncd configuration is not necessarily
-        # needed.
-        ret_val += 0
-    # check nginx config (16)
-    if not check_nginx_config():
-        ret_val += 16
-    return ret_val
-
-
 def authenticate_user(username: str, password: str, service: str = "login") -> bool:
     """
     Authenticates username against password on service.
@@ -637,6 +588,7 @@ def get_system_info_top():
 
 
 def get_system_info_bottom():
+    from cui.classes.application import setup_state
     """Return bottom sysinfo"""
     ret_val: List[Union[str, Tuple[str, str]]] = []
     uname = platform.uname()
@@ -644,7 +596,7 @@ def get_system_info_bottom():
     boot_time_timestamp = psutil.boot_time()
     boot_time = datetime.fromtimestamp(boot_time_timestamp)
     proto = "http"
-    if check_setup_state() == 0:
+    if setup_state.check_setup_state() == 0:
         ret_val += [
             "\n",
             _("For further configuration, these URLs can be used:"),
@@ -684,7 +636,7 @@ def get_system_info_bottom():
             _("There are still some tasks missing to run/use grommunio.")
         )
         ret_val.append("\n")
-        statelist = extract_bits(check_setup_state())
+        statelist = extract_bits(setup_state.check_setup_state())
         for state in statelist:
             ret_val.append("\n")
             ret_val.append(("important", STATES.get(state)))
