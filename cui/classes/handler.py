@@ -674,6 +674,7 @@ class ApplicationHandler(ApplicationModel):
         self.view.header.refresh_header()
         self.control.app_control.loop.screen.register_palette(palette)
         self.control.app_control.loop.screen.clear()
+        self._return_to()
 
     def get_focused_menu(self, menu: urwid.ListBox, event: Any) -> int:
         """

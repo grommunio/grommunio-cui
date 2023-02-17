@@ -530,6 +530,7 @@ class ApplicationModel(BaseApplication):
         os.system("systemctl restart systemd-vconsole-setup")
         self.view.header.set_kbdlayout(layout)
         self.view.header.refresh_head_text()
+        self.view.header.refresh_content()
 
     def _prepare_kbd_config(self):
         """Prepare keyboard config form."""
