@@ -23,6 +23,10 @@ from cui.classes.button import GBoxButton
 
 _ = cui.util.init_localization()
 
+ADMIN_DEPENDENT_MENU_CAPTIONS = [
+    _('Change admin-web password')
+]
+
 
 class SetupState:
     """Stores states of setup and returns a combined binary number"""
@@ -31,6 +35,7 @@ class SetupState:
     is_grommunio_upset: bool = False
     is_tymsyncd_upset: bool = False
     is_nginx_upset: bool = False
+    is_grommunio_admin_installed: bool = False
 
     def check_network_config(self):
         return cui.util.check_socket("127.0.0.1", 22)
@@ -70,6 +75,7 @@ class SetupState:
             # needed.
         # check nginx config (16)
         self.is_nginx_upseet = self.check_nginx_config()
+        self.is_grommunio_admin_installed = cui.util.check_if_gradmin_exists()
 
     def check_setup_state(self):
         ret_val = 0
@@ -90,6 +96,9 @@ class SetupState:
         # check nginx config (16)
         if not self.is_nginx_upset:
             ret_val += 16
+        # check grommunio-admin installed (32)
+        if not self.is_grommunio_admin_installed:
+            ret_val += 32
         return ret_val
 
 
@@ -504,8 +513,14 @@ class MainMenu:
         for idx, caption in enumerate(items.keys(), 1):
             if getattr(self, "app", None):
                 item = MenuItem(idx, caption, items.get(caption), self.app)
-                urwid.connect_signal(item, "activate", self.app.handle_event)
-                menu_items.append(urwid.AttrMap(item, "selectable", "focus"))
+                if not cui.util.check_if_gradmin_exists() and _(caption) in ADMIN_DEPENDENT_MENU_CAPTIONS:
+                    urwid.connect_signal(item, "activate", self.app.handle_nothing)
+                    attr = "disabled"
+                    item.disable()
+                else:
+                    urwid.connect_signal(item, "activate", self.app.handle_event)
+                    attr = "selectable"
+                menu_items.append(urwid.AttrMap(item, attr, "focus"))
         return menu_items
 
     def debug_out(self, msg):

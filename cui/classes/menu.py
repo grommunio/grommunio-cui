@@ -13,6 +13,7 @@ class MenuItem(GText):
     """
 
     application: BaseApplication = None
+    _selectable = True
 
     def __init__(
         self,
@@ -46,6 +47,12 @@ class MenuItem(GText):
         """Return the current description"""
         return self.description
 
+    def disable(self):
+        self._selectable = False
+
+    def enable(self):
+        self._selectable = True
+
     def selectable(self):
         """Return if the widget is selectable"""
-        return True
+        return self._selectable

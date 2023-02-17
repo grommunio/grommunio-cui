@@ -35,6 +35,7 @@ STATES = {
     4: _("grommunio-setup has not been run yet."),
     8: _("timesyncd configuration is missing."),
     16: _("nginx is not running."),
+    32: _("grommunio-admin is not installed."),
 }
 
 
@@ -189,6 +190,13 @@ def check_repo_dialog(app, height):
     return updateable, get_repo_url(user, password)
 
 
+def check_if_gradmin_exists():
+    exe = "/usr/sbin/grommunio-admin"
+    if Path(exe).exists():
+        return True
+    return False
+
+
 BG_LIGHT_GRAY: str = "light gray"
 BG_DARK_CYAN: str = "dark cyan"
 BG_DARK_MAGENTA: str = "dark magenta"
@@ -239,6 +247,7 @@ _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
             "#00a",
             "#aaa",
         ),
+        ("disabled", FG_DARK_GRAY, BG_BLACK, "", "#fff", "#111"),
         ("selectable", FG_WHITE, BG_BLACK, "", "#fff", "#111"),
         ("focus", FG_BLACK, BG_LIGHT_GRAY, "", "#111", "#ccc"),
         (
@@ -282,6 +291,7 @@ _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
             "#0aa",
             "#111",
         ),
+        ("disabled", FG_DARK_GRAY, BG_LIGHT_GRAY, "", "#111", "#fff"),
         ("selectable", FG_BLACK, BG_LIGHT_GRAY, "", "#111", "#fff"),
         ("focus", FG_WHITE, BG_BLACK, "", "#fff", "#888"),
         (
@@ -325,6 +335,7 @@ _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
             "#880",
             "#fff",
         ),
+        ("disabled", FG_DARK_GRAY, BG_BLACK, "", "#fff", "#111"),
         ("selectable", FG_WHITE, BG_BLACK, "", "#fff", "#111"),
         ("focus", FG_BLACK, BG_LIGHT_GRAY, "", "#111", "#ccc"),
         (
@@ -368,6 +379,7 @@ _PALETTES: Dict[str, List[Tuple[str, ...]]] = {
             "#ff0",
             "#111",
         ),
+        ("disabled", FG_DARK_GRAY, BG_LIGHT_GRAY, "", "#111", "#fff"),
         ("selectable", FG_BLACK, BG_LIGHT_GRAY, "", "#111", "#fff"),
         ("focus", FG_WHITE, BG_BLACK, "", "#fff", "#888"),
         (

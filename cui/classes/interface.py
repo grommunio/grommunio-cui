@@ -31,6 +31,9 @@ class BaseApplication:
     def control(self, val):
         self._control = val
 
+    def handle_nothing(self, event: Any):
+        pass
+
     def handle_event(self, event: Any):
         """
         Handles user input to the console UI. The method in this handler is not implemented,
