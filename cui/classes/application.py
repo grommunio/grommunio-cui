@@ -74,7 +74,7 @@ class SetupState:
             # give 0 error points cause timesyncd configuration is not necessarily
             # needed.
         # check nginx config (16)
-        self.is_nginx_upseet = self.check_nginx_config()
+        self.is_nginx_upset = self.check_nginx_config()
         self.is_grommunio_admin_installed = cui.util.check_if_gradmin_exists()
 
     def check_setup_state(self):
