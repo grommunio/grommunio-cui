@@ -383,7 +383,7 @@ class ApplicationHandler(ApplicationModel):
                         parameter.MsgBoxParams(
                             _('The repo file has not been changed.')
                         ),
-                        size=parameter.Size(height=height-1)
+                        size=parameter.Size(height=height)
                     )
                 else:
                     self._process_changed_repo_config(height, repo_res)
