@@ -34,7 +34,7 @@ class ApplicationHandler(ApplicationModel):
 
             :param event: A mouse or keyboard input sequence. While the mouse
                 event has the form ('mouse press or release', button, column,
-                line), the key stroke is represented as is a single key or even
+                line), the keystroke is represented as is a single key or even
                 the represented value like 'enter', 'up', 'down', etc.
             :type: Any
         """
@@ -47,7 +47,7 @@ class ApplicationHandler(ApplicationModel):
 
     def _handle_key_event(self, event: Any):
         """Handle keyboard event."""
-        # event was a key stroke
+        # event was a keystroke
         key: str = str(event)
         if self.control.log_control.log_finished and \
                 self.control.app_control.current_window != LOG_VIEWER:
@@ -153,31 +153,28 @@ class ApplicationHandler(ApplicationModel):
         """Handle event on system password reset menu."""
         self._handle_standard_tab_behaviour(key)
         success_msg = _("NOTHING")
-        if key.lower().endswith("enter"):
-            if key.lower().startswith("hidden"):
-                button_type = key.lower().split(" ")[1]
+        button_type = key
+        if button_type.endswith("enter"):
+            button_type = button_type.split(" enter", 1)[0]
+        if button_type.startswith("hidden"):
+            button_type = button_type.split("hidden ", 1)[1]
+        if button_type.lower() in [t.lower() for t in [_("Ok"), _("ok"), _("OK"), "enter"]]:
+            success_msg = _("was successful")
+            pw1 = self.control.app_control.loop.widget.top_w.base_widget.body.base_widget[
+                2
+            ].edit_text
+            pw2 = self.control.app_control.loop.widget.top_w.base_widget.body.base_widget[
+                4
+            ].edit_text
+            if pw1 == pw2:
+                res = util.reset_system_passwd(pw1)
             else:
-                button_type = "ok"
-            if button_type == "ok":
-                success_msg = _("was successful")
-                pw1 = self.control.app_control.loop.widget.top_w.base_widget.body.base_widget[
-                    2
-                ].edit_text
-                pw2 = self.control.app_control.loop.widget.top_w.base_widget.body.base_widget[
-                    4
-                ].edit_text
-                if pw1 == pw2:
-                    res = util.reset_system_passwd(pw1)
-                else:
-                    res = 2
-                    success_msg = _("failed due to mismatching password values")
-                if not res:
-                    success_msg = _("failed")
-                self._open_main_menu()
-            else:
-                success_msg = _("aborted")
-                self._open_main_menu()
-        elif key.lower().find("cancel") >= 0 or key.lower() in ["esc"]:
+                res = 2
+                success_msg = _("failed due to mismatching password values")
+            if not res:
+                success_msg = _("failed")
+            self._open_main_menu()
+        elif button_type in [_("Cancel"), _("cancel")] or key.lower() in ["esc"]:
             success_msg = _("aborted")
             self._open_main_menu()
         if key.lower().endswith("enter") or key in ["esc", "enter"]:
@@ -223,7 +220,7 @@ class ApplicationHandler(ApplicationModel):
         self.control.app_control.current_window = MAIN_MENU
 
     def _key_ev_mainmenu(self, key):
-        """Handle event on main menu menu."""
+        """Handle event on main menu."""
         def menu_language():
             pre = cui.classes.parser.ConfigParser(infile='/etc/locale.conf')
             self._run_yast_module("language")
@@ -334,31 +331,28 @@ class ApplicationHandler(ApplicationModel):
         """Handle event on admin api password reset menu."""
         self._handle_standard_tab_behaviour(key)
         success_msg = _("NOTHING")
-        if key.lower().endswith("enter"):
-            if key.lower().startswith("hidden"):
-                button_type = key.lower().split(" ")[1]
+        button_type = key
+        if button_type.endswith("enter"):
+            button_type = button_type.split(" enter", 1)[0]
+        if button_type.startswith("hidden"):
+            button_type = button_type.split("hidden ", 1)[1]
+        if button_type.lower() in [t.lower() for t in [_("Ok"), _("ok"), _("OK"), "enter"]]:
+            success_msg = _("was successful")
+            pw1 = self.control.app_control.loop.widget.top_w.base_widget.body.base_widget[
+                2
+            ].edit_text
+            pw2 = self.control.app_control.loop.widget.top_w.base_widget.body.base_widget[
+                4
+            ].edit_text
+            if pw1 == pw2:
+                res = util.reset_aapi_passwd(pw1)
             else:
-                button_type = "ok"
-            if button_type == "ok":
-                success_msg = _("was successful")
-                pw1 = self.control.app_control.loop.widget.top_w.base_widget.body.base_widget[
-                    2
-                ].edit_text
-                pw2 = self.control.app_control.loop.widget.top_w.base_widget.body.base_widget[
-                    4
-                ].edit_text
-                if pw1 == pw2:
-                    res = util.reset_aapi_passwd(pw1)
-                else:
-                    res = 2
-                    success_msg = _("failed due to mismatching password values")
-                if not res:
-                    success_msg = _("failed")
-                self._open_main_menu()
-            else:
-                success_msg = _("aborted")
-                self._open_main_menu()
-        elif key.lower().find("cancel") >= 0 or key.lower() in ["esc"]:
+                res = 2
+                success_msg = _("failed due to mismatching password values")
+            if not res:
+                success_msg = _("failed")
+            self._open_main_menu()
+        elif button_type in [_("Cancel"), _("cancel")] or key.lower() in ["esc"]:
             success_msg = _("aborted")
             self._open_main_menu()
         if key.lower().endswith("enter") or key in ["esc", "enter"]:
@@ -375,7 +369,9 @@ class ApplicationHandler(ApplicationModel):
         """Handle event on repository selection menu."""
         height = 10
         repo_res = self._init_repo_selection(key, height)
-        if repo_res.get("button_type", None) in ("ok", "save"):
+        if repo_res.get("button_type", "").lower() in [
+            t.lower() for t in [_("Ok"), _("Save"), _("ok"), _("save"), _("OK"), _("SAVE")]
+        ]:
             updateable, url = util.check_repo_dialog(self, height)
             if updateable:
                 repo_res.get("config", None)['grommunio']['baseurl'] = f'https://{url}'
@@ -487,7 +483,7 @@ class ApplicationHandler(ApplicationModel):
             ),
             size=parameter.Size(height=10)
         )
-        if button_type == "ok":
+        if button_type == _("ok"):
             # Save config and return to mainmenu
             self.control.menu_control.timesyncd_vars["NTP"] = self.timesyncd_body.base_widget[
                 1

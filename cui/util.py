@@ -77,7 +77,9 @@ _ = init_localization()
 
 
 def get_button_type(key, open_func_on_ok, mb_func, cancel_msgbox_params, size):
-    """Return button type (ok, cancel, save, add, ....)"""
+    """Return button type (Ok, Cancel, Save, Add, ....)
+    Be aware the types are translated!
+    """
     def open_cancel_msg(msg_params, mb_size):
         mb_func(
             msg_params,
