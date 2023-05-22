@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2022-12-10 17:31+0100\n"
-"PO-Revision-Date: 2023-01-03 10:48+0000\n"
-"Last-Translator: Mike Williams <mike.williams@grammm.com>\n"
+"PO-Revision-Date: 2023-05-23 09:53+0000\n"
+"Last-Translator: David Thomas <david.thomas@grommunio.com>\n"
 "Language-Team: Spanish <https://hosted.weblate.org/projects/grommunio/"
 "grommunio-cui/es/>\n"
 "Language: es\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.15.1-dev\n"
+"X-Generator: Weblate 4.18-dev\n"
 
 #: cui/__init__.py:111
 msgid "Idle"
@@ -25,109 +25,116 @@ msgstr "Ocioso"
 
 #: cui/__init__.py:161 cui/__init__.py:175 cui/util.py:635
 msgid "Login"
-msgstr ""
+msgstr "inicio de sesión"
 
 #: cui/__init__.py:164 cui/__init__.py:1695
 msgid "Username: "
-msgstr ""
+msgstr "nombre de usuario "
 
 #: cui/__init__.py:167 cui/__init__.py:1698
 msgid "Password: "
-msgstr ""
+msgstr "contraseña "
 
 #: cui/__init__.py:186
 msgid "OK"
-msgstr ""
+msgstr "OK"
 
 #: cui/__init__.py:215 cui/__init__.py:921 cui/__init__.py:922
 msgid "Cancel"
-msgstr ""
+msgstr "cancelar"
 
 #: cui/__init__.py:227
 msgid "Close"
-msgstr ""
+msgstr "cerrar"
 
 #: cui/__init__.py:256
 msgid "Add"
-msgstr ""
+msgstr "añada"
 
 #: cui/__init__.py:268
 msgid "Edit"
-msgstr ""
+msgstr "editar"
 
 #: cui/__init__.py:280
 msgid "Details"
-msgstr ""
+msgstr "detalles"
 
 #: cui/__init__.py:292
 msgid "Space to toggle"
-msgstr ""
+msgstr "Espacio para alternar"
 
 #: cui/__init__.py:300
 msgid "Apply"
-msgstr ""
+msgstr "aplicar"
 
 #: cui/__init__.py:312
 msgid "Save"
-msgstr ""
+msgstr "guardar"
 
 #: cui/__init__.py:333
 msgid ""
 "If this is not that what you expected to see, you probably have insufficient "
 "permissions."
 msgstr ""
+"Si esto no es lo que esperaba ver, es probable que tenga permisos "
+"insuficientes."
 
 #: cui/__init__.py:347
 msgid "Main Menu"
-msgstr ""
+msgstr "menú principal"
 
 #: cui/__init__.py:348
 msgid "Here you can do the main actions"
-msgstr ""
+msgstr "Aquí puedes realizar las principales acciones"
 
 #: cui/__init__.py:353
 msgid "Language configuration"
-msgstr ""
+msgstr "Configuración de idiomas"
 
 #: cui/__init__.py:355
 msgid "Language"
-msgstr ""
+msgstr "idioma"
 
 #: cui/__init__.py:358
 msgid "Opens the yast2 configurator for setting language settings."
-msgstr ""
+msgstr "Abre el configurador yast2 para configurar los ajustes de idioma."
 
 #: cui/__init__.py:362
 msgid "Change system password"
-msgstr ""
+msgstr "Cambiar contraseña del sistema"
 
 #: cui/__init__.py:364 cui/__init__.py:417
 msgid "Password change"
-msgstr ""
+msgstr "cambio de contraseña"
 
 #: cui/__init__.py:366
 msgid ""
 "Opens a dialog for changing the password of the system root user. When a "
 "password is set, you can login via ssh and rerun grommunio-cui."
 msgstr ""
+"Abre un diálogo para cambiar la contraseña del usuario root del sistema. "
+"Cuando se establece una contraseña, puede iniciar sesión a través de ssh y "
+"volver a ejecutar grommunio-cui."
 
 #: cui/__init__.py:369
 msgid "Network interface configuration"
-msgstr ""
+msgstr "Configuración de interfaces de red"
 
 #: cui/__init__.py:371
 msgid "Configuration of network"
-msgstr ""
+msgstr "Configuración de red"
 
 #: cui/__init__.py:374
 msgid ""
 "Opens the yast2 configurator for setting up devices, interfaces, IP "
 "addresses, DNS and more."
 msgstr ""
+"Abre el configurador yast2 para configurar dispositivos, interfaces, "
+"direcciones IP, DNS y más."
 
 #: cui/__init__.py:378
 msgid "Timezone configuration"
-msgstr ""
+msgstr "Configuración de zona horaria"
 
 #: cui/__init__.py:380
 msgid "Timezone"
@@ -135,55 +142,59 @@ msgstr "Zona horaria"
 
 #: cui/__init__.py:383
 msgid "Opens the yast2 configurator for setting country and timezone settings."
-msgstr ""
+msgstr "Abre el configurador yast2 para configurar el país y la zona horaria."
 
 #: cui/__init__.py:387
 msgid "timesyncd configuration"
-msgstr ""
+msgstr "configuración de timesyncd"
 
 #: cui/__init__.py:389
 msgid "timesyncd"
-msgstr ""
+msgstr "timesyncd"
 
 #: cui/__init__.py:392
 msgid ""
 "Opens a simple configurator for configuring systemd-timesyncd as a "
 "lightweight NTP client for time synchronization."
 msgstr ""
+"Abre un sencillo configurador para configurar systemd-timesyncd como cliente "
+"NTP ligero para la sincronización horaria."
 
 #: cui/__init__.py:396
 msgid "Select software repositories"
-msgstr ""
+msgstr "Seleccione repositorios de software"
 
 #: cui/__init__.py:397
 msgid "Software repositories selection"
-msgstr ""
+msgstr "Selección de los repositorios de software"
 
 #: cui/__init__.py:399
 msgid "Opens dialog for choosing software repositories."
-msgstr ""
+msgstr "Abre un diálogo para elegir los repositorios de software."
 
 #: cui/__init__.py:401
 msgid "Update the system"
-msgstr ""
+msgstr "Actualizar el sistema"
 
 #: cui/__init__.py:402
 msgid "System update"
-msgstr ""
+msgstr "Actualización del sistema"
 
 #: cui/__init__.py:404
 msgid ""
 "Executes the system package manager for the installation of newer component "
 "versions."
 msgstr ""
+"Ejecuta el gestor de paquetes del sistema para la instalación de nuevas "
+"versiones de los componentes."
 
 #: cui/__init__.py:406
 msgid "grommunio setup wizard"
-msgstr ""
+msgstr "asistente de configuración de grommunio"
 
 #: cui/__init__.py:408
 msgid "Setup wizard"
-msgstr ""
+msgstr "Asistente de configuración"
 
 #: cui/__init__.py:411
 msgid ""
@@ -191,193 +202,205 @@ msgid ""
 "grommunio databases, TLS certificates, services and the administration web "
 "user interface."
 msgstr ""
+"Ejecuta el script grommunio-setup para la configuración inicial de las bases "
+"de datos grommunio, certificados TLS, servicios y la interface de usuario "
+"web de administración."
 
 #: cui/__init__.py:415
 msgid "Change admin-web password"
-msgstr ""
+msgstr "Cambiar contraseña admin-web"
 
 #: cui/__init__.py:420
 msgid ""
 "Opens a dialog for changing the password used by the administration web "
 "interface."
 msgstr ""
+"Abre un cuadro de diálogo para cambiar la contraseña utilizada por la "
+"interface web de administración."
 
 #: cui/__init__.py:424 cui/__init__.py:426
 msgid "Terminal"
-msgstr ""
+msgstr "Terminal"
 
 #: cui/__init__.py:429
 msgid "Starts terminal for advanced system configuration."
-msgstr ""
+msgstr "Inicia el terminal para la configuración avanzada del sistema."
 
 #: cui/__init__.py:433 cui/__init__.py:1210
 msgid "Reboot"
-msgstr ""
+msgstr "Reiniciar"
 
 #: cui/__init__.py:434
 msgid "Reboot system."
-msgstr ""
+msgstr "Reinicia el sistema."
 
 #: cui/__init__.py:436 cui/__init__.py:1220
 msgid "Shutdown"
-msgstr ""
+msgstr "Cierre"
 
 #: cui/__init__.py:438
 msgid "Shutdown system."
-msgstr ""
+msgstr "Sistema de apagado."
 
 #: cui/__init__.py:440
 msgid "Shuts down the system and powers off."
-msgstr ""
+msgstr "Apaga el sistema y se apaga."
 
 #: cui/__init__.py:445
 msgid "Exit CUI"
-msgstr ""
+msgstr "Salir del CUI"
 
 #: cui/__init__.py:470
 msgid "grommunio console user interface"
-msgstr ""
+msgstr "Interface de usuario de la consola grommunio"
 
 #: cui/__init__.py:473
 #, python-brace-format
 msgid "Active keyboard layout: {kbd}; color set: {colormode}."
 msgstr ""
+"Disposición activa del teclado: {kbd}; conjunto de colores: {colormode}."
 
 #: cui/__init__.py:478
 msgid "If you need help, press the 'L' key to view logs."
-msgstr ""
+msgstr "Si necesitas ayuda, pulsa la tecla \"L\" para ver los registros."
 
 #: cui/__init__.py:562
 #, python-format
 msgid "What is {%s}."
-msgstr ""
+msgstr "Qué es {%s}."
 
 #: cui/__init__.py:691 cui/__init__.py:867 cui/__init__.py:1020
 msgid "NOTHING"
-msgstr ""
+msgstr "NADA"
 
 #: cui/__init__.py:698 cui/__init__.py:874 cui/__init__.py:1043
 msgid "was successful"
-msgstr ""
+msgstr "tuvo éxito"
 
 #: cui/__init__.py:709 cui/__init__.py:885
 msgid "failed due to mismatching password values"
-msgstr ""
+msgstr "Error debido a la falta de coincidencia de los valores de la contraseña"
 
 #: cui/__init__.py:711 cui/__init__.py:887 cui/__init__.py:1045
 msgid "failed"
-msgstr ""
+msgstr "fallido"
 
 #: cui/__init__.py:714 cui/__init__.py:717 cui/__init__.py:890
 #: cui/__init__.py:893 cui/__init__.py:1048 cui/__init__.py:1051
 msgid "aborted"
-msgstr ""
+msgstr "abortado"
 
 #: cui/__init__.py:722
 #, python-brace-format
 msgid "System password reset {success_msg}!"
-msgstr ""
+msgstr "¡Restablecimiento de la contraseña del sistema {success_msg}!"
 
 #: cui/__init__.py:723
 msgid "System password reset"
-msgstr ""
+msgstr "Restablecimiento de la contraseña del sistema"
 
 #: cui/__init__.py:898
 #, python-brace-format
 msgid "Admin password reset {success_msg}!"
-msgstr ""
+msgstr "¡Restablecimiento de la contraseña de administrador {success_msg}!"
 
 #: cui/__init__.py:899
 msgid "Admin password reset"
-msgstr ""
+msgstr "Restablecer contraseña de administrador"
 
 #: cui/__init__.py:924 cui/__init__.py:1014
 msgid "Software repository selection has been canceled."
-msgstr ""
+msgstr "Se ha cancelado la selección del repositorio de software."
 
 #: cui/__init__.py:943
 msgid ""
 "Please check the credentials for \"supported\"-version or use \"community\"-"
 "version."
 msgstr ""
+"Compruebe las credenciales para la versión \"compatible\" o utilice la "
+"versión \"comunitaria\"."
 
 #: cui/__init__.py:957
 msgid "The repo file has not been changed."
-msgstr ""
+msgstr "El archivo repo no se ha modificado."
 
 #: cui/__init__.py:966
 msgid "One moment, please ..."
-msgstr ""
+msgstr "Un momento, por favor ..."
 
 #: cui/__init__.py:967
 msgid ""
 "Fetching GPG-KEY file and refreshing repositories. This may take a while ..."
 msgstr ""
+"Obtención del archivo GPG-KEY y actualización de los repositorios. Esto "
+"puede tomar un tiempo ..."
 
 #: cui/__init__.py:1000
 msgid "Software repository selection has been updated."
-msgstr ""
+msgstr "Se ha actualizado la selección de repositorios de software."
 
 #: cui/__init__.py:1006
 msgid ""
 "Software repository selection has not been updated. Something went wrong "
 "while importing key file."
 msgstr ""
+"La selección del repositorio de software no se ha actualizado. Algo ha ido "
+"mal al importar el archivo de claves."
 
 #: cui/__init__.py:1055
 #, python-brace-format
 msgid "Timesyncd configuration change {success_msg}!"
-msgstr ""
+msgstr "¡Cambio de configuración de Timesyncd {success_msg}!"
 
 #: cui/__init__.py:1056 cui/__init__.py:1582
 msgid "Timesyncd Configuration"
-msgstr ""
+msgstr "Configuración de Timesyncd"
 
 #: cui/__init__.py:1160
 msgid "Creator (%s) clicked %b."
-msgstr ""
+msgstr "El creador (%s) hizo clic en %b."
 
 #: cui/__init__.py:1171
 #, python-format
 msgid "Called handle_menu_changed() with args(%s) and "
-msgstr ""
+msgstr "Llamada a handle_menu_changed() con args(%s) y "
 
 #: cui/__init__.py:1184
 #, python-format
 msgid "Called handle_menu_activated() with args(%s) and "
-msgstr ""
+msgstr "Llamada a handle_menu_activated() con args(%s) y "
 
 #: cui/__init__.py:1197
 msgid "To return to the CUI, issue the `exit` command."
-msgstr ""
+msgstr "Para volver a la CUI, ejecute el comando `exit`."
 
 #: cui/__init__.py:1207 cui/__init__.py:1217
 msgid "Are you sure?\n"
-msgstr ""
+msgstr "¿Estás seguro?\n"
 
 #: cui/__init__.py:1208 cui/__init__.py:1218
 msgid "After pressing OK, "
-msgstr ""
+msgstr "Después de pulsar OK, "
 
 #: cui/__init__.py:1209
 msgid "the system will reboot."
-msgstr ""
+msgstr "el sistema se reiniciará."
 
 #: cui/__init__.py:1219
 msgid "the system will shut down and power off."
-msgstr ""
+msgstr "el sistema se apagará y se desconectará."
 
 #: cui/__init__.py:1231
 msgid "Changing system password"
-msgstr ""
+msgstr "Cambiar la contraseña del sistema"
 
 #: cui/__init__.py:1235
 msgid "System Password Change"
-msgstr ""
+msgstr "Cambio de contraseña del sistema"
 
 #: cui/__init__.py:1236
 msgid "Enter the new system password:"
-msgstr ""
+msgstr "Introduzca la nueva contraseña del sistema:"
 
 #: cui/__init__.py:1393
 #, python-format
@@ -385,218 +408,221 @@ msgid ""
 "Use the arrow keys to switch between logfiles. <LEFT> and <RIGHT> switch the "
 "logfile, while <+> and <-> changes the line count to view. (%s)"
 msgstr ""
+"Utilice las teclas de flecha para cambiar entre archivos de registro. "
+"<IZQUIERDA> y <DERECHA> cambian de archivo de registro, mientras que <+> y <-"
+"> cambian el recuento de líneas a ver. (%s)"
 
 #: cui/__init__.py:1465
 #, python-format
 msgid "Log file viewer has to open file {%s} ..."
-msgstr ""
+msgstr "El visor de archivos de registro tiene que abrir el archivo {%s} ..."
 
 #: cui/__init__.py:1476
 #, python-format
 msgid "Please wait while `yast2 %s` is being run."
-msgstr ""
+msgstr "Por favor, espere mientras se ejecuta `yast2 %s`."
 
 #: cui/__init__.py:1519
 msgid "admin-web Password Change"
-msgstr ""
+msgstr "admin-web Cambio de contraseña"
 
 #: cui/__init__.py:1520
 msgid "Enter the new admin-web password:"
-msgstr ""
+msgstr "Introduzca la nueva contraseña admin-web:"
 
 #: cui/__init__.py:1580
 msgid "Opening timesyncd configuration"
-msgstr ""
+msgstr "Configuración de los horarios de apertura"
 
 #: cui/__init__.py:1620
 msgid "Insert the NTP servers separated by <SPACE> char."
-msgstr ""
+msgstr "Introduzca los servidores NTP separados por caracteres <SPACE>."
 
 #: cui/__init__.py:1644
 msgid "Opening repository selection"
-msgstr ""
+msgstr "Abrir la selección de repositorios"
 
 #: cui/__init__.py:1646
 msgid "Software repository selection"
-msgstr ""
+msgstr "Selección del repositorio de software"
 
 #: cui/__init__.py:1688
 msgid "Use \"community\" repository"
-msgstr ""
+msgstr "Utilizar el repositorio \"comunidad\""
 
 #: cui/__init__.py:1692
 msgid "Use \"supported\" repository"
-msgstr ""
+msgstr "Utilizar repositorio \"compatible\""
 
 #: cui/__init__.py:1724
 msgid "Login successful"
-msgstr ""
+msgstr "Inicio de sesión correcto"
 
 #: cui/__init__.py:1726
 msgid ", <F4> for Main-Menu"
-msgstr ""
+msgstr ", <F4> para Menú principal"
 
 #: cui/__init__.py:1736
 msgid "Returning to main screen."
-msgstr ""
+msgstr "Volver a la pantalla principal."
 
 #: cui/__init__.py:1747
 msgid "You need root privileges to use another user."
-msgstr ""
+msgstr "Necesitas privilegios de root para utilizar otro usuario."
 
 #: cui/__init__.py:1750
 #, python-format
 msgid "checking user %s with pass "
-msgstr ""
+msgstr "comprobando usuario %s con pass "
 
 #: cui/__init__.py:1759
 msgid "Incorrect credentials. Access denied!"
-msgstr ""
+msgstr "Credenciales incorrectas. Acceso negado!"
 
 #: cui/__init__.py:1760
 msgid "Password verification"
-msgstr ""
+msgstr "Verificación de contraseña"
 
 #: cui/__init__.py:1762
 #, python-format
 msgid "Login wrong! (%s)"
-msgstr ""
+msgstr "¡Login incorrecto! (%s)"
 
 #: cui/__init__.py:1770
 msgid "UNKNOWN LABEL"
-msgstr ""
+msgstr "LABEL DESCONOCIDO"
 
 #: cui/__init__.py:1924
 msgid "Opening keyboard configuration"
-msgstr ""
+msgstr "Apertura de la configuración del teclado"
 
 #: cui/__init__.py:2316
 msgid "Input expected"
-msgstr ""
+msgstr "Entrada prevista"
 
 #: cui/__init__.py:2582
 msgid "Write succeeded"
-msgstr ""
+msgstr "Escribe sucedido"
 
 #: cui/__init__.py:2584
 msgid "The configuration was"
-msgstr ""
+msgstr "La configuración era"
 
 #: cui/__init__.py:2587 cui/__init__.py:2593
 msgid " updated."
-msgstr ""
+msgstr " actualizado."
 
 #: cui/__init__.py:2589
 msgid "Write failed"
-msgstr ""
+msgstr "Error de escritura"
 
 #: cui/__init__.py:2592
 msgid " not"
-msgstr ""
+msgstr " no"
 
 #: cui/__init__.py:2595
 msgid "Perhaps you have insufficient rights."
-msgstr ""
+msgstr "Tal vez no tenga suficientes derechos."
 
 #: cui/__init__.py:2607
 #, python-format
 msgid "Usage: {%s} [OPTIONS]"
-msgstr ""
+msgstr "Uso: {%s} [OPCIONES]"
 
 #: cui/__init__.py:2608
 msgid "\tOPTIONS:"
-msgstr ""
+msgstr "\tOPCIONES:"
 
 #: cui/__init__.py:2609
 msgid "\t\t--help: Show this message."
-msgstr ""
+msgstr "\t\t--ayuda: Muestra este mensaje."
 
 #: cui/__init__.py:2610
 msgid "\t\t-v/--debug: Verbose/Debugging mode."
-msgstr ""
+msgstr "\t\t-v/--debug: Verbose/Modo de depuración."
 
 #: cui/util.py:51
 msgid "System password is not set."
-msgstr ""
+msgstr "La contraseña del sistema no está configurada."
 
 #: cui/util.py:52
 msgid "Network configuration is missing."
-msgstr ""
+msgstr "Falta la configuración de red."
 
 #: cui/util.py:53
 msgid "grommunio-setup has not been run yet."
-msgstr ""
+msgstr "grommunio-setup aún no se ha ejecutado."
 
 #: cui/util.py:54
 msgid "timesyncd configuration is missing."
-msgstr ""
+msgstr "Falta la configuración timesyncd."
 
 #: cui/util.py:55
 msgid "nginx is not running."
-msgstr ""
+msgstr "nginx no está funcionando."
 
 #: cui/util.py:390
 msgid "No name found"
-msgstr ""
+msgstr "No se ha encontrado ningún nombre"
 
 #: cui/util.py:391
 msgid "No version detectable"
-msgstr ""
+msgstr "Ninguna versión detectable"
 
 #: cui/util.py:453
 msgid " Average load: "
-msgstr ""
+msgstr " Carga promedio: "
 
 #: cui/util.py:500
 #, python-brace-format
 msgid "Memory {used} used of {total} ({available} free)"
-msgstr ""
+msgstr "Memoria {used} utilizada de {total} ({available} libre)"
 
 #: cui/util.py:517
 msgid "For further configuration, these URLs can be used:"
-msgstr ""
+msgstr "Para una mayor configuración, se pueden utilizar estas URL:"
 
 #: cui/util.py:525
 msgid "It is generally NOT recommended to use localhost as hostname."
-msgstr ""
+msgstr "Generalmente NO se recomienda utilizar localhost como nombre de host."
 
 #: cui/util.py:551
 msgid "There are still some tasks missing to run/use grommunio."
-msgstr ""
+msgstr "Todavía faltan algunas tareas para ejecutar/utilizar grommunio."
 
 #: cui/util.py:560
 msgid "Boot Time: "
-msgstr ""
+msgstr "Tiempo de arranque: "
 
 #: cui/util.py:565
 #, python-format
 msgid "Last login time: {%s}"
-msgstr ""
+msgstr "Última hora de conexión: {%s}"
 
 #: cui/util.py:568
 msgid "Current language / PPID: {locale.getlocale()[0]} / {os.getppid()}"
-msgstr ""
+msgstr "Idioma actual / PPID: {locale.getlocale()[0]} / {os.getppid()}"
 
 #: cui/util.py:571
 msgid "Oops!"
-msgstr ""
+msgstr "¡Ups!"
 
 #: cui/util.py:572
 msgid "There should be nothing."
-msgstr ""
+msgstr "No debe haber nada."
 
 #: cui/util.py:635
 msgid "Color"
-msgstr ""
+msgstr "Color"
 
 #: cui/util.py:635
 msgid "Keyboard"
-msgstr ""
+msgstr "Teclado"
 
 #: cui/util.py:637
 msgid "Exit"
-msgstr ""
+msgstr "Salida"
 
 #: cui/util.py:638
 msgid "Logs"
-msgstr ""
+msgstr "Registros"
