@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: grommunio CUI Deutsch\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2022-11-04 19:11+0100\n"
-"PO-Revision-Date: 2022-12-13 01:49+0000\n"
-"Last-Translator: J. Lavoie <j.lavoie@net-c.ca>\n"
+"PO-Revision-Date: 2023-09-06 15:05+0000\n"
+"Last-Translator: Jan Engelhardt <jengelh@inai.de>\n"
 "Language-Team: German <https://hosted.weblate.org/projects/grommunio/"
 "grommunio-cui/de/>\n"
 "Language: de\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.15-dev\n"
+"X-Generator: Weblate 5.0.1-dev\n"
 
 #: cui/__init__.py:121 cui/__init__.py:553
 msgid "Idle"
@@ -45,7 +45,7 @@ msgstr "Abbrechen"
 
 #: cui/__init__.py:236
 msgid "Close"
-msgstr "Schliessen"
+msgstr "Schließen"
 
 #: cui/__init__.py:265
 msgid "Add"
