@@ -244,7 +244,7 @@ class ApplicationHandler(ApplicationModel):
                 4: (self._run_yast_module, "timezone"),
                 5: (self._open_timesyncd_conf, None),
                 6: (self._open_repo_conf, None),
-                7: (self._run_zypper, "up"),
+                7: (self._run_update, None),
                 8: (self._open_setup_wizard, None),
                 9: (self._open_reset_aapi_pw, None),
                 10: (self._open_terminal, None),
@@ -604,6 +604,21 @@ class ApplicationHandler(ApplicationModel):
         os.system(f"yast2 {modulename}")
         self.view.gscreen.screen.tty_signal_keys(*self.view.gscreen.blank_termios)
         self.control.app_control.loop.start()
+
+    def _run_update(self):
+        """Run zypper modules `ref && up`."""
+        self.control.app_control.loop.stop()
+        self.view.gscreen.screen.tty_signal_keys(*self.view.gscreen.old_termios)
+        print("\x1b[K")
+        print("\x1b[K \x1b[36m▼\x1b[0m Please wait while zypper is invoked.")
+        print("\x1b[J")
+        os.system(f"zypper ref")
+        os.system(f"zypper up")
+        input("\n \x1b[36m▼\x1b[0m Press ENTER to return to the CUI.")
+        self.view.gscreen.screen.tty_signal_keys(*self.view.gscreen.blank_termios)
+        self.control.app_control.loop.start()
+        #self._run_zypper("ref")
+        #self._run_zypper("up")
 
     def _run_zypper(self, subcmd: str):
         """Run zypper modul `subcmd`."""
