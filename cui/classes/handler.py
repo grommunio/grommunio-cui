@@ -415,7 +415,7 @@ class ApplicationHandler(ApplicationModel):
                 if ret_code_rpm.wait() == 0:
                     self._draw_progress(60)
                     with subprocess.Popen(
-                            ["zypper", "--non-interactive", "refresh"],
+                            ["zypper", "--non-interactive", "--gpg-auto-import-keys", "refresh"],
                             stderr=subprocess.DEVNULL,
                             stdout=subprocess.DEVNULL,
                     ) as ret_code_zypper:
@@ -612,7 +612,7 @@ class ApplicationHandler(ApplicationModel):
         print("\x1b[K")
         print("\x1b[K \x1b[36m▼\x1b[0m Please wait while zypper is invoked.")
         print("\x1b[J")
-        os.system(f"zypper ref")
+        os.system(f"zypper --gpg-auto-import-keys ref")
         os.system(f"zypper up")
         input("\n \x1b[36m▼\x1b[0m Press ENTER to return to the CUI.")
         self.view.gscreen.screen.tty_signal_keys(*self.view.gscreen.blank_termios)
