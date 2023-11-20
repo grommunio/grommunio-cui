@@ -151,7 +151,7 @@ def get_distribution_level():
     """Return the distribution level depending on os-release"""
     if lineconfig_read('/etc/os-release').get('VERSION', '"2022.05.2"').startswith('"2022.12'):
         return '15.4'
-    return '15.3'
+    return '15.5'
 
 
 def get_repo_url(user: str = None, password: str = None):
