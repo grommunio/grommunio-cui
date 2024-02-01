@@ -257,7 +257,7 @@ class ApplicationModel(BaseApplication):
                 else:
                     post.append(src[:-8])
         header = (
-            _("Use the arrow keys to switch between logfiles. <urwid.LEFT> and <RIGHT> "
+            _("Use the arrow keys to switch between logfiles. <LEFT> and <RIGHT> "
               "switch the logfile, while <+> and <-> changes the line count to view. "
               "(%s)") % self.control.log_control.log_line_count
         )
