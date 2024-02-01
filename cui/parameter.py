@@ -3,6 +3,7 @@
 """Module containing different parameter classes to reduce needed parameter per call."""
 
 import collections
+from collections.abc import Mapping
 from typing import Type
 import urwid
 
@@ -17,7 +18,7 @@ def namedtuple_defaults(typename, field_names, default_values=()) -> Type[tuple]
     """
     _namedtuple = collections.namedtuple(typename, field_names)
     _namedtuple.__new__.__defaults__ = (None, ) * len(_namedtuple._fields)
-    if isinstance(default_values, collections.Mapping):
+    if isinstance(default_values, Mapping):
         proto = _namedtuple(**default_values)
     else:
         proto = _namedtuple(*default_values)
