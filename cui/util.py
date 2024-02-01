@@ -63,7 +63,7 @@ def init_localization(language: Union[str, str, Iterable[Union[str, str]], None]
         _ = locale.gettext
         reset_states()
         return _
-    except OSError:
+    except (OSError, AttributeError):
         def _(msg):
             """
             Function for tagging text for translations.
@@ -478,15 +478,18 @@ def check_if_password_is_set(user):
     """Check if user exists in /etc/shadow and has his password set."""
     file = "/etc/shadow"
     items = {}
-    if os.access(file, os.R_OK):
-        with open(file, encoding="utf-8") as file_handle:
-            for line in file_handle:
-                parts = line.split(":")
-                username = parts[0]
-                password = parts[1]
-                items[username.strip()] = password.strip()
-    if len(items.get(user)) > 0:
-        return True
+    try:
+        if os.access(file, os.R_OK):
+            with open(file, encoding="utf-8") as file_handle:
+                for line in file_handle:
+                    parts = line.split(":")
+                    username = parts[0]
+                    password = parts[1]
+                    items[username.strip()] = password.strip()
+            if len(items.get(user)) > 0:
+                return True
+    except OSError:
+        pass
     return False
 
 
@@ -511,12 +514,15 @@ def get_os_release() -> Tuple[str, str]:
     osr: Path = Path("/etc/os-release")
     name: str = _("No name found")
     version: str = _("No version detectable")
-    with osr.open("r", encoding="utf-8") as file_handle:
-        for line in file_handle:
-            if line.startswith("NAME"):
-                name = line.strip().split("=")[1]
-            elif line.startswith("VERSION"):
-                version = line.strip().split("=")[1]
+    try:
+        with osr.open("r", encoding="utf-8") as file_handle:
+            for line in file_handle:
+                if line.startswith("NAME"):
+                    name = line.strip().split("=")[1]
+                elif line.startswith("VERSION"):
+                    version = line.strip().split("=")[1]
+    except OSError:
+        pass
     return name.strip('"'), version.strip('"')
 
 
@@ -541,27 +547,32 @@ def get_ip_list() -> List[str]:
 
 def get_last_login_time():
     """Return last login time as string"""
-    with subprocess.Popen(
-        ["last", "-1", "root"],
-        stderr=subprocess.DEVNULL,
-        stdout=subprocess.PIPE,
-    ) as proc:
-        res, _ = proc.communicate()
-        out = bytes(res).decode()
-        lines = out.splitlines()
-    last_login = ""
-    if len(lines) > 0:
-        parts = out.splitlines()[0].split("              ")
-        if len(parts) > 1:
-            last_login = parts[1].strip()
+    try:
+        with subprocess.Popen(
+            ["last", "-1", "root"],
+            stderr=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+        ) as proc:
+            res, _ = proc.communicate()
+            out = bytes(res).decode()
+            lines = out.splitlines()
+        if len(lines) > 0:
+            parts = out.splitlines()[0].split("              ")
+            if len(parts) > 1:
+                last_login = parts[1].strip()
+    except OSError:
+        last_login = "Unknown"
     return last_login
 
 
 def get_load():
     """Return current average load"""
-    with open("/proc/loadavg", "r", encoding="utf-8") as file_handle:
-        out = file_handle.read()
-    lines = out.splitlines()
+    try:
+        with open("/proc/loadavg", "r", encoding="utf-8") as file_handle:
+            out = file_handle.read()
+        lines = out.splitlines()
+    except OSError:
+        lines = []
     load_1min = 0
     load_5min = 0
     load_15min = 0

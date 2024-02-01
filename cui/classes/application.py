@@ -47,16 +47,19 @@ class SetupState:
         )
 
     def check_timesyncd_config(self):
-        out = subprocess.check_output(["timedatectl", "status"]).decode()
-        items = {}
-        for line in out.splitlines():
-            key, value = line.partition(":")[::2]
-            items[key.strip()] = value.strip()
-        if (
-            items.get("Network time on") == "yes"
-            and items.get("NTP synchronized") == "yes"
-        ):
-            return True
+        try:
+            out = subprocess.check_output(["timedatectl", "status"]).decode()
+            items = {}
+            for line in out.splitlines():
+                key, value = line.partition(":")[::2]
+                items[key.strip()] = value.strip()
+            if (
+                items.get("Network time on") == "yes"
+                and items.get("NTP synchronized") == "yes"
+            ):
+                return True
+        except OSError:
+            pass
         return False
 
     def check_nginx_config(self):
