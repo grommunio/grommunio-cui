@@ -547,6 +547,7 @@ def get_ip_list() -> List[str]:
 
 def get_last_login_time():
     """Return last login time as string"""
+    last_login=""
     try:
         with subprocess.Popen(
             ["last", "-1", "root"],
