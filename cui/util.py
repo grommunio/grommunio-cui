@@ -13,6 +13,7 @@ import socket
 import shlex
 from typing import Any, Dict, List, Tuple, Union, Iterable
 from datetime import datetime
+import re
 
 import psutil
 import requests
@@ -550,7 +551,7 @@ def get_last_login_time():
     last_login=""
     try:
         with subprocess.Popen(
-            ["last", "-1", "root"],
+            ["last", "-1", "--time-format", "iso", "--nohostname", "root"],
             stderr=subprocess.DEVNULL,
             stdout=subprocess.PIPE,
         ) as proc:
@@ -558,9 +559,9 @@ def get_last_login_time():
             out = bytes(res).decode()
             lines = out.splitlines()
         if len(lines) > 0:
-            parts = out.splitlines()[0].split("              ")
+            parts = re.split('\s+',out.splitlines()[0])
             if len(parts) > 1:
-                last_login = parts[1].strip()
+                last_login = parts[2].strip()
     except OSError:
         last_login = "Unknown"
     return last_login
