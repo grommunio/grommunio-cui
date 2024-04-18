@@ -647,7 +647,7 @@ def get_system_info_bottom():
     if_addrs = psutil.net_if_addrs()
     boot_time_timestamp = psutil.boot_time()
     boot_time = datetime.fromtimestamp(boot_time_timestamp)
-    proto = "http"
+    proto = "https"
     if setup_state.check_setup_state() == 0:
         ret_val += [
             "\n",
@@ -663,7 +663,7 @@ def get_system_info_bottom():
                 )
             )
             ret_val.append("\n")
-        ret_val.append(f"{proto}://{uname.node}:8080/\n")
+        ret_val.append(f"{proto}://{uname.node}:8443/\n")
         for interface_name, interface_addresses in if_addrs.items():
             if interface_name in ["lo"]:
                 continue
@@ -674,13 +674,13 @@ def get_system_info_bottom():
                 if adr.is_link_local is True:
                     continue
                 ret_val.append(
-                    f"{proto}://[{address.address}]:8080/ (interface {interface_name})\n"
+                    f"{proto}://[{address.address}]:8443/ (interface {interface_name})\n"
                 )
             for address in interface_addresses:
                 if address.family != socket.AF_INET:
                     continue
                 ret_val.append(
-                    f"{proto}://{address.address}:8080/ (interface {interface_name})\n"
+                    f"{proto}://{address.address}:8443/ (interface {interface_name})\n"
                 )
     else:
         ret_val.append("\n")
