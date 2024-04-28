@@ -607,7 +607,7 @@ def get_system_info_top():
     ret_val += [
         "Console User Interface",
         "\n",
-        "© 2022 ",
+        "© 2020-2024 ",
         "grommunio GmbH",
         "\n",
     ]
