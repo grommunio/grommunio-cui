@@ -121,8 +121,7 @@ class ApplicationModel(BaseApplication):
         self.control.app_control.input_box_caller = self.control.app_control.current_window
         self.control.app_control.input_box_caller_body = self.control.app_control.loop.widget
         self.control.app_control.current_window = current_window
-        body = urwid.LineBox(
-            urwid.Padding(
+        body = urwid.Padding(
                 urwid.Filler(
                     urwid.Pile(
                         [
@@ -136,7 +135,6 @@ class ApplicationModel(BaseApplication):
                     urwid.TOP,
                 )
             )
-        )
         footer = self._create_footer(True, True)
         if title is None:
             title = "Input expected"
@@ -389,8 +387,7 @@ class ApplicationModel(BaseApplication):
         ntp_server = ntp_from_file.split(" ")
         fallback_server = fallback_from_file.split(" ")
         text = _("Insert the NTP servers separated by <urwid.SPACE> char.")
-        self.timesyncd_body = urwid.LineBox(
-            urwid.Padding(
+        self.timesyncd_body = urwid.Padding(
                 urwid.Filler(
                     urwid.Pile(
                         [
@@ -408,7 +405,6 @@ class ApplicationModel(BaseApplication):
                     urwid.TOP,
                 )
             )
-        )
 
     def _open_repo_conf(self):
         """Open repository configuration form."""
@@ -460,9 +456,7 @@ class ApplicationModel(BaseApplication):
                 vblank, GEdit(_('Password: '), edit_text=default_pw), vblank
             ])
         ]
-        self.control.menu_control.repo_selection_body = urwid.LineBox(
-            urwid.Padding(urwid.Filler(urwid.Pile(body_content), urwid.TOP))
-        )
+        self.control.menu_control.repo_selection_body = urwid.Padding(urwid.Filler(urwid.Pile(body_content), urwid.TOP))
 
     def _open_setup_wizard(self):
         """Open grommunio setup wizard."""

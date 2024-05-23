@@ -83,9 +83,9 @@ class ApplicationHandler(ApplicationModel):
                     0 if getuser() == "" else 1
                 )  # focus on passwd if user detected
                 frame: parameter.Frame = parameter.Frame(
-                    body=urwid.LineBox(urwid.Padding(
+                    body=urwid.Padding(
                         urwid.Filler(self.view.login_window.login_body)
-                    )),
+                    ),
                     footer=self.view.login_window.login_footer,
                     focus_part="body",
                 )
