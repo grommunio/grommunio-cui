@@ -81,10 +81,8 @@ def get_button_type(key, open_func_on_ok, mb_func, cancel_msgbox_params, size):
     Be aware the types are translated!
     """
     def open_cancel_msg(msg_params, mb_size):
-        mb_func(
-            msg_params,
-            size=mb_size
-        )
+        if mb_func is not None and msg_params is not None:
+            mb_func(msg_params, size=mb_size)
 
     val: str = key.lower()
     if val.endswith("enter"):

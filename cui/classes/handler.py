@@ -174,18 +174,17 @@ class ApplicationHandler(ApplicationModel):
             if not res:
                 success_msg = _("failed")
             self._open_main_menu()
+            if key.lower().endswith("enter") or key in ["esc", "enter"]:
+                self.control.app_control.current_window = self.control.app_control.input_box_caller
+                self.message_box(
+                    parameter.MsgBoxParams(
+                        _(f"System password reset {success_msg}!"),
+                        _("System password reset"),
+                    ),
+                    size=parameter.Size(height=10)
+                )
         elif button_type in [_("Cancel"), _("cancel")] or key.lower() in ["esc"]:
-            success_msg = _("aborted")
             self._open_main_menu()
-        if key.lower().endswith("enter") or key in ["esc", "enter"]:
-            self.control.app_control.current_window = self.control.app_control.input_box_caller
-            self.message_box(
-                parameter.MsgBoxParams(
-                    _(f"System password reset {success_msg}!"),
-                    _("System password reset"),
-                ),
-                size=parameter.Size(height=10)
-            )
 
     def _key_ev_login(self, key):
         """Handle event on login menu."""
@@ -352,18 +351,17 @@ class ApplicationHandler(ApplicationModel):
             if not res:
                 success_msg = _("failed")
             self._open_main_menu()
+            if key.lower().endswith("enter") or key in ["esc", "enter"]:
+                self.control.app_control.current_window = self.control.app_control.input_box_caller
+                self.message_box(
+                    parameter.MsgBoxParams(
+                        _(f"Admin password reset {success_msg}!"),
+                        _("Admin password reset"),
+                    ),
+                    size=parameter.Size(height=10)
+                )
         elif button_type in [_("Cancel"), _("cancel")] or key.lower() in ["esc"]:
-            success_msg = _("aborted")
             self._open_main_menu()
-        if key.lower().endswith("enter") or key in ["esc", "enter"]:
-            self.control.app_control.current_window = self.control.app_control.input_box_caller
-            self.message_box(
-                parameter.MsgBoxParams(
-                    _(f"Admin password reset {success_msg}!"),
-                    _("Admin password reset"),
-                ),
-                size=parameter.Size(height=10)
-            )
 
     def _key_ev_repo_selection(self, key):
         """Handle event on repository selection menu."""
@@ -454,11 +452,7 @@ class ApplicationHandler(ApplicationModel):
         button_type = util.get_button_type(
             key,
             self._open_main_menu,
-            self.message_box,
-            cui.parameter.MsgBoxParams(
-                _('Software repository selection has been canceled.'),
-                _('Repository selection')
-            ),
+            None, None,
             size=parameter.Size(height=height)
         )
         return {
@@ -476,11 +470,7 @@ class ApplicationHandler(ApplicationModel):
         button_type = util.get_button_type(
             key,
             self._open_main_menu,
-            self.message_box,
-            parameter.MsgBoxParams(
-                _("Timesyncd configuration change canceled."),
-                _("Timesyncd Configuration"),
-            ),
+            None, None,
             size=parameter.Size(height=10)
         )
         if button_type == _("ok"):
