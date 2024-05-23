@@ -142,13 +142,12 @@ class ApplicationModel(BaseApplication):
             title = "Input expected"
         frame: parameter.Frame = parameter.Frame(
             body=body,
-            header=GText(title, urwid.CENTER),
             footer=footer,
             focus_part="body",
         )
         alignment: parameter.Alignment = parameter.Alignment(urwid.CENTER, urwid.MIDDLE)
         size: parameter.Size = parameter.Size(width, height)
-        self.dialog(frame, alignment=alignment, size=size)
+        self.dialog(frame, alignment=alignment, size=size, title=title)
 
     def _prepare_password_dialog(self):
         """Prepare the QuickNDirty password dialog."""
@@ -343,30 +342,28 @@ class ApplicationModel(BaseApplication):
         self._reset_layout()
         self.print(_("Opening timesyncd configuration"))
         self.control.app_control.current_window = TIMESYNCD
-        header = urwid.AttrMap(GText(_("Timesyncd Configuration"), urwid.CENTER), "header")
         self._prepare_timesyncd_config()
-        self._open_conf_dialog(self.timesyncd_body, header, [
-            self.view.button_store.ok_button, self.view.button_store.cancel_button
-        ])
+        self._open_conf_dialog(self.timesyncd_body, [
+            self.view.button_store.ok_button, self.view.button_store.cancel_button,
+        ], title=_("timesyncd configuration"))
 
     def _open_conf_dialog(
             self,
             body_widget: urwid.Widget,
-            header: Any,
-            footer_buttons: List[Tuple[int, GBoxButton]]
+            footer_buttons: List[Tuple[int, GBoxButton]],
+            title=""
     ):
         footer = urwid.AttrMap(
             urwid.Columns(footer_buttons), "buttonbar"
         )
         frame: parameter.Frame = parameter.Frame(
             body=urwid.AttrMap(body_widget, "body"),
-            header=header,
             footer=footer,
             focus_part="body",
         )
         alignment: parameter.Alignment = parameter.Alignment(urwid.CENTER, urwid.MIDDLE)
         size: parameter.Size = parameter.Size(60, 15)
-        self.dialog(frame, alignment=alignment, size=size)
+        self.dialog(frame, alignment=alignment, size=size, title=title)
 
     def _prepare_timesyncd_config(self):
         """Prepare timesyncd configuration form."""
@@ -418,11 +415,10 @@ class ApplicationModel(BaseApplication):
         self._reset_layout()
         self.print(_("Opening repository selection"))
         self.control.app_control.current_window = REPO_SELECTION
-        header = urwid.AttrMap(GText(_("Software repository selection"), urwid.CENTER), "header")
         self._prepare_repo_config()
-        self._open_conf_dialog(self.control.menu_control.repo_selection_body, header, [
+        self._open_conf_dialog(self.control.menu_control.repo_selection_body, [
             self.view.button_store.save_button, self.view.button_store.cancel_button
-        ])
+        ], title=_("Software repository selection"))
 
     def _prepare_repo_config(self):
         """Prepare repository configuration form."""
@@ -870,7 +866,8 @@ class ApplicationModel(BaseApplication):
             self, frame: parameter.Frame,
             alignment: parameter.Alignment = parameter.Alignment(),
             size: parameter.Size = parameter.Size(),
-            modal: bool = False
+            modal: bool = False,
+            title=""
     ):
         """
         urwid.Overlays a dialog box on top of the console UI
@@ -921,7 +918,7 @@ class ApplicationModel(BaseApplication):
         # self.control.app_control.body = body
 
         widget = urwid.Overlay(
-            urwid.LineBox(self.view.gscreen.layout),
+            urwid.LineBox(self.view.gscreen.layout, title=title),
             self.control.app_control.body,
             align=alignment.align,
             width=size.width,

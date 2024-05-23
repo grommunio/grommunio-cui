@@ -147,9 +147,6 @@ def create_application_buttons(app):
         return but, create_button_footer(but, which)
 
     # Login Dialog
-    app.view.login_window.login_header = urwid.AttrMap(
-        cui.classes.gwidgets.GText(("header", _("Login")), align="center"), "header"
-    )
     app.view.button_store.user_edit = cui.classes.gwidgets.GEdit(
         (_("Username: "),), edit_text=getuser(), edit_pos=0
     )

@@ -86,11 +86,10 @@ class ApplicationHandler(ApplicationModel):
                     body=urwid.LineBox(urwid.Padding(
                         urwid.Filler(self.view.login_window.login_body)
                     )),
-                    header=self.view.login_window.login_header,
                     footer=self.view.login_window.login_footer,
                     focus_part="body",
                 )
-                self.dialog(frame)
+                self.dialog(frame, title=_("Login"))
                 self.control.app_control.current_window = LOGIN
             else:
                 self._open_main_menu()
