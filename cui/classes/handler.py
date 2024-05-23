@@ -450,7 +450,7 @@ class ApplicationHandler(ApplicationModel):
         if not config.get('grommunio'):
             config['grommunio'] = {}
             config['grommunio']['enabled'] = 1
-            config['grommunio']['auorefresh'] = 1
+            config['grommunio']['autorefresh'] = 1
         button_type = util.get_button_type(
             key,
             self._open_main_menu,
