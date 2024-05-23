@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# SPDX-FileCopyrightText: 2022 grommunio GmbH
+# SPDX-FileCopyrightText: 2022–2024 grommunio GmbH
 """The module contains the handling code of grommunio-cui"""
 import os
 import subprocess
@@ -632,9 +632,11 @@ class ApplicationHandler(ApplicationModel):
         self.view.gscreen.screen.tty_signal_keys(*self.view.gscreen.blank_termios)
         self.control.app_control.loop.start()
 
-    def check_login(self):
+    def check_login(self, widget=None):
         """
         Checks login data and switch to authenticate on if successful.
+
+        widget: that which triggered the action
         """
         if self.view.button_store.user_edit.get_edit_text() != getuser() and os.getegid() != 0:
             self.message_box(
