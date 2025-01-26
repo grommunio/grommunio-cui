@@ -622,7 +622,6 @@ class ButtonStore:
 class LoginWindow:
     """The LoginControl class contains all login controlling code."""
     login_body: Optional[urwid.Widget]
-    login_header: Optional[urwid.Widget]
     login_footer: Optional[urwid.Widget]
     _app: BaseApplication
 

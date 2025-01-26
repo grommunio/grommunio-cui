@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# SPDX-FileCopyrightText: 2022 grommunio GmbH
+# SPDX-FileCopyrightText: 2022–2024 grommunio GmbH
 """The module contains the handling code of grommunio-cui"""
 import os
 import subprocess
@@ -83,14 +83,13 @@ class ApplicationHandler(ApplicationModel):
                     0 if getuser() == "" else 1
                 )  # focus on passwd if user detected
                 frame: parameter.Frame = parameter.Frame(
-                    body=urwid.LineBox(urwid.Padding(
+                    body=urwid.Padding(
                         urwid.Filler(self.view.login_window.login_body)
-                    )),
-                    header=self.view.login_window.login_header,
+                    ),
                     footer=self.view.login_window.login_footer,
                     focus_part="body",
                 )
-                self.dialog(frame)
+                self.dialog(frame, title=_("Login"))
                 self.control.app_control.current_window = LOGIN
             else:
                 self._open_main_menu()
@@ -174,18 +173,17 @@ class ApplicationHandler(ApplicationModel):
             if not res:
                 success_msg = _("failed")
             self._open_main_menu()
+            if key.lower().endswith("enter") or key in ["esc", "enter"]:
+                self.control.app_control.current_window = self.control.app_control.input_box_caller
+                self.message_box(
+                    parameter.MsgBoxParams(
+                        _(f"System password reset {success_msg}!"),
+                        _("System password reset"),
+                    ),
+                    size=parameter.Size(height=10)
+                )
         elif button_type in [_("Cancel"), _("cancel")] or key.lower() in ["esc"]:
-            success_msg = _("aborted")
             self._open_main_menu()
-        if key.lower().endswith("enter") or key in ["esc", "enter"]:
-            self.control.app_control.current_window = self.control.app_control.input_box_caller
-            self.message_box(
-                parameter.MsgBoxParams(
-                    _(f"System password reset {success_msg}!"),
-                    _("System password reset"),
-                ),
-                size=parameter.Size(height=10)
-            )
 
     def _key_ev_login(self, key):
         """Handle event on login menu."""
@@ -352,18 +350,17 @@ class ApplicationHandler(ApplicationModel):
             if not res:
                 success_msg = _("failed")
             self._open_main_menu()
+            if key.lower().endswith("enter") or key in ["esc", "enter"]:
+                self.control.app_control.current_window = self.control.app_control.input_box_caller
+                self.message_box(
+                    parameter.MsgBoxParams(
+                        _(f"Admin password reset {success_msg}!"),
+                        _("Admin password reset"),
+                    ),
+                    size=parameter.Size(height=10)
+                )
         elif button_type in [_("Cancel"), _("cancel")] or key.lower() in ["esc"]:
-            success_msg = _("aborted")
             self._open_main_menu()
-        if key.lower().endswith("enter") or key in ["esc", "enter"]:
-            self.control.app_control.current_window = self.control.app_control.input_box_caller
-            self.message_box(
-                parameter.MsgBoxParams(
-                    _(f"Admin password reset {success_msg}!"),
-                    _("Admin password reset"),
-                ),
-                size=parameter.Size(height=10)
-            )
 
     def _key_ev_repo_selection(self, key):
         """Handle event on repository selection menu."""
@@ -450,15 +447,11 @@ class ApplicationHandler(ApplicationModel):
         if not config.get('grommunio'):
             config['grommunio'] = {}
             config['grommunio']['enabled'] = 1
-            config['grommunio']['auorefresh'] = 1
+            config['grommunio']['autorefresh'] = 1
         button_type = util.get_button_type(
             key,
             self._open_main_menu,
-            self.message_box,
-            cui.parameter.MsgBoxParams(
-                _('Software repository selection has been canceled.'),
-                _('Repository selection')
-            ),
+            None, None,
             size=parameter.Size(height=height)
         )
         return {
@@ -476,11 +469,7 @@ class ApplicationHandler(ApplicationModel):
         button_type = util.get_button_type(
             key,
             self._open_main_menu,
-            self.message_box,
-            parameter.MsgBoxParams(
-                _("Timesyncd configuration change canceled."),
-                _("Timesyncd Configuration"),
-            ),
+            None, None,
             size=parameter.Size(height=10)
         )
         if button_type == _("ok"):
@@ -632,9 +621,11 @@ class ApplicationHandler(ApplicationModel):
         self.view.gscreen.screen.tty_signal_keys(*self.view.gscreen.blank_termios)
         self.control.app_control.loop.start()
 
-    def check_login(self):
+    def check_login(self, widget=None):
         """
         Checks login data and switch to authenticate on if successful.
+
+        widget: that which triggered the action
         """
         if self.view.button_store.user_edit.get_edit_text() != getuser() and os.getegid() != 0:
             self.message_box(

@@ -82,10 +82,8 @@ def get_button_type(key, open_func_on_ok, mb_func, cancel_msgbox_params, size):
     Be aware the types are translated!
     """
     def open_cancel_msg(msg_params, mb_size):
-        mb_func(
-            msg_params,
-            size=mb_size
-        )
+        if mb_func is not None and msg_params is not None:
+            mb_func(msg_params, size=mb_size)
 
     val: str = key.lower()
     if val.endswith("enter"):
@@ -608,7 +606,7 @@ def get_system_info_top():
     ret_val += [
         "Console User Interface",
         "\n",
-        "© 2022 ",
+        "© 2020-2024 ",
         "grommunio GmbH",
         "\n",
     ]
@@ -648,7 +646,7 @@ def get_system_info_bottom():
     if_addrs = psutil.net_if_addrs()
     boot_time_timestamp = psutil.boot_time()
     boot_time = datetime.fromtimestamp(boot_time_timestamp)
-    proto = "http"
+    proto = "https"
     if setup_state.check_setup_state() == 0:
         ret_val += [
             "\n",
@@ -664,7 +662,7 @@ def get_system_info_bottom():
                 )
             )
             ret_val.append("\n")
-        ret_val.append(f"{proto}://{uname.node}:8080/\n")
+        ret_val.append(f"{proto}://{uname.node}:8443/\n")
         for interface_name, interface_addresses in if_addrs.items():
             if interface_name in ["lo"]:
                 continue
@@ -675,13 +673,13 @@ def get_system_info_bottom():
                 if adr.is_link_local is True:
                     continue
                 ret_val.append(
-                    f"{proto}://[{address.address}]:8080/ (interface {interface_name})\n"
+                    f"{proto}://[{address.address}]:8443/ (interface {interface_name})\n"
                 )
             for address in interface_addresses:
                 if address.family != socket.AF_INET:
                     continue
                 ret_val.append(
-                    f"{proto}://{address.address}:8080/ (interface {interface_name})\n"
+                    f"{proto}://{address.address}:8443/ (interface {interface_name})\n"
                 )
     else:
         ret_val.append("\n")
