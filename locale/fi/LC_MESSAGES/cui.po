@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2022-12-10 17:31+0100\n"
-"PO-Revision-Date: 2022-12-10 17:04+0000\n"
-"Last-Translator: Mike Williams <mike.williams@grammm.com>\n"
+"PO-Revision-Date: 2025-01-29 14:02+0000\n"
+"Last-Translator: Ricky Tigg <ricky.tigg@gmail.com>\n"
 "Language-Team: Finnish <https://hosted.weblate.org/projects/grommunio/"
 "grommunio-cui/fi/>\n"
 "Language: fi\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.15-dev\n"
+"X-Generator: Weblate 5.10-dev\n"
 
 #: cui/__init__.py:111
 msgid "Idle"
@@ -25,7 +25,7 @@ msgstr "Tyhjäkäynti"
 
 #: cui/__init__.py:161 cui/__init__.py:175 cui/util.py:635
 msgid "Login"
-msgstr ""
+msgstr "Sisäänkirjautuminen"
 
 #: cui/__init__.py:164 cui/__init__.py:1695
 msgid "Username: "
@@ -110,6 +110,9 @@ msgid ""
 "Opens a dialog for changing the password of the system root user. When a "
 "password is set, you can login via ssh and rerun grommunio-cui."
 msgstr ""
+"Avaa valintaikkunan järjestelmän pääkäyttäjän salasanan vaihtamista varten. "
+"Kun salasana on asetettu, voit kirjautua sisään SSH:n kautta ja suorittaa "
+"grommunio-cui uudelleen."
 
 #: cui/__init__.py:369
 msgid "Network interface configuration"
@@ -430,7 +433,7 @@ msgstr ""
 
 #: cui/__init__.py:1724
 msgid "Login successful"
-msgstr ""
+msgstr "Sisäänkirjautuminen onnistui"
 
 #: cui/__init__.py:1726
 msgid ", <F4> for Main-Menu"
@@ -460,7 +463,7 @@ msgstr ""
 #: cui/__init__.py:1762
 #, python-format
 msgid "Login wrong! (%s)"
-msgstr ""
+msgstr "Sisäänkirjautuminen väärin! (%s)"
 
 #: cui/__init__.py:1770
 msgid "UNKNOWN LABEL"
@@ -571,7 +574,7 @@ msgstr ""
 #: cui/util.py:565
 #, python-format
 msgid "Last login time: {%s}"
-msgstr ""
+msgstr "Viimeisin sisäänkirjautumisaika: {%s}"
 
 #: cui/util.py:568
 msgid "Current language / PPID: {locale.getlocale()[0]} / {os.getppid()}"
