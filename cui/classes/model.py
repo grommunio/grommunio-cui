@@ -419,7 +419,7 @@ class ApplicationModel(BaseApplication):
     def _prepare_repo_config(self):
         """Prepare repository configuration form."""
         baseurl = 'https://download.grommunio.com/community/openSUSE_Leap_' \
-                  '15.5/?ssl_verify=no'
+                  '15.6/?ssl_verify=no'
         repofile = '/etc/zypp/repos.d/grommunio.repo'
         config = cui.classes.parser.ConfigParser(infile=repofile)
         default_type = 'community'
