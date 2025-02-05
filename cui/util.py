@@ -547,24 +547,24 @@ def get_ip_list() -> List[str]:
 
 
 def get_last_login_time():
-    """Return last login time as string"""
-    last_login=""
-    try:
-        with subprocess.Popen(
-            ["last", "-1", "--time-format", "iso", "--nohostname", "root"],
-            stderr=subprocess.DEVNULL,
-            stdout=subprocess.PIPE,
-        ) as proc:
-            res, _ = proc.communicate()
-            out = bytes(res).decode()
-            lines = out.splitlines()
-        if len(lines) > 0:
-            parts = re.split('\s+',out.splitlines()[0])
-            if len(parts) > 1:
-                last_login = parts[2].strip()
-    except OSError:
-        last_login = "Unknown"
-    return last_login
+	"""Return last login time as string"""
+	last_login=""
+	try:
+		with subprocess.Popen(
+			["last", "-1", "--time-format", "iso", "--nohostname", "root"],
+			stderr=subprocess.DEVNULL,
+			stdout=subprocess.PIPE,
+		) as proc:
+			res, _ = proc.communicate()
+			out = bytes(res).decode()
+			lines = out.splitlines()
+		if len(lines) > 0:
+			parts = re.split('\s+',out.splitlines()[0])
+			if len(parts) > 1:
+				last_login = parts[2].strip()
+	except OSError:
+		last_login = "Unknown"
+	return last_login
 
 
 def get_load():
