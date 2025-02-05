@@ -567,7 +567,7 @@ def get_last_login_time():
 		wtmpdb = bld.dlopen("libwtmpdb.so.0")
 		wtmpdb.wtmpdb_read_all_v2(cffi.FFI.NULL, cb, bld.new_handle(last_login), cffi.FFI.NULL)
 		return last_login[0]
-	finally:
+	except:
 		pass
 
 	last_login = "Unknown"
