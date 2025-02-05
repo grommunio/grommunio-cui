@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # SPDX-FileCopyrightText: 2021 grommunio GmbH
 """The module contains all cui utilities/functions"""
+import cffi
 import os
 import subprocess
 import sys
@@ -548,7 +549,28 @@ def get_ip_list() -> List[str]:
 
 def get_last_login_time():
 	"""Return last login time as string"""
-	last_login=""
+	last_login = ["Unknown"]
+	bld = cffi.FFI()
+
+	@bld.callback("int(void *, int, char **, char **)")
+	def cb(llptr, argc, argv, _2):
+		if argc < 3:
+			return 0
+		if bld.string(argv[2]).decode() != "root":
+			return 0
+		ts = int(int(bld.string(argv[3]).decode()) / 1000000)
+		bld.from_handle(llptr)[0] = datetime.fromtimestamp(ts).strftime("%FT%T")
+		return 1
+
+	try:
+		bld.cdef("extern int wtmpdb_read_all_v2(const char *, int (*)(void *, int, char **, char **), void *, char **);")
+		wtmpdb = bld.dlopen("libwtmpdb.so.0")
+		wtmpdb.wtmpdb_read_all_v2(cffi.FFI.NULL, cb, bld.new_handle(last_login), cffi.FFI.NULL)
+		return last_login[0]
+	finally:
+		pass
+
+	last_login = "Unknown"
 	try:
 		with subprocess.Popen(
 			["last", "-1", "--time-format", "iso", "--nohostname", "root"],
@@ -608,7 +630,7 @@ def get_system_info_top():
     ret_val += [
         "Console User Interface",
         "\n",
-        "© 2020-2024 ",
+        "© 2020-2025 ",
         "grommunio GmbH",
         "\n",
     ]
