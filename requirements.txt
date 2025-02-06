@@ -1,6 +1,5 @@
 cffi
 configobj>=5.0.6
-datetime
 pamela>=1.0.0
 psutil>=5.4.8
 systemd-python>=234
