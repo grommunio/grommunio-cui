@@ -16,7 +16,7 @@ fi
 if [ $userid -eq 0 ]; then
   echo "Checking for pip ..."
   if [ -z "$(which pip)" ]; then
-    read -p "pip is not installed! Shell I do for you? (y/n)" answer
+    read -p "pip is not installed! Shall I do for you? (y/n)" answer
     if [ "$answer" == "y" ]; then
       sudo $cmd install python-pip
     else
@@ -25,7 +25,7 @@ if [ $userid -eq 0 ]; then
     fi
   fi
   if [ -z "$(which pip3)" ]; then
-    read -p "pip3 is not installed! Shell I do for you? (y/n)" answer
+    read -p "pip3 is not installed! Shall I do for you? (y/n)" answer
     if [ "$answer" == "y" ]; then
       sudo $cmd install python3-pip
     else
