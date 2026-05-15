@@ -30,14 +30,17 @@ dispatched to the right backend automatically:
 * **Package manager** — ``zypper`` (SUSE), ``dnf``/``yum`` (RHEL/Fedora),
   ``apt-get`` (Debian/Ubuntu). The "Update the system" and "Select software
   repositories" menu items pick the right tool.
-* **Network configuration** — ``systemd-networkd`` (preferred everywhere),
-  ``NetworkManager`` (RHEL/Fedora default), ``wicked`` (legacy openSUSE Leap).
-  The CUI auto-detects the active backend and writes config files in the
-  backend's native format. yast2 is still invoked on openSUSE when present and
-  the active backend is ``wicked``.
+* **Network configuration** — ``systemd-networkd`` (openSUSE 16.0,
+  Debian/Ubuntu Server, RHEL when configured that way), ``NetworkManager``
+  (RHEL/Fedora default), ``wicked`` (openSUSE Leap 15.6 / SLES 15). The CUI
+  auto-detects the active backend, reads the existing config, lets you edit
+  IPv4/IPv6 addresses, default gateway and static routes, DNS, and (for
+  systemd-networkd / wicked) bond devices, then writes the result back in
+  the backend's native format and applies it live.
 * **Language / Timezone / Keymap** — ``localectl`` and ``timedatectl``
-  (systemd-native, works on all supported distros). The ``yast2`` modules are
-  still used on openSUSE if available.
+  (systemd-native, works on all supported distros).
+
+grommunio-cui does not depend on yast2 on any distribution.
 
 Getting Started
 ===============
