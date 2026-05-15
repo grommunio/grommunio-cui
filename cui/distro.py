@@ -82,11 +82,6 @@ def get_package_manager() -> str:
     return ""
 
 
-def has_yast() -> bool:
-    """yast2 is openSUSE-specific. Several menu items used to shell out to it."""
-    return shutil.which("yast2") is not None
-
-
 def _is_unit_active(unit: str) -> bool:
     try:
         out = subprocess.run(

@@ -228,32 +228,14 @@ class ApplicationHandler(ApplicationModel):
     def _key_ev_mainmenu(self, key):
         """Handle event on main menu."""
         def menu_language():
-            # Prefer the built-in localectl-based dialog. yast2's UI is kept on
-            # SUSE only because operators there are used to it.
             locale_path = cui.distro.get_locale_conf_path()
             pre = cui.classes.parser.ConfigParser(infile=locale_path) \
                 if Path(locale_path).is_file() else None
-            if cui.distro.has_yast() and cui.distro.is_suse_family():
-                self._run_yast_module("language")
-            else:
-                self._open_locale_selection()
+            self._open_locale_selection()
             post = cui.classes.parser.ConfigParser(infile=locale_path) \
                 if Path(locale_path).is_file() else None
             if pre != post:
                 util._ = util.restart_gui()
-
-        def menu_network():
-            if cui.distro.has_yast() and cui.distro.is_suse_family() \
-                    and cui.distro.get_network_backend() == "wicked":
-                self._run_yast_module("lan")
-            else:
-                self._open_network_interface_select()
-
-        def menu_timezone():
-            if cui.distro.has_yast() and cui.distro.is_suse_family():
-                self._run_yast_module("timezone")
-            else:
-                self._open_timezone_selection()
 
         def exit_main_loop():
             raise urwid.ExitMainLoop()
@@ -267,8 +249,8 @@ class ApplicationHandler(ApplicationModel):
             (func, val) = {
                 1: (menu_language, None),
                 2: (self._open_change_password, None),
-                3: (menu_network, None),
-                4: (menu_timezone, None),
+                3: (self._open_network_interface_select, None),
+                4: (self._open_timezone_selection, None),
                 5: (self._open_timesyncd_conf, None),
                 6: (self._open_repo_conf, None),
                 7: (self._run_update, None),
@@ -677,34 +659,6 @@ class ApplicationHandler(ApplicationModel):
             view_buttons=parameter.ViewOkCancel(view_ok=True, view_cancel=True)
         )
 
-    def _run_yast_module(self, modulename: str):
-        """Run yast2 if present (openSUSE).
-
-        Built-in alternatives are wired up for non-SUSE distributions in the
-        main-menu dispatcher; this routine is only called when has_yast() is
-        true, but we double-check defensively.
-        """
-        if not cui.distro.has_yast():
-            self.message_box(
-                parameter.MsgBoxParams(
-                    _("yast2 is not available on this distribution."),
-                    _("Unsupported"),
-                ),
-                size=parameter.Size(height=10),
-            )
-            return
-        self.control.app_control.loop.stop()
-        self.view.gscreen.screen.tty_signal_keys(*self.view.gscreen.old_termios)
-        print("\x1b[K")
-        print(
-            "\x1b[K \x1b[36m▼\x1b[0m",
-            _("Please wait while `yast2 %s` is being run.") % modulename
-        )
-        print("\x1b[J")
-        subprocess.run(["yast2", modulename], check=False)
-        self.view.gscreen.screen.tty_signal_keys(*self.view.gscreen.blank_termios)
-        self.control.app_control.loop.start()
-
     def _run_update(self):
         """Refresh package metadata and run a full upgrade via the system PM."""
         refresh = cui.distro.pkg_refresh_cmd()
@@ -936,7 +890,7 @@ class ApplicationHandler(ApplicationModel):
         return button_type.lower() in aliases
 
     # ------------------------------------------------------------------
-    # Locale selection dialog (replacement for `yast2 language` on non-SUSE)
+    # Locale selection dialog
     # ------------------------------------------------------------------
 
     def _open_locale_selection(self):
