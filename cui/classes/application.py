@@ -416,7 +416,7 @@ class MainMenu:
         items = {
             _("Language configuration"): create_menu_description(
                 _("Language"),
-                _("Opens the yast2 configurator for setting language settings.")
+                _("Opens a dialog for selecting the system language via localectl.")
             ),
             _("Change system password"): create_menu_description(
                 _("Password change"),
@@ -425,12 +425,13 @@ class MainMenu:
             ),
             _("Network interface configuration"): create_menu_description(
                 _("Configuration of network"),
-                _("Opens the yast2 configurator for setting up devices, interfaces, "
-                   "IP addresses, DNS and more.")
+                _("Opens a dialog to configure network interfaces (DHCP or static IPv4/IPv6, "
+                   "gateway, DNS). Uses systemd-networkd, NetworkManager or wicked depending "
+                   "on what is active.")
             ),
             _("Timezone configuration"): create_menu_description(
                 _("Timezone"),
-                _("Opens the yast2 configurator for setting country and timezone settings.")
+                _("Opens a dialog for selecting the system timezone via timedatectl.")
             ),
             _("timesyncd configuration"): create_menu_description(
                 _("timesyncd"),
