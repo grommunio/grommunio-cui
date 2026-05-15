@@ -548,45 +548,45 @@ def get_ip_list() -> List[str]:
 
 
 def get_last_login_time():
-	"""Return last login time as string"""
-	last_login = ["Unknown"]
-	bld = cffi.FFI()
+    """Return last login time as string"""
+    last_login = ["Unknown"]
+    bld = cffi.FFI()
 
-	@bld.callback("int(void *, int, char **, char **)")
-	def cb(llptr, argc, argv, _2):
-		if argc < 3:
-			return 0
-		if bld.string(argv[2]).decode() != "root":
-			return 0
-		ts = int(int(bld.string(argv[3]).decode()) / 1000000)
-		bld.from_handle(llptr)[0] = datetime.fromtimestamp(ts).strftime("%FT%T")
-		return 1
+    @bld.callback("int(void *, int, char **, char **)")
+    def cb(llptr, argc, argv, _2):
+        if argc < 3:
+            return 0
+        if bld.string(argv[2]).decode() != "root":
+            return 0
+        ts = int(int(bld.string(argv[3]).decode()) / 1000000)
+        bld.from_handle(llptr)[0] = datetime.fromtimestamp(ts).strftime("%FT%T")
+        return 1
 
-	try:
-		bld.cdef("extern int wtmpdb_read_all_v2(const char *, int (*)(void *, int, char **, char **), void *, char **);")
-		wtmpdb = bld.dlopen("libwtmpdb.so.0")
-		wtmpdb.wtmpdb_read_all_v2(cffi.FFI.NULL, cb, bld.new_handle(last_login), cffi.FFI.NULL)
-		return last_login[0]
-	except:
-		pass
+    try:
+        bld.cdef("extern int wtmpdb_read_all_v2(const char *, int (*)(void *, int, char **, char **), void *, char **);")
+        wtmpdb = bld.dlopen("libwtmpdb.so.0")
+        wtmpdb.wtmpdb_read_all_v2(bld.NULL, cb, bld.new_handle(last_login), bld.NULL)
+        return last_login[0]
+    except Exception:
+        pass
 
-	last_login = "Unknown"
-	try:
-		with subprocess.Popen(
-			["last", "-1", "--time-format", "iso", "--nohostname", "root"],
-			stderr=subprocess.DEVNULL,
-			stdout=subprocess.PIPE,
-		) as proc:
-			res, _ = proc.communicate()
-			out = bytes(res).decode()
-			lines = out.splitlines()
-		if len(lines) > 0:
-			parts = re.split('\s+',out.splitlines()[0])
-			if len(parts) > 1:
-				last_login = parts[2].strip()
-	except OSError:
-		last_login = "Unknown"
-	return last_login
+    last_login = "Unknown"
+    try:
+        with subprocess.Popen(
+            ["last", "-1", "--time-format", "iso", "--nohostname", "root"],
+            stderr=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+        ) as proc:
+            res, _ = proc.communicate()
+            out = bytes(res).decode()
+            lines = out.splitlines()
+        if len(lines) > 0:
+            parts = re.split(r"\s+", lines[0])
+            if len(parts) > 2:
+                last_login = parts[2].strip()
+    except OSError:
+        last_login = "Unknown"
+    return last_login
 
 
 def get_load():
@@ -722,10 +722,10 @@ def get_system_info_bottom():
     ret_val.append("\n")
     last_login = get_last_login_time()
     if last_login != "":
-        ret_val.append(_("Last login time: {%s}") % last_login)
+        ret_val.append(_("Last login time: %s") % last_login)
     ret_val.append("\n")
     ret_val.append("\n")
-    ret_val.append(_(f"Current language / PPID: {locale.getlocale()[0]} / {os.getppid()}"))
+    ret_val.append(_("Current language / PPID: %s / %d") % (locale.getlocale()[0], os.getppid()))
     ret_val.append("\n")
     return ret_val
 
