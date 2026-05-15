@@ -36,7 +36,7 @@ def create_application() -> Tuple[Union[Application, None], bool]:
     urwid.set_encoding("utf-8")
     production = True
     if "--help" in sys.argv:
-        print(_("Usage: {%s} [OPTIONS]") % sys.argv[0])
+        print(_("Usage: %s [OPTIONS]") % sys.argv[0])
         print(_("\tOPTIONS:"))
         print(_("\t\t--help: Show this message."))
         print(_("\t\t-v/--debug: Verbose/Debugging mode."))
