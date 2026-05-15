@@ -386,7 +386,7 @@ class ApplicationModel(BaseApplication):
         )
         ntp_server = ntp_from_file.split(" ")
         fallback_server = fallback_from_file.split(" ")
-        text = _("Insert the NTP servers separated by <urwid.SPACE> char.")
+        text = _("Insert the NTP servers separated by <SPACE> char.")
         self.timesyncd_body = urwid.Padding(
                 urwid.Filler(
                     urwid.Pile(

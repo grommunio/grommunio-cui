@@ -748,7 +748,9 @@ def get_system_info_bottom():
         ret_val.append(_("Last login time: %s") % last_login)
     ret_val.append("\n")
     ret_val.append("\n")
-    ret_val.append(_("Current language / PPID: %s / %d") % (locale.getlocale()[0], os.getppid()))
+    ret_val.append(_("Current language / PPID: %(lang)s / %(ppid)d") % {
+        "lang": locale.getlocale()[0], "ppid": os.getppid(),
+    })
     ret_val.append("\n")
     return ret_val
 
