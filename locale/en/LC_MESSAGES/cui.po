@@ -7,8 +7,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: grommunio CUI English\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-11-04 19:11+0100\n"
+"Report-Msgid-Bugs-To: dev@grommunio.com\n"
+"POT-Creation-Date: 2026-05-15 21:59+0200\n"
 "PO-Revision-Date: 2022-10-25 22:45+0200\n"
 "Last-Translator: Noah Schmidt <noah.schmidt@grommunio.com>\n"
 "Language-Team: English <https://hosted.weblate.org/projects/>\n"
@@ -17,382 +17,787 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: cui/__init__.py:121 cui/__init__.py:553
-msgid "Idle"
-msgstr "Idle"
+#: cui/__init__.py:40
+#, fuzzy, python-format
+msgid "Usage: %s [OPTIONS]"
+msgstr "Usage: {%s} [OPTIONS]"
 
-#: cui/__init__.py:170 cui/__init__.py:184 cui/util.py:591
-msgid "Login"
-msgstr "Login"
+#: cui/__init__.py:41
+msgid "\tOPTIONS:"
+msgstr "\tOPTIONS:"
 
-#: cui/__init__.py:173 cui/__init__.py:1704
-msgid "Username: "
-msgstr "Username: "
+#: cui/__init__.py:42
+msgid "\t\t--help: Show this message."
+msgstr "\t\t--help: Show this message."
 
-#: cui/__init__.py:176 cui/__init__.py:1707
-msgid "Password: "
-msgstr "Password: "
+#: cui/__init__.py:43
+msgid "\t\t-v/--debug: Verbose/Debugging mode."
+msgstr "\t\t-v/--debug: Verbose/Debugging mode."
 
-#: cui/__init__.py:195
-msgid "OK"
-msgstr "OK"
+#: cui/util.py:40
+msgid "System password is not set."
+msgstr "System password is not set."
 
-#: cui/__init__.py:224 cui/__init__.py:951 cui/__init__.py:953
+#: cui/util.py:41
+msgid "Network configuration is missing."
+msgstr "Network configuration is missing."
+
+#: cui/util.py:42
+msgid "grommunio-setup has not been run yet."
+msgstr "grommunio-setup has not been run yet."
+
+#: cui/util.py:43
+msgid "timesyncd configuration is missing."
+msgstr "timesyncd configuration is missing."
+
+#: cui/util.py:44
+msgid "nginx is not running."
+msgstr "nginx is not running."
+
+#: cui/util.py:45
+msgid "grommunio-admin is not installed."
+msgstr ""
+
+#: cui/util.py:101 cui/util.py:102 cui/classes/button.py:178
+#: cui/classes/handler.py:194 cui/classes/handler.py:374
+#: cui/classes/handler.py:890
 msgid "Cancel"
 msgstr "Cancel"
 
-#: cui/__init__.py:236
-msgid "Close"
-msgstr "Close"
-
-#: cui/__init__.py:265
-msgid "Add"
-msgstr "Add"
-
-#: cui/__init__.py:277
-msgid "Edit"
-msgstr "Edit"
-
-#: cui/__init__.py:289
-msgid "Details"
-msgstr "Details"
-
-#: cui/__init__.py:301
-msgid "Space to toggle"
-msgstr "Space to toggle"
-
-#: cui/__init__.py:309
-msgid "Apply"
-msgstr "Apply"
-
-#: cui/__init__.py:321
-msgid "Save"
-msgstr "Save"
-
-#: cui/__init__.py:342
+#: cui/util.py:184
 msgid ""
-"If this is not that what you expected to see, you probably have insufficient "
-"permissions."
+"The \"requests\" Python package is required to validate supported repository "
+"credentials but is not installed."
 msgstr ""
-"If this is not that what you expected to see, you probably have insufficient "
-"permissions."
 
-#: cui/__init__.py:356
-msgid "Main Menu"
-msgstr "Main Menu"
-
-#: cui/__init__.py:357
-msgid "Here you can do the main actions"
-msgstr "Here you can do the main actions"
-
-#: cui/__init__.py:362
-msgid "Language configuration"
-msgstr "Language configuration"
-
-#: cui/__init__.py:364
-msgid "Language"
-msgstr "Language"
-
-#: cui/__init__.py:367
-msgid "Opens the yast2 configurator for setting language settings."
-msgstr "Opens the yast2 configurator for setting language settings."
-
-#: cui/__init__.py:371
-msgid "Change system password"
-msgstr "Change system password"
-
-#: cui/__init__.py:373 cui/__init__.py:426
-msgid "Password change"
-msgstr "Password change"
-
-#: cui/__init__.py:375
+#: cui/util.py:207
 msgid ""
-"Opens a dialog for changing the password of the system root user. When a "
-"password is set, you can login via ssh and rerun grommunio-cui."
+"Please check the credentials for \"supported\"-version or use \"community\"-"
+"version."
 msgstr ""
-"Opens a dialog for changing the password of the system root user. When a "
-"password is set, you can login via ssh and rerun grommunio-cui."
+"Please check the credentials for \"supported\"-version or use \"community\"-"
+"version."
 
-#: cui/__init__.py:378
-msgid "Network interface configuration"
-msgstr "Network interface configuration"
+#: cui/util.py:540
+msgid "No name found"
+msgstr "No name found"
 
-#: cui/__init__.py:380
-msgid "Configuration of network"
-msgstr "Configuration of network"
+#: cui/util.py:541
+msgid "No version detectable"
+msgstr "No version detectable"
 
-#: cui/__init__.py:383
-msgid ""
-"Opens the yast2 configurator for setting up devices, interfaces, IP "
-"addresses, DNS and more."
+#: cui/util.py:638
+msgid " Average load: "
+msgstr " Average load: "
+
+#: cui/util.py:677
+#, python-brace-format
+msgid "Memory {used} used of {total} ({available} free)"
+msgstr "Memory {used} used of {total} ({available} free)"
+
+#: cui/util.py:700
+msgid "For further configuration, these URLs can be used:"
+msgstr "For further configuration, these URLs can be used:"
+
+#: cui/util.py:708
+msgid "It is generally NOT recommended to use localhost as hostname."
+msgstr "It is generally NOT recommended to use localhost as hostname."
+
+#: cui/util.py:734
+msgid "There are still some tasks missing to run/use grommunio."
+msgstr "There are still some tasks missing to run/use grommunio."
+
+#: cui/util.py:743
+msgid "Boot Time: "
+msgstr "Boot Time: "
+
+#: cui/util.py:748
+#, fuzzy, python-format
+msgid "Last login time: %s"
+msgstr "Last login time: {%s}"
+
+#: cui/util.py:751
+#, python-format
+msgid "Current language / PPID: %(lang)s / %(ppid)d"
 msgstr ""
-"Opens the yast2 configurator for setting up devices, interfaces, IP "
-"addresses, DNS and more."
 
-#: cui/__init__.py:387
-msgid "Timezone configuration"
-msgstr "Timezone configuration"
+#: cui/util.py:771
+msgid "Oops!"
+msgstr "Oops!"
 
-#: cui/__init__.py:389
-msgid "Timezone"
-msgstr "Timezone"
+#: cui/util.py:772
+msgid "There should be nothing."
+msgstr "There should be nothing."
 
-#: cui/__init__.py:392
-msgid "Opens the yast2 configurator for setting country and timezone settings."
-msgstr ""
-"Opens the yast2 configurator for setting country and timezone settings."
+#: cui/util.py:836
+msgid "Color"
+msgstr "Color"
 
-#: cui/__init__.py:396
-msgid "timesyncd configuration"
-msgstr "timesyncd configuration"
+#: cui/util.py:836 cui/classes/button.py:162 cui/classes/handler.py:101
+msgid "Login"
+msgstr "Login"
 
-#: cui/__init__.py:398
-msgid "timesyncd"
-msgstr "timesyncd"
+#: cui/util.py:836
+msgid "Keyboard"
+msgstr "Keyboard"
 
-#: cui/__init__.py:401
-msgid ""
-"Opens a simple configurator for configuring systemd-timesyncd as a "
-"lightweight NTP client for time synchronization."
-msgstr ""
-"Opens a simple configurator for configuring systemd-timesyncd as a "
-"lightweight NTP client for time synchronization."
+#: cui/util.py:838
+msgid "Exit"
+msgstr "Exit"
 
-#: cui/__init__.py:405
-msgid "Select software repositories"
-msgstr "Select software repositories"
+#: cui/util.py:839
+msgid "Logs"
+msgstr "Logs"
 
-#: cui/__init__.py:406
-msgid "Software repositories selection"
-msgstr "Software repositories selection"
-
-#: cui/__init__.py:408
-msgid "Opens dialog for choosing software repositories."
-msgstr "Opens dialog for choosing software repositories."
-
-#: cui/__init__.py:410
-msgid "Update the system"
-msgstr "Update the system"
-
-#: cui/__init__.py:411
-msgid "System update"
-msgstr "System update"
-
-#: cui/__init__.py:413
-msgid ""
-"Executes the system package manager for the installation of newer component "
-"versions."
-msgstr ""
-"Executes the system package manager for the installation of newer component "
-"versions."
-
-#: cui/__init__.py:415
-msgid "grommunio setup wizard"
-msgstr "grommunio setup wizard"
-
-#: cui/__init__.py:417
-msgid "Setup wizard"
-msgstr "Setup wizard"
-
-#: cui/__init__.py:420
-msgid ""
-"Executes the grommunio-setup script for the initial configuration of "
-"grommunio databases, TLS certificates, services and the administration web "
-"user interface."
-msgstr ""
-"Executes the grommunio-setup script for the initial configuration of "
-"grommunio databases, TLS certificates, services and the administration web "
-"user interface."
-
-#: cui/__init__.py:424
+#: cui/classes/application.py:27 cui/classes/application.py:456
 msgid "Change admin-web password"
 msgstr "Change admin-web password"
 
-#: cui/__init__.py:429
-msgid ""
-"Opens a dialog for changing the password used by the administration web "
-"interface."
-msgstr ""
-"Opens a dialog for changing the password used by the administration web "
-"interface."
-
-#: cui/__init__.py:433 cui/__init__.py:435
-msgid "Terminal"
-msgstr "Terminal"
-
-#: cui/__init__.py:438
-msgid "Starts terminal for advanced system configuration."
-msgstr "Starts terminal for advanced system configuration."
-
-#: cui/__init__.py:442 cui/__init__.py:1228
-msgid "Reboot"
-msgstr "Reboot"
-
-#: cui/__init__.py:443
-msgid "Reboot system."
-msgstr "Reboot system."
-
-#: cui/__init__.py:445 cui/__init__.py:1238
-msgid "Shutdown"
-msgstr "Shutdown"
-
-#: cui/__init__.py:447
-msgid "Shutdown system."
-msgstr "Shutdown system."
-
-#: cui/__init__.py:449
-msgid "Shuts down the system and powers off."
-msgstr "Shuts down the system and powers off."
-
-#: cui/__init__.py:454
-msgid "Exit CUI"
-msgstr "Exit CUI"
-
-#: cui/__init__.py:479
+#: cui/classes/application.py:149
 msgid "grommunio console user interface"
 msgstr "grommunio console user interface"
 
-#: cui/__init__.py:482
-#, python-brace-format
-msgid "Active keyboard layout: {kbd}; color set: {colormode}."
+#: cui/classes/application.py:152
+#, fuzzy, python-brace-format
+msgid ""
+"Active keyboard layout: {kbd}; color set: {colormode}{authorized_options}."
 msgstr "Active keyboard layout: {kbd}; color set: {colormode}."
 
-#: cui/__init__.py:487
+#: cui/classes/application.py:156
 msgid "If you need help, press the 'L' key to view logs."
 msgstr "If you need help, press the 'L' key to view logs."
 
-#: cui/__init__.py:571
-#, python-format
-msgid "What is {%s}."
-msgstr "What is {%s}."
+#: cui/classes/application.py:412
+msgid "Main Menu"
+msgstr "Main Menu"
 
-#: cui/__init__.py:699 cui/__init__.py:886 cui/__init__.py:1038
+#: cui/classes/application.py:413
+msgid "Here you can do the main actions"
+msgstr "Here you can do the main actions"
+
+#: cui/classes/application.py:417 cui/classes/handler.py:907
+#: cui/classes/handler.py:957 cui/classes/handler.py:965
+msgid "Language configuration"
+msgstr "Language configuration"
+
+#: cui/classes/application.py:418
+msgid "Language"
+msgstr "Language"
+
+#: cui/classes/application.py:419
+msgid "Opens a dialog for selecting the system language via localectl."
+msgstr ""
+
+#: cui/classes/application.py:421
+msgid "Change system password"
+msgstr "Change system password"
+
+#: cui/classes/application.py:422 cui/classes/application.py:457
+msgid "Password change"
+msgstr "Password change"
+
+#: cui/classes/application.py:423
+msgid ""
+"Opens a dialog for changing the password of the system root user. When a "
+"password is set, you can login via ssh and rerun grommunio-cui."
+msgstr ""
+"Opens a dialog for changing the password of the system root user. When a "
+"password is set, you can login via ssh and rerun grommunio-cui."
+
+#: cui/classes/application.py:426
+msgid "Network interface configuration"
+msgstr "Network interface configuration"
+
+#: cui/classes/application.py:427
+msgid "Configuration of network"
+msgstr "Configuration of network"
+
+#: cui/classes/application.py:428
+msgid ""
+"Opens a dialog to configure network interfaces (DHCP or static IPv4/IPv6, "
+"gateway, DNS). Uses systemd-networkd, NetworkManager or wicked depending on "
+"what is active."
+msgstr ""
+
+#: cui/classes/application.py:432 cui/classes/handler.py:987
+#: cui/classes/handler.py:1037 cui/classes/handler.py:1045
+msgid "Timezone configuration"
+msgstr "Timezone configuration"
+
+#: cui/classes/application.py:433
+msgid "Timezone"
+msgstr "Timezone"
+
+#: cui/classes/application.py:434
+#, fuzzy
+msgid "Opens a dialog for selecting the system timezone via timedatectl."
+msgstr ""
+"Opens a dialog for changing the password used by the administration web "
+"interface."
+
+#: cui/classes/application.py:436 cui/classes/model.py:346
+msgid "timesyncd configuration"
+msgstr "timesyncd configuration"
+
+#: cui/classes/application.py:437
+msgid "timesyncd"
+msgstr "timesyncd"
+
+#: cui/classes/application.py:438
+msgid ""
+"Opens a simple configurator for configuring systemd-timesyncd as a "
+"lightweight NTP client for time synchronization."
+msgstr ""
+"Opens a simple configurator for configuring systemd-timesyncd as a "
+"lightweight NTP client for time synchronization."
+
+#: cui/classes/application.py:441
+msgid "Select software repositories"
+msgstr "Select software repositories"
+
+#: cui/classes/application.py:442
+msgid "Software repositories selection"
+msgstr "Software repositories selection"
+
+#: cui/classes/application.py:443
+msgid "Opens dialog for choosing software repositories."
+msgstr "Opens dialog for choosing software repositories."
+
+#: cui/classes/application.py:445
+msgid "Update the system"
+msgstr "Update the system"
+
+#: cui/classes/application.py:446 cui/classes/handler.py:671
+msgid "System update"
+msgstr "System update"
+
+#: cui/classes/application.py:447
+msgid ""
+"Executes the system package manager for the installation of newer component "
+"versions."
+msgstr ""
+"Executes the system package manager for the installation of newer component "
+"versions."
+
+#: cui/classes/application.py:450
+msgid "grommunio setup wizard"
+msgstr "grommunio setup wizard"
+
+#: cui/classes/application.py:451 cui/classes/model.py:492
+msgid "Setup wizard"
+msgstr "Setup wizard"
+
+#: cui/classes/application.py:452
+msgid ""
+"Executes the grommunio-setup script for the initial configuration of "
+"grommunio databases, TLS certificates, services and the administration web "
+"user interface."
+msgstr ""
+"Executes the grommunio-setup script for the initial configuration of "
+"grommunio databases, TLS certificates, services and the administration web "
+"user interface."
+
+#: cui/classes/application.py:458
+msgid ""
+"Opens a dialog for changing the password used by the administration web "
+"interface."
+msgstr ""
+"Opens a dialog for changing the password used by the administration web "
+"interface."
+
+#: cui/classes/application.py:461 cui/classes/application.py:462
+msgid "Terminal"
+msgstr "Terminal"
+
+#: cui/classes/application.py:463
+msgid "Starts terminal for advanced system configuration."
+msgstr "Starts terminal for advanced system configuration."
+
+#: cui/classes/application.py:465 cui/classes/handler.py:642
+msgid "Reboot"
+msgstr "Reboot"
+
+#: cui/classes/application.py:465
+msgid "Reboot system."
+msgstr "Reboot system."
+
+#: cui/classes/application.py:466 cui/classes/handler.py:655
+msgid "Shutdown"
+msgstr "Shutdown"
+
+#: cui/classes/application.py:467
+msgid "Shutdown system."
+msgstr "Shutdown system."
+
+#: cui/classes/application.py:468
+msgid "Shuts down the system and powers off."
+msgstr "Shuts down the system and powers off."
+
+#: cui/classes/application.py:472
+msgid "Exit CUI"
+msgstr "Exit CUI"
+
+#: cui/classes/application.py:663
+msgid "Idle"
+msgstr "Idle"
+
+#: cui/classes/button.py:151 cui/classes/model.py:472
+msgid "Username: "
+msgstr "Username: "
+
+#: cui/classes/button.py:154 cui/classes/model.py:475
+msgid "Password: "
+msgstr "Password: "
+
+#: cui/classes/button.py:174 cui/classes/handler.py:169
+#: cui/classes/handler.py:349 cui/classes/handler.py:382
+#: cui/classes/handler.py:874 cui/classes/handler.py:881
+msgid "OK"
+msgstr "OK"
+
+#: cui/classes/button.py:182
+msgid "Close"
+msgstr "Close"
+
+#: cui/classes/button.py:186
+msgid "Add"
+msgstr "Add"
+
+#: cui/classes/button.py:190 cui/classes/handler.py:882
+msgid "Edit"
+msgstr "Edit"
+
+#: cui/classes/button.py:194 cui/classes/handler.py:382
+#: cui/classes/handler.py:875
+msgid "Save"
+msgstr "Save"
+
+#: cui/classes/button.py:198
+msgid "Details"
+msgstr "Details"
+
+#: cui/classes/button.py:202
+msgid "Toggle"
+msgstr ""
+
+#: cui/classes/button.py:206
+msgid "Apply"
+msgstr "Apply"
+
+#: cui/classes/handler.py:163 cui/classes/handler.py:343
 msgid "NOTHING"
 msgstr "NOTHING"
 
-#: cui/__init__.py:706 cui/__init__.py:893 cui/__init__.py:1061
+#: cui/classes/handler.py:169 cui/classes/handler.py:349
+#: cui/classes/handler.py:382 cui/classes/handler.py:874
+#: cui/classes/handler.py:881
+msgid "Ok"
+msgstr ""
+
+#: cui/classes/handler.py:169 cui/classes/handler.py:349
+#: cui/classes/handler.py:382 cui/classes/handler.py:555
+#: cui/classes/handler.py:874 cui/classes/handler.py:881
+msgid "ok"
+msgstr ""
+
+#: cui/classes/handler.py:170 cui/classes/handler.py:350
+#: cui/classes/handler.py:548 cui/classes/handler.py:572
 msgid "was successful"
 msgstr "was successful"
 
-#: cui/__init__.py:717 cui/__init__.py:904
+#: cui/classes/handler.py:181 cui/classes/handler.py:361
 msgid "failed due to mismatching password values"
 msgstr "failed due to mismatching password values"
 
-#: cui/__init__.py:719 cui/__init__.py:906 cui/__init__.py:1063
+#: cui/classes/handler.py:183 cui/classes/handler.py:363
+#: cui/classes/handler.py:574
 msgid "failed"
 msgstr "failed"
 
-#: cui/__init__.py:722 cui/__init__.py:725 cui/__init__.py:909
-#: cui/__init__.py:912 cui/__init__.py:1066 cui/__init__.py:1069
-msgid "aborted"
-msgstr "aborted"
+#: cui/classes/handler.py:189
+#, fuzzy, python-format
+msgid "System password reset %s!"
+msgstr "System password reset"
 
-#: cui/__init__.py:742
-#, python-brace-format
-msgid "System password reset {success_msg}!"
-msgstr "System password reset {success_msg}!"
-
-#: cui/__init__.py:743
+#: cui/classes/handler.py:190
 msgid "System password reset"
 msgstr "System password reset"
 
-#: cui/__init__.py:929
-#, python-brace-format
-msgid "Admin password reset {success_msg}!"
-msgstr "Admin password reset {success_msg}!"
+#: cui/classes/handler.py:194 cui/classes/handler.py:374
+#: cui/classes/handler.py:890
+#, fuzzy
+msgid "cancel"
+msgstr "Cancel"
 
-#: cui/__init__.py:930
+#: cui/classes/handler.py:369
+#, fuzzy, python-format
+msgid "Admin password reset %s!"
+msgstr "Admin password reset"
+
+#: cui/classes/handler.py:370
 msgid "Admin password reset"
 msgstr "Admin password reset"
 
-#: cui/__init__.py:955
-msgid "Software repository selection has been canceled."
-msgstr "Software repository selection has been canceled."
-
-#: cui/__init__.py:974
-msgid ""
-"Please check the credentials for \"supported\"-version or use \"community\"-"
-"version."
+#: cui/classes/handler.py:382 cui/classes/handler.py:875
+msgid "save"
 msgstr ""
-"Please check the credentials for \"supported\"-version or use \"community\"-"
-"version."
 
-#: cui/__init__.py:988
+#: cui/classes/handler.py:382
+msgid "SAVE"
+msgstr ""
+
+#: cui/classes/handler.py:403
 msgid "The repo file has not been changed."
 msgstr "The repo file has not been changed."
 
-#: cui/__init__.py:993
+#: cui/classes/handler.py:411
+msgid "One moment, please ..."
+msgstr ""
+
+#: cui/classes/handler.py:412
 msgid ""
 "Fetching GPG-KEY file and refreshing repositories. This may take a while ..."
 msgstr ""
 "Fetching GPG-KEY file and refreshing repositories. This may take a while ..."
 
-#: cui/__init__.py:1024
+#: cui/classes/handler.py:428
+#, python-format
+msgid "Could not download the grommunio GPG key from %s."
+msgstr ""
+
+#: cui/classes/handler.py:445
+#, python-format
+msgid "Failed to write key file %(path)s: %(err)s"
+msgstr ""
+
+#: cui/classes/handler.py:464
+#, python-format
+msgid "Failed to write repo file %(path)s: %(err)s"
+msgstr ""
+
+#: cui/classes/handler.py:501
 msgid "Software repository selection has been updated."
 msgstr "Software repository selection has been updated."
 
-#: cui/__init__.py:1030
+#: cui/classes/handler.py:509
 msgid ""
 "Software repository selection has not been updated. Something went wrong "
 "while importing key file."
 msgstr "Software repository selection has been updated."
 
-#: cui/__init__.py:1073
-#, python-brace-format
-msgid "Timesyncd configuration change {success_msg}!"
+#: cui/classes/handler.py:577
+#, fuzzy, python-format
+msgid "Timesyncd configuration change %s!"
 msgstr "Timesyncd configuration change {success_msg}!"
 
-#: cui/__init__.py:1074 cui/__init__.py:1591
+#: cui/classes/handler.py:578
 msgid "Timesyncd Configuration"
 msgstr "Timesyncd Configuration"
 
-#: cui/__init__.py:1178
-msgid "Creator (%s) clicked %b."
-msgstr "Creator (%s) clicked %b."
-
-#: cui/__init__.py:1189
-#, python-format
-msgid "Called handle_menu_changed() with args(%s) and "
-msgstr "Called handle_menu_changed() with args(%s) and "
-
-#: cui/__init__.py:1202
-#, python-format
-msgid "Called handle_menu_activated() with args(%s) and "
-msgstr "Called handle_menu_activated() with args(%s) and "
-
-#: cui/__init__.py:1215
+#: cui/classes/handler.py:628
 msgid "To return to the CUI, issue the `exit` command."
 msgstr "To return to the CUI, issue the `exit` command."
 
-#: cui/__init__.py:1225 cui/__init__.py:1235
+#: cui/classes/handler.py:639 cui/classes/handler.py:652
 msgid "Are you sure?\n"
 msgstr "Are you sure?\n"
 
-#: cui/__init__.py:1226 cui/__init__.py:1236
+#: cui/classes/handler.py:640 cui/classes/handler.py:653
 msgid "After pressing OK, "
 msgstr "After pressing OK, "
 
-#: cui/__init__.py:1227
+#: cui/classes/handler.py:641
 msgid "the system will reboot."
 msgstr "the system will reboot."
 
-#: cui/__init__.py:1237
+#: cui/classes/handler.py:654
 msgid "the system will shut down and power off."
 msgstr "the system will shut down and power off."
 
-#: cui/__init__.py:1249
+#: cui/classes/handler.py:670
+msgid "No supported package manager (zypper, dnf, apt-get) was found."
+msgstr ""
+
+#: cui/classes/handler.py:680
+#, fuzzy, python-format
+msgid "Please wait while %s is invoked."
+msgstr "Please wait while `yast2 %s` is being run."
+
+#: cui/classes/handler.py:684
+msgid "Press ENTER to return to the CUI."
+msgstr ""
+
+#: cui/classes/handler.py:696
+msgid "You need root privileges to use another user."
+msgstr "You need root privileges to use another user."
+
+#: cui/classes/handler.py:700
+#, python-format
+msgid "checking user %s with pass "
+msgstr "checking user %s with pass "
+
+#: cui/classes/handler.py:705
+msgid ", <F4> for Main-Menu"
+msgstr ", <F4> for Main-Menu"
+
+#: cui/classes/handler.py:710
+msgid "Incorrect credentials. Access denied!"
+msgstr "Incorrect credentials. Access denied!"
+
+#: cui/classes/handler.py:711
+msgid "Password verification"
+msgstr "Password verification"
+
+#: cui/classes/handler.py:714
+#, python-format
+msgid "Login wrong! (%s)"
+msgstr "Login wrong! (%s)"
+
+#: cui/classes/handler.py:722
+msgid "UNKNOWN LABEL"
+msgstr "UNKNOWN LABEL"
+
+#: cui/classes/handler.py:882
+msgid "edit"
+msgstr ""
+
+#: cui/classes/handler.py:900
+#, fuzzy
+msgid "Opening language selection"
+msgstr "Opening repository selection"
+
+#: cui/classes/handler.py:906
+msgid "Could not enumerate available locales (is localectl installed?)."
+msgstr ""
+
+#: cui/classes/handler.py:938
+msgid "Select system language"
+msgstr ""
+
+#: cui/classes/handler.py:956
+#, python-format
+msgid "System language set to %s."
+msgstr ""
+
+#: cui/classes/handler.py:964
+msgid "Failed to set the system language."
+msgstr ""
+
+#: cui/classes/handler.py:980
+#, fuzzy
+msgid "Opening timezone selection"
+msgstr "Opening repository selection"
+
+#: cui/classes/handler.py:986
+msgid "Could not enumerate timezones (is timedatectl installed?)."
+msgstr ""
+
+#: cui/classes/handler.py:1018
+msgid "Select system timezone"
+msgstr ""
+
+#: cui/classes/handler.py:1036
+#, fuzzy, python-format
+msgid "System timezone set to %s."
+msgstr "timezone settings."
+
+#: cui/classes/handler.py:1044
+msgid "Failed to set the system timezone."
+msgstr ""
+
+#: cui/classes/handler.py:1062
+#, fuzzy
+msgid "Opening network configuration"
+msgstr "Opening keyboard configuration"
+
+#: cui/classes/handler.py:1072
+msgid "no IPv4"
+msgstr ""
+
+#: cui/classes/handler.py:1078
+msgid "[ Create new bond device... ]"
+msgstr ""
+
+#: cui/classes/handler.py:1083
+#, python-format
+msgid ""
+"Active backend: %s. Choose an interface and press Edit, or pick 'Create new "
+"bond device' to set one up."
+msgstr ""
+
+#: cui/classes/handler.py:1109
+#, fuzzy
+msgid "Network interfaces"
+msgstr "user interface."
+
+#: cui/classes/handler.py:1140
+msgid "DHCPv4"
+msgstr ""
+
+#: cui/classes/handler.py:1141
+msgid "DHCPv6"
+msgstr ""
+
+#: cui/classes/handler.py:1143
+msgid "Addresses: "
+msgstr ""
+
+#: cui/classes/handler.py:1148
+msgid "Default gw v4: "
+msgstr ""
+
+#: cui/classes/handler.py:1151
+msgid "Default gw v6: "
+msgstr ""
+
+#: cui/classes/handler.py:1154
+msgid "Static routes: "
+msgstr ""
+
+#: cui/classes/handler.py:1161
+msgid "DNS servers: "
+msgstr ""
+
+#: cui/classes/handler.py:1166
+#, python-format
+msgid "Interface: %(name)s (%(kind)s)"
+msgstr ""
+
+#: cui/classes/handler.py:1168
+msgid "One value per line. CIDR for addresses; '<dest> via <gw>' for routes."
+msgstr ""
+
+#: cui/classes/handler.py:1183
+#, python-format
+msgid "Bond mode: %(mode)s   MIIMON: %(miimon)d ms   Members: %(members)s"
+msgstr ""
+
+#: cui/classes/handler.py:1187
+msgid "(none)"
+msgstr ""
+
+#: cui/classes/handler.py:1206
+#, fuzzy, python-format
+msgid "Edit interface %s"
+msgstr "user interface."
+
+#: cui/classes/handler.py:1219 cui/classes/handler.py:1294
+#, fuzzy
+msgid "Network configuration"
+msgstr "Network interface configuration"
+
+#: cui/classes/handler.py:1231
+msgid "No interface selected."
+msgstr ""
+
+#: cui/classes/handler.py:1246
+#, python-format
+msgid "Invalid route '%(line)s': %(err)s"
+msgstr ""
+
+#: cui/classes/handler.py:1255
+#, python-format
+msgid "Invalid address '%(addr)s': %(err)s"
+msgstr ""
+
+#: cui/classes/handler.py:1262
+#, python-format
+msgid "Invalid %(label)s '%(gw)s': %(err)s"
+msgstr ""
+
+#: cui/classes/handler.py:1268
+#, python-format
+msgid "Invalid DNS server '%(d)s': %(err)s"
+msgstr ""
+
+#: cui/classes/handler.py:1290
+#, fuzzy
+msgid "Failed to write the interface configuration."
+msgstr "Network interface configuration"
+
+#: cui/classes/handler.py:1293
+#, python-format
+msgid "Interface %(iface)s saved."
+msgstr ""
+
+#: cui/classes/handler.py:1312
+msgid "No physical interfaces available for bonding."
+msgstr ""
+
+#: cui/classes/handler.py:1313 cui/classes/handler.py:1388
+#: cui/classes/handler.py:1427
+msgid "Bond creation"
+msgstr ""
+
+#: cui/classes/handler.py:1327
+#, fuzzy
+msgid "Bond name: "
+msgstr "Boot Time: "
+
+#: cui/classes/handler.py:1330
+msgid "MIIMON (ms): "
+msgstr ""
+
+#: cui/classes/handler.py:1345
+msgid ""
+"Create a new bond device. Pick the mode, the MIIMON interval and at least "
+"one physical member."
+msgstr ""
+
+#: cui/classes/handler.py:1352
+msgid "Mode:"
+msgstr ""
+
+#: cui/classes/handler.py:1355
+msgid "Members:"
+msgstr ""
+
+#: cui/classes/handler.py:1375
+msgid "Create bond device"
+msgstr ""
+
+#: cui/classes/handler.py:1399
+msgid "Bond name must look like 'bond0', 'bond1', ..."
+msgstr ""
+
+#: cui/classes/handler.py:1403 cui/classes/handler.py:1405
+msgid "MIIMON must be a positive integer (milliseconds)."
+msgstr ""
+
+#: cui/classes/handler.py:1410
+msgid "Select at least one physical member."
+msgstr ""
+
+#: cui/classes/handler.py:1421
+msgid "Failed to create the bond device."
+msgstr ""
+
+#: cui/classes/handler.py:1424
+#, python-format
+msgid "Bond %(name)s created with %(count)d members."
+msgstr ""
+
+#: cui/classes/model.py:60
+msgid ""
+"If this is not that what you expected to see, you probably have insufficient "
+"permissions."
+msgstr ""
+"If this is not that what you expected to see, you probably have insufficient "
+"permissions."
+
+#: cui/classes/model.py:107
 msgid "Changing system password"
 msgstr "Changing system password"
 
-#: cui/__init__.py:1253
+#: cui/classes/model.py:112
 msgid "System Password Change"
 msgstr "System Password Change"
 
-#: cui/__init__.py:1254
+#: cui/classes/model.py:113
 msgid "Enter the new system password:"
 msgstr "Enter the new system password:"
 
-#: cui/__init__.py:1409
+#: cui/classes/model.py:257
 #, python-format
 msgid ""
 "Use the arrow keys to switch between logfiles. <LEFT> and <RIGHT> switch the "
@@ -401,269 +806,68 @@ msgstr ""
 "Use the arrow keys to switch between logfiles. <LEFT> and <RIGHT> switch the "
 "logfile, while <+> and <-> changes the line count to view. (%s)"
 
-#: cui/__init__.py:1481
+#: cui/classes/model.py:327
 #, python-format
 msgid "Log file viewer has to open file {%s} ..."
 msgstr "Log file viewer has to open file {%s} ..."
 
-#: cui/__init__.py:1492
-#, python-format
-msgid "Please wait while `yast2 %s` is being run."
-msgstr "Please wait while `yast2 %s` is being run."
-
-#: cui/__init__.py:1530
+#: cui/classes/model.py:334
 msgid "admin-web Password Change"
 msgstr "admin-web Password Change"
 
-#: cui/__init__.py:1531
+#: cui/classes/model.py:335
 msgid "Enter the new admin-web password:"
 msgstr "Enter the new admin-web password:"
 
-#: cui/__init__.py:1589
+#: cui/classes/model.py:341
 msgid "Opening timesyncd configuration"
 msgstr "Opening timesyncd configuration"
 
-#: cui/__init__.py:1629
+#: cui/classes/model.py:389
 msgid "Insert the NTP servers separated by <SPACE> char."
 msgstr "Insert the NTP servers separated by <SPACE> char."
 
-#: cui/__init__.py:1653
+#: cui/classes/model.py:412
 msgid "Opening repository selection"
 msgstr "Opening repository selection"
 
-#: cui/__init__.py:1655
+#: cui/classes/model.py:417
 msgid "Software repository selection"
 msgstr "Software repository selection"
 
-#: cui/__init__.py:1697
+#: cui/classes/model.py:465
 msgid "Use \"community\" repository"
 msgstr "Use \"community\" repository"
 
-#: cui/__init__.py:1701
+#: cui/classes/model.py:469
 msgid "Use \"supported\" repository"
 msgstr "Use \"supported\" repository"
 
-#: cui/__init__.py:1727
+#: cui/classes/model.py:491
+#, fuzzy
+msgid "grommunio-setup is not installed."
+msgstr "grommunio-setup has not been run yet."
+
+#: cui/classes/model.py:508
 msgid "Login successful"
 msgstr "Login successful"
 
-#: cui/__init__.py:1729
-msgid ", <F4> for Main-Menu"
-msgstr ", <F4> for Main-Menu"
-
-#: cui/__init__.py:1739
+#: cui/classes/model.py:520
 msgid "Returning to main screen."
 msgstr "Returning to main screen."
 
-#: cui/__init__.py:1750
-msgid "You need root privileges to use another user."
-msgstr "You need root privileges to use another user."
-
-#: cui/__init__.py:1753
-#, python-format
-msgid "checking user %s with pass "
-msgstr "checking user %s with pass "
-
-#: cui/__init__.py:1762
-msgid "Incorrect credentials. Access denied!"
-msgstr "Incorrect credentials. Access denied!"
-
-#: cui/__init__.py:1763
-msgid "Password verification"
-msgstr "Password verification"
-
-#: cui/__init__.py:1765
-#, python-format
-msgid "Login wrong! (%s)"
-msgstr "Login wrong! (%s)"
-
-#: cui/__init__.py:1773
-msgid "UNKNOWN LABEL"
-msgstr "UNKNOWN LABEL"
-
-#: cui/__init__.py:1927
+#: cui/classes/model.py:528
 msgid "Opening keyboard configuration"
 msgstr "Opening keyboard configuration"
 
-#: cui/__init__.py:2302
+#: cui/classes/model.py:763
+msgid "Message"
+msgstr ""
+
+#: cui/classes/model.py:838
 msgid "Input expected"
 msgstr "Input expected"
 
-#: cui/__init__.py:2506
-msgid "Write succeeded"
-msgstr "Write succeeded"
-
-#: cui/__init__.py:2508
-msgid "The configuration was"
-msgstr "The configuration was"
-
-#: cui/__init__.py:2511 cui/__init__.py:2517
-msgid " updated."
-msgstr " updated."
-
-#: cui/__init__.py:2513
-msgid "Write failed"
-msgstr "Write failed"
-
-#: cui/__init__.py:2516
-msgid " not"
-msgstr " not"
-
-#: cui/__init__.py:2519
-msgid "Perhaps you have insufficient rights."
-msgstr "Perhaps you have insufficient rights."
-
-#: cui/__init__.py:2531
-#, python-format
-msgid "Usage: {%s} [OPTIONS]"
-msgstr "Usage: {%s} [OPTIONS]"
-
-#: cui/__init__.py:2532
-msgid "\tOPTIONS:"
-msgstr "\tOPTIONS:"
-
-#: cui/__init__.py:2533
-msgid "\t\t--help: Show this message."
-msgstr "\t\t--help: Show this message."
-
-#: cui/__init__.py:2534
-msgid "\t\t-v/--debug: Verbose/Debugging mode."
-msgstr "\t\t-v/--debug: Verbose/Debugging mode."
-
-#: cui/util.py:32
-msgid "System password is not set."
-msgstr "System password is not set."
-
-#: cui/util.py:33
-msgid "Network configuration is missing."
-msgstr "Network configuration is missing."
-
-#: cui/util.py:34
-msgid "grommunio-setup has not been run yet."
-msgstr "grommunio-setup has not been run yet."
-
-#: cui/util.py:35
-msgid "timesyncd configuration is missing."
-msgstr "timesyncd configuration is missing."
-
-#: cui/util.py:36
-msgid "nginx is not running."
-msgstr "nginx is not running."
-
-#: cui/util.py:349
-msgid "No name found"
-msgstr "No name found"
-
-#: cui/util.py:350
-msgid "No version detectable"
-msgstr "No version detectable"
-
-#: cui/util.py:412
-msgid " Average load: "
-msgstr " Average load: "
-
-#: cui/util.py:459
-#, python-brace-format
-msgid "Memory {used} used of {total} ({available} free)"
-msgstr "Memory {used} used of {total} ({available} free)"
-
-#: cui/util.py:476
-msgid "For further configuration, these URLs can be used:"
-msgstr "For further configuration, these URLs can be used:"
-
-#: cui/util.py:484
-msgid "It is generally NOT recommended to use localhost as hostname."
-msgstr "It is generally NOT recommended to use localhost as hostname."
-
-#: cui/util.py:510
-msgid "There are still some tasks missing to run/use grommunio."
-msgstr "There are still some tasks missing to run/use grommunio."
-
-#: cui/util.py:519
-msgid "Boot Time: "
-msgstr "Boot Time: "
-
-#: cui/util.py:524
-#, python-format
-msgid "Last login time: {%s}"
-msgstr "Last login time: {%s}"
-
-#: cui/util.py:527
-msgid "Oops!"
-msgstr "Oops!"
-
-#: cui/util.py:528
-msgid "There should be nothing."
-msgstr "There should be nothing."
-
-#: cui/util.py:591
-msgid "Color"
-msgstr "Color"
-
-#: cui/util.py:591
-msgid "Keyboard"
-msgstr "Keyboard"
-
-#: cui/util.py:593
-msgid "Exit"
-msgstr "Exit"
-
-#: cui/util.py:594
-msgid "Logs"
-msgstr "Logs"
-
-#~ msgid "light"
-#~ msgstr "light"
-
-#~ msgid "You probably have insufficient permissions!?"
-#~ msgstr "You probably have insufficient permissions!?"
-
-#, python-format
-#~ msgid "Linux system user \"%s\"."
-#~ msgstr "Linux system user \"%s\"."
-
-#~ msgid "interfaces, IP addresses, DNS and more."
-#~ msgstr "interfaces, IP addresses, DNS and more."
-
-#~ msgid "timezone settings."
-#~ msgstr "timezone settings."
-
-#~ msgid "Opens a simple configurator for configuring "
-#~ msgstr "Opens a simple configurator for configuring "
-
-#~ msgid "time synchronization."
-#~ msgstr "time synchronization."
-
-#~ msgid "Executes the grommunio-setup script for the initial "
-#~ msgstr "Executes the grommunio-setup script for the initial "
-
-#~ msgid "configuration of grommunio databases, TLS "
-#~ msgstr "configuration of grommunio databases, TLS "
-
-#~ msgid "certificates, services and the administration web "
-#~ msgstr "certificates, services and the administration web "
-
-#~ msgid "user interface."
-#~ msgstr "user interface."
-
-#~ msgid "administration web interface."
-#~ msgstr "administration web interface."
-
-#~ msgid "Use the arrow keys to switch between logfiles. <LEFT> and "
-#~ msgstr "Use the arrow keys to switch between logfiles. <LEFT> and "
-
-#~ msgid "<RIGHT> switch the logfile, while <+> and <-> changes the "
-#~ msgstr "<RIGHT> switch the logfile, while <+> and <-> changes the "
-
-#, python-format
-#~ msgid "line count to view. (%s)"
-#~ msgstr "line count to view. (%s)"
-
-#~ msgid "dark"
-#~ msgstr "dark"
-
-#~ msgid "orange light"
-#~ msgstr "orange light"
-
-#~ msgid "orange dark"
-#~ msgstr "orange dark"
+#: cui/classes/model.py:934
+msgid "No body"
+msgstr ""
