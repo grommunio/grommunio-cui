@@ -228,11 +228,32 @@ class ApplicationHandler(ApplicationModel):
     def _key_ev_mainmenu(self, key):
         """Handle event on main menu."""
         def menu_language():
-            pre = cui.classes.parser.ConfigParser(infile='/etc/locale.conf')
-            self._run_yast_module("language")
-            post = cui.classes.parser.ConfigParser(infile='/etc/locale.conf')
+            # Prefer the built-in localectl-based dialog. yast2's UI is kept on
+            # SUSE only because operators there are used to it.
+            locale_path = cui.distro.get_locale_conf_path()
+            pre = cui.classes.parser.ConfigParser(infile=locale_path) \
+                if Path(locale_path).is_file() else None
+            if cui.distro.has_yast() and cui.distro.is_suse_family():
+                self._run_yast_module("language")
+            else:
+                self._open_locale_selection()
+            post = cui.classes.parser.ConfigParser(infile=locale_path) \
+                if Path(locale_path).is_file() else None
             if pre != post:
                 util._ = util.restart_gui()
+
+        def menu_network():
+            if cui.distro.has_yast() and cui.distro.is_suse_family() \
+                    and cui.distro.get_network_backend() == "wicked":
+                self._run_yast_module("lan")
+            else:
+                self._open_network_interface_select()
+
+        def menu_timezone():
+            if cui.distro.has_yast() and cui.distro.is_suse_family():
+                self._run_yast_module("timezone")
+            else:
+                self._open_timezone_selection()
 
         def exit_main_loop():
             raise urwid.ExitMainLoop()
@@ -246,8 +267,8 @@ class ApplicationHandler(ApplicationModel):
             (func, val) = {
                 1: (menu_language, None),
                 2: (self._open_change_password, None),
-                3: (self._run_yast_module, "lan"),
-                4: (self._run_yast_module, "timezone"),
+                3: (menu_network, None),
+                4: (menu_timezone, None),
                 5: (self._open_timesyncd_conf, None),
                 6: (self._open_repo_conf, None),
                 7: (self._run_update, None),
