@@ -20,9 +20,9 @@ msgstr ""
 "X-Generator: Weblate 5.0.1-dev\n"
 
 #: cui/__init__.py:40
-#, fuzzy, python-format
+#, python-format
 msgid "Usage: %s [OPTIONS]"
-msgstr "Anleitung: {%s} [OPTIONS]"
+msgstr "Aufruf: %s [OPTIONEN]"
 
 #: cui/__init__.py:41
 msgid "\tOPTIONS:"
@@ -58,7 +58,7 @@ msgstr "nginx läuft nicht."
 
 #: cui/util.py:45
 msgid "grommunio-admin is not installed."
-msgstr ""
+msgstr "grommunio-admin ist nicht installiert."
 
 #: cui/util.py:101 cui/util.py:102 cui/classes/button.py:178
 #: cui/classes/handler.py:194 cui/classes/handler.py:374
@@ -71,6 +71,8 @@ msgid ""
 "The \"requests\" Python package is required to validate supported repository "
 "credentials but is not installed."
 msgstr ""
+"Das Python-Paket \"requests\" wird zur Prüfung der Zugangsdaten der "
+"\"supported\"-Quellen benötigt, ist aber nicht installiert."
 
 #: cui/util.py:207
 msgid ""
@@ -115,14 +117,14 @@ msgid "Boot Time: "
 msgstr "Startzeit: "
 
 #: cui/util.py:748
-#, fuzzy, python-format
+#, python-format
 msgid "Last login time: %s"
-msgstr "Letzte Anmeldezeit: {%s}"
+msgstr "Letzte Anmeldezeit: %s"
 
 #: cui/util.py:751
 #, python-format
 msgid "Current language / PPID: %(lang)s / %(ppid)d"
-msgstr ""
+msgstr "Aktuelle Sprache / PPID: %(lang)s / %(ppid)d"
 
 #: cui/util.py:771
 msgid "Oops!"
@@ -161,10 +163,11 @@ msgid "grommunio console user interface"
 msgstr "grommunio console user interface"
 
 #: cui/classes/application.py:152
-#, fuzzy, python-brace-format
+#, python-brace-format
 msgid ""
 "Active keyboard layout: {kbd}; color set: {colormode}{authorized_options}."
-msgstr "Aktives Tastaturlayout: {kbd}; Farbmodus: {colormode}."
+msgstr ""
+"Aktives Tastaturlayout: {kbd}; Farbmodus: {colormode}{authorized_options}."
 
 #: cui/classes/application.py:156
 msgid "If you need help, press the 'L' key to view logs."
@@ -189,7 +192,7 @@ msgstr "Sprache"
 
 #: cui/classes/application.py:419
 msgid "Opens a dialog for selecting the system language via localectl."
-msgstr ""
+msgstr "Öffnet einen Dialog zur Auswahl der Systemsprache über localectl."
 
 #: cui/classes/application.py:421
 msgid "Change system password"
@@ -222,6 +225,9 @@ msgid ""
 "gateway, DNS). Uses systemd-networkd, NetworkManager or wicked depending on "
 "what is active."
 msgstr ""
+"Öffnet einen Dialog zur Konfiguration der Netzwerkschnittstellen (DHCP oder "
+"statisches IPv4/IPv6, Gateway, DNS). Verwendet je nach Aktivität systemd-"
+"networkd, NetworkManager oder wicked."
 
 #: cui/classes/application.py:432 cui/classes/handler.py:987
 #: cui/classes/handler.py:1037 cui/classes/handler.py:1045
@@ -233,11 +239,8 @@ msgid "Timezone"
 msgstr "Zeitzone"
 
 #: cui/classes/application.py:434
-#, fuzzy
 msgid "Opens a dialog for selecting the system timezone via timedatectl."
-msgstr ""
-"Öffnet den Dialog zum Ändern des Passworts für die "
-"Admistrationsweboberfläche."
+msgstr "Öffnet einen Dialog zur Auswahl der Systemzeitzone über timedatectl."
 
 #: cui/classes/application.py:436 cui/classes/model.py:346
 msgid "timesyncd configuration"
@@ -381,7 +384,7 @@ msgstr "Details"
 
 #: cui/classes/button.py:202
 msgid "Toggle"
-msgstr ""
+msgstr "Umschalten"
 
 #: cui/classes/button.py:206
 msgid "Apply"
@@ -395,13 +398,13 @@ msgstr "NICHTS"
 #: cui/classes/handler.py:382 cui/classes/handler.py:874
 #: cui/classes/handler.py:881
 msgid "Ok"
-msgstr ""
+msgstr "Ok"
 
 #: cui/classes/handler.py:169 cui/classes/handler.py:349
 #: cui/classes/handler.py:382 cui/classes/handler.py:555
 #: cui/classes/handler.py:874 cui/classes/handler.py:881
 msgid "ok"
-msgstr ""
+msgstr "ok"
 
 #: cui/classes/handler.py:170 cui/classes/handler.py:350
 #: cui/classes/handler.py:548 cui/classes/handler.py:572
@@ -418,9 +421,9 @@ msgid "failed"
 msgstr "fehlgeschlagen"
 
 #: cui/classes/handler.py:189
-#, fuzzy, python-format
+#, python-format
 msgid "System password reset %s!"
-msgstr "Zurücksetzen des System Passworts"
+msgstr "Systempasswort zurücksetzen %s!"
 
 #: cui/classes/handler.py:190
 msgid "System password reset"
@@ -428,14 +431,13 @@ msgstr "Zurücksetzen des System Passworts"
 
 #: cui/classes/handler.py:194 cui/classes/handler.py:374
 #: cui/classes/handler.py:890
-#, fuzzy
 msgid "cancel"
-msgstr "Abbrechen"
+msgstr "abbrechen"
 
 #: cui/classes/handler.py:369
-#, fuzzy, python-format
+#, python-format
 msgid "Admin password reset %s!"
-msgstr "Zurücksetzen des Admin Passworts"
+msgstr "Admin-Passwort zurücksetzen %s!"
 
 #: cui/classes/handler.py:370
 msgid "Admin password reset"
@@ -443,11 +445,11 @@ msgstr "Zurücksetzen des Admin Passworts"
 
 #: cui/classes/handler.py:382 cui/classes/handler.py:875
 msgid "save"
-msgstr ""
+msgstr "speichern"
 
 #: cui/classes/handler.py:382
 msgid "SAVE"
-msgstr ""
+msgstr "SPEICHERN"
 
 #: cui/classes/handler.py:403
 msgid "The repo file has not been changed."
@@ -455,7 +457,7 @@ msgstr "Die repo Datei wurde nicht verändert."
 
 #: cui/classes/handler.py:411
 msgid "One moment, please ..."
-msgstr ""
+msgstr "Einen Moment bitte …"
 
 #: cui/classes/handler.py:412
 msgid ""
@@ -468,16 +470,17 @@ msgstr ""
 #, python-format
 msgid "Could not download the grommunio GPG key from %s."
 msgstr ""
+"GPG-Schlüssel von grommunio konnte nicht von %s heruntergeladen werden."
 
 #: cui/classes/handler.py:445
 #, python-format
 msgid "Failed to write key file %(path)s: %(err)s"
-msgstr ""
+msgstr "Schlüsseldatei %(path)s konnte nicht geschrieben werden: %(err)s"
 
 #: cui/classes/handler.py:464
 #, python-format
 msgid "Failed to write repo file %(path)s: %(err)s"
-msgstr ""
+msgstr "Quellen-Datei %(path)s konnte nicht geschrieben werden: %(err)s"
 
 #: cui/classes/handler.py:501
 msgid "Software repository selection has been updated."
@@ -492,9 +495,9 @@ msgstr ""
 "ist während dem Import des Schlüssel-Files schief gelaufen."
 
 #: cui/classes/handler.py:577
-#, fuzzy, python-format
+#, python-format
 msgid "Timesyncd configuration change %s!"
-msgstr "Timesyncd Konfigurationsänderung {success_msg}!"
+msgstr "Timesyncd-Konfigurationsänderung %s!"
 
 #: cui/classes/handler.py:578
 msgid "Timesyncd Configuration"
@@ -523,15 +526,16 @@ msgstr "wird das System herunter gefahren und ausgeschalten."
 #: cui/classes/handler.py:670
 msgid "No supported package manager (zypper, dnf, apt-get) was found."
 msgstr ""
+"Es wurde kein unterstützter Paketmanager gefunden (zypper, dnf, apt-get)."
 
 #: cui/classes/handler.py:680
-#, fuzzy, python-format
+#, python-format
 msgid "Please wait while %s is invoked."
-msgstr "Bitte warten während `yast2 %s` gestartet wird."
+msgstr "Bitte warten, %s wird ausgeführt."
 
 #: cui/classes/handler.py:684
 msgid "Press ENTER to return to the CUI."
-msgstr ""
+msgstr "EINGABE drücken, um zum CUI zurückzukehren."
 
 #: cui/classes/handler.py:696
 msgid "You need root privileges to use another user."
@@ -565,64 +569,64 @@ msgstr "UNBEKANNTES LABEL"
 
 #: cui/classes/handler.py:882
 msgid "edit"
-msgstr ""
+msgstr "bearbeiten"
 
 #: cui/classes/handler.py:900
-#, fuzzy
 msgid "Opening language selection"
-msgstr "Öffne die Auswahl der Repositories"
+msgstr "Sprachauswahl wird geöffnet"
 
 #: cui/classes/handler.py:906
 msgid "Could not enumerate available locales (is localectl installed?)."
 msgstr ""
+"Verfügbare Locales konnten nicht aufgelistet werden (ist localectl "
+"installiert?)."
 
 #: cui/classes/handler.py:938
 msgid "Select system language"
-msgstr ""
+msgstr "Systemsprache auswählen"
 
 #: cui/classes/handler.py:956
 #, python-format
 msgid "System language set to %s."
-msgstr ""
+msgstr "Systemsprache auf %s gesetzt."
 
 #: cui/classes/handler.py:964
 msgid "Failed to set the system language."
-msgstr ""
+msgstr "Systemsprache konnte nicht gesetzt werden."
 
 #: cui/classes/handler.py:980
-#, fuzzy
 msgid "Opening timezone selection"
-msgstr "Öffne die Auswahl der Repositories"
+msgstr "Zeitzonenauswahl wird geöffnet"
 
 #: cui/classes/handler.py:986
 msgid "Could not enumerate timezones (is timedatectl installed?)."
 msgstr ""
+"Zeitzonen konnten nicht aufgelistet werden (ist timedatectl installiert?)."
 
 #: cui/classes/handler.py:1018
 msgid "Select system timezone"
-msgstr ""
+msgstr "Systemzeitzone auswählen"
 
 #: cui/classes/handler.py:1036
-#, fuzzy, python-format
+#, python-format
 msgid "System timezone set to %s."
-msgstr "Zeitzoneneinstellungen."
+msgstr "Systemzeitzone auf %s gesetzt."
 
 #: cui/classes/handler.py:1044
 msgid "Failed to set the system timezone."
-msgstr ""
+msgstr "Systemzeitzone konnte nicht gesetzt werden."
 
 #: cui/classes/handler.py:1062
-#, fuzzy
 msgid "Opening network configuration"
-msgstr "Öffnen der Tastatureinstellung"
+msgstr "Netzwerkkonfiguration wird geöffnet"
 
 #: cui/classes/handler.py:1072
 msgid "no IPv4"
-msgstr ""
+msgstr "kein IPv4"
 
 #: cui/classes/handler.py:1078
 msgid "[ Create new bond device... ]"
-msgstr ""
+msgstr "[ Neues Bond-Gerät anlegen … ]"
 
 #: cui/classes/handler.py:1083
 #, python-format
@@ -630,158 +634,158 @@ msgid ""
 "Active backend: %s. Choose an interface and press Edit, or pick 'Create new "
 "bond device' to set one up."
 msgstr ""
+"Aktives Backend: %s. Schnittstelle auswählen und „Bearbeiten“ drücken, oder "
+"„Neues Bond-Gerät anlegen“ wählen, um eines zu erstellen."
 
 #: cui/classes/handler.py:1109
-#, fuzzy
 msgid "Network interfaces"
-msgstr "oberfläche."
+msgstr "Netzwerkschnittstellen"
 
 #: cui/classes/handler.py:1140
 msgid "DHCPv4"
-msgstr ""
+msgstr "DHCPv4"
 
 #: cui/classes/handler.py:1141
 msgid "DHCPv6"
-msgstr ""
+msgstr "DHCPv6"
 
 #: cui/classes/handler.py:1143
 msgid "Addresses: "
-msgstr ""
+msgstr "Adressen: "
 
 #: cui/classes/handler.py:1148
 msgid "Default gw v4: "
-msgstr ""
+msgstr "Standard-GW v4: "
 
 #: cui/classes/handler.py:1151
 msgid "Default gw v6: "
-msgstr ""
+msgstr "Standard-GW v6: "
 
 #: cui/classes/handler.py:1154
 msgid "Static routes: "
-msgstr ""
+msgstr "Statische Routen: "
 
 #: cui/classes/handler.py:1161
 msgid "DNS servers: "
-msgstr ""
+msgstr "DNS-Server: "
 
 #: cui/classes/handler.py:1166
 #, python-format
 msgid "Interface: %(name)s (%(kind)s)"
-msgstr ""
+msgstr "Schnittstelle: %(name)s (%(kind)s)"
 
 #: cui/classes/handler.py:1168
 msgid "One value per line. CIDR for addresses; '<dest> via <gw>' for routes."
-msgstr ""
+msgstr "Ein Wert pro Zeile. CIDR für Adressen; „<Ziel> via <GW>“ für Routen."
 
 #: cui/classes/handler.py:1183
 #, python-format
 msgid "Bond mode: %(mode)s   MIIMON: %(miimon)d ms   Members: %(members)s"
-msgstr ""
+msgstr "Bond-Modus: %(mode)s   MIIMON: %(miimon)d ms   Mitglieder: %(members)s"
 
 #: cui/classes/handler.py:1187
 msgid "(none)"
-msgstr ""
+msgstr "(keine)"
 
 #: cui/classes/handler.py:1206
-#, fuzzy, python-format
+#, python-format
 msgid "Edit interface %s"
-msgstr "oberfläche."
+msgstr "Schnittstelle %s bearbeiten"
 
 #: cui/classes/handler.py:1219 cui/classes/handler.py:1294
-#, fuzzy
 msgid "Network configuration"
-msgstr "Netzwerkgerätekonfiguration"
+msgstr "Netzwerkkonfiguration"
 
 #: cui/classes/handler.py:1231
 msgid "No interface selected."
-msgstr ""
+msgstr "Keine Schnittstelle ausgewählt."
 
 #: cui/classes/handler.py:1246
 #, python-format
 msgid "Invalid route '%(line)s': %(err)s"
-msgstr ""
+msgstr "Ungültige Route „%(line)s“: %(err)s"
 
 #: cui/classes/handler.py:1255
 #, python-format
 msgid "Invalid address '%(addr)s': %(err)s"
-msgstr ""
+msgstr "Ungültige Adresse „%(addr)s“: %(err)s"
 
 #: cui/classes/handler.py:1262
 #, python-format
 msgid "Invalid %(label)s '%(gw)s': %(err)s"
-msgstr ""
+msgstr "Ungültiges %(label)s „%(gw)s“: %(err)s"
 
 #: cui/classes/handler.py:1268
 #, python-format
 msgid "Invalid DNS server '%(d)s': %(err)s"
-msgstr ""
+msgstr "Ungültiger DNS-Server „%(d)s“: %(err)s"
 
 #: cui/classes/handler.py:1290
-#, fuzzy
 msgid "Failed to write the interface configuration."
-msgstr "Netzwerkgerätekonfiguration"
+msgstr "Schnittstellenkonfiguration konnte nicht geschrieben werden."
 
 #: cui/classes/handler.py:1293
 #, python-format
 msgid "Interface %(iface)s saved."
-msgstr ""
+msgstr "Schnittstelle %(iface)s gespeichert."
 
 #: cui/classes/handler.py:1312
 msgid "No physical interfaces available for bonding."
-msgstr ""
+msgstr "Keine physischen Schnittstellen für Bonding verfügbar."
 
 #: cui/classes/handler.py:1313 cui/classes/handler.py:1388
 #: cui/classes/handler.py:1427
 msgid "Bond creation"
-msgstr ""
+msgstr "Bond anlegen"
 
 #: cui/classes/handler.py:1327
-#, fuzzy
 msgid "Bond name: "
-msgstr "Startzeit: "
+msgstr "Bond-Name: "
 
 #: cui/classes/handler.py:1330
 msgid "MIIMON (ms): "
-msgstr ""
+msgstr "MIIMON (ms): "
 
 #: cui/classes/handler.py:1345
 msgid ""
 "Create a new bond device. Pick the mode, the MIIMON interval and at least "
 "one physical member."
 msgstr ""
+"Neues Bond-Gerät anlegen. Modus, MIIMON-Intervall und mindestens ein "
+"physisches Mitglied auswählen."
 
 #: cui/classes/handler.py:1352
 msgid "Mode:"
-msgstr ""
+msgstr "Modus:"
 
 #: cui/classes/handler.py:1355
 msgid "Members:"
-msgstr ""
+msgstr "Mitglieder:"
 
 #: cui/classes/handler.py:1375
 msgid "Create bond device"
-msgstr ""
+msgstr "Bond-Gerät anlegen"
 
 #: cui/classes/handler.py:1399
 msgid "Bond name must look like 'bond0', 'bond1', ..."
-msgstr ""
+msgstr "Der Bond-Name muss „bond0“, „bond1“ usw. ähneln."
 
 #: cui/classes/handler.py:1403 cui/classes/handler.py:1405
 msgid "MIIMON must be a positive integer (milliseconds)."
-msgstr ""
+msgstr "MIIMON muss eine positive ganze Zahl in Millisekunden sein."
 
 #: cui/classes/handler.py:1410
 msgid "Select at least one physical member."
-msgstr ""
+msgstr "Mindestens ein physisches Mitglied auswählen."
 
 #: cui/classes/handler.py:1421
 msgid "Failed to create the bond device."
-msgstr ""
+msgstr "Bond-Gerät konnte nicht angelegt werden."
 
 #: cui/classes/handler.py:1424
 #, python-format
 msgid "Bond %(name)s created with %(count)d members."
-msgstr ""
+msgstr "Bond %(name)s mit %(count)d Mitgliedern angelegt."
 
 #: cui/classes/model.py:60
 msgid ""
@@ -832,7 +836,7 @@ msgstr "Öffnen der Zeitsynchronisationskonfiguration"
 
 #: cui/classes/model.py:389
 msgid "Insert the NTP servers separated by <SPACE> char."
-msgstr "Geben Sie die NTP Server getrennt durch <LEERZEICHEN>."
+msgstr "Die NTP-Server durch ein <LEERZEICHEN> getrennt eingeben."
 
 #: cui/classes/model.py:412
 msgid "Opening repository selection"
@@ -851,9 +855,8 @@ msgid "Use \"supported\" repository"
 msgstr "Benutze das \"supported\" Repository"
 
 #: cui/classes/model.py:491
-#, fuzzy
 msgid "grommunio-setup is not installed."
-msgstr "grommunio-setup wurde noch nicht ausgeführt."
+msgstr "grommunio-setup ist nicht installiert."
 
 #: cui/classes/model.py:508
 msgid "Login successful"
@@ -869,7 +872,7 @@ msgstr "Öffnen der Tastatureinstellung"
 
 #: cui/classes/model.py:763
 msgid "Message"
-msgstr ""
+msgstr "Nachricht"
 
 #: cui/classes/model.py:838
 msgid "Input expected"
@@ -877,4 +880,4 @@ msgstr "Input erwartet"
 
 #: cui/classes/model.py:934
 msgid "No body"
-msgstr ""
+msgstr "Kein Inhalt"
