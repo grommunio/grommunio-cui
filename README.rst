@@ -13,6 +13,32 @@ It is localized, with selectable keyboard layouts and languages.
 .. _shield-release: https://github.com/grommunio/grommunio-cui/tags
 .. |shield-loc| image:: https://img.shields.io/github/languages/code-size/grommunio/grommunio-cui
 
+Supported platforms
+===================
+
+grommunio-cui targets server appliances and has been verified on:
+
+* openSUSE Leap 15.6 and 16.0
+* Debian 13
+* Ubuntu 24.04 LTS and 26.04 LTS
+* RHEL 10 (and rebuilds: Rocky, AlmaLinux, Oracle Linux)
+
+Distribution detection is done at runtime via ``/etc/os-release``. Operations
+that touch the host (package install, network config, locale, timezone) are
+dispatched to the right backend automatically:
+
+* **Package manager** — ``zypper`` (SUSE), ``dnf``/``yum`` (RHEL/Fedora),
+  ``apt-get`` (Debian/Ubuntu). The "Update the system" and "Select software
+  repositories" menu items pick the right tool.
+* **Network configuration** — ``systemd-networkd`` (preferred everywhere),
+  ``NetworkManager`` (RHEL/Fedora default), ``wicked`` (legacy openSUSE Leap).
+  The CUI auto-detects the active backend and writes config files in the
+  backend's native format. yast2 is still invoked on openSUSE when present and
+  the active backend is ``wicked``.
+* **Language / Timezone / Keymap** — ``localectl`` and ``timedatectl``
+  (systemd-native, works on all supported distros). The ``yast2`` modules are
+  still used on openSUSE if available.
+
 Getting Started
 ===============
 
@@ -20,7 +46,8 @@ Prerequisites
 -------------
 
 For CUI to work properly, the Python modules from `<requirements.txt>`_ need to
-be present.
+be present. The ``install.sh`` script installs them from the system package
+manager when possible, falling back to ``pip`` otherwise.
 
 Installation
 ------------
@@ -31,11 +58,12 @@ Make sure the path is correctly set:
 
 	export PYTHONPATH="$PYTHONPATH:<cui_source_dir>"
 
-or let the install script copy ``cui.sh`` to the system:
+or let the install script set up the dependencies and copy a wrapper script
+to ``/usr/local/bin``:
 
 .. code-block:: sh
 
-	./install.sh
+	sudo ./install.sh
 
 Support
 =======
