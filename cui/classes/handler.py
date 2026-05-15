@@ -11,6 +11,7 @@ import requests
 import urwid
 
 import cui.classes
+import cui.distro
 from cui.classes.application import setup_state
 from cui.classes.menu import MenuItem
 from cui.symbol import LOG_VIEWER, MAIN, MESSAGE_BOX, INPUT_BOX, TERMINAL, PASSWORD, LOGIN, \
@@ -370,22 +371,32 @@ class ApplicationHandler(ApplicationModel):
             t.lower() for t in [_("Ok"), _("Save"), _("ok"), _("save"), _("OK"), _("SAVE")]
         ]:
             updateable, url = util.check_repo_dialog(self, height)
-            if updateable:
-                repo_res.get("config", None)['grommunio']['baseurl'] = f'https://{url}'
-                repo_res.get("config", None)['grommunio']['type'] = 'rpm-md'
-                config2 = cui.classes.parser.ConfigParser(infile=repo_res.get("repofile", None))
-                repo_res.get("config", None).write()
-                if repo_res.get("config", None) == config2:
-                    self.message_box(
-                        parameter.MsgBoxParams(
-                            _('The repo file has not been changed.')
-                        ),
-                        size=parameter.Size(height=height)
-                    )
-                else:
-                    self._process_changed_repo_config(height, repo_res)
+            if not updateable:
+                return
+            if cui.distro.is_debian_family():
+                # apt: we rewrite the .list file from scratch below; nothing
+                # to update in `config` here.
+                self._process_changed_repo_config(height, repo_res, raw_url=url)
+                return
+            cfg = repo_res.get("config")
+            if cfg is None:
+                self._process_changed_repo_config(height, repo_res, raw_url=url)
+                return
+            cfg['grommunio']['baseurl'] = url if url.startswith("http") else f'https://{url}'
+            cfg['grommunio']['type'] = 'rpm-md'
+            config2 = cui.classes.parser.ConfigParser(infile=repo_res.get("repofile", None))
+            cfg.write()
+            if cfg == config2:
+                self.message_box(
+                    parameter.MsgBoxParams(
+                        _('The repo file has not been changed.')
+                    ),
+                    size=parameter.Size(height=height)
+                )
+            else:
+                self._process_changed_repo_config(height, repo_res)
 
-    def _process_changed_repo_config(self, height, repo_res):
+    def _process_changed_repo_config(self, height, repo_res, raw_url: str = None):
         header = GText(_("One moment, please ..."))
         footer = GText(_('Fetching GPG-KEY file and refreshing '
                           'repositories. This may take a while ...'))
@@ -396,29 +407,83 @@ class ApplicationHandler(ApplicationModel):
         frame: parameter.Frame = parameter.Frame(linebox, header, footer)
         self.dialog(frame)
         self._draw_progress(20)
-        res: requests.Response = requests.get(repo_res.get("keyurl", None))
+        keyurl = repo_res.get("keyurl")
+        keyfile = repo_res.get("keyfile")
+        try:
+            res = requests.get(keyurl, timeout=30)
+        except requests.RequestException:
+            self.message_box(
+                parameter.MsgBoxParams(
+                    _("Could not download the grommunio GPG key from %s.") % keyurl,
+                ),
+                size=parameter.Size(height=height + 1),
+            )
+            return
         got_keyfile: bool = False
         if res.status_code == 200:
             self._draw_progress(30)
-            tmp = Path(repo_res.get("keyfile", None))
-            with tmp.open('w', encoding="utf-8") as file:
-                file.write(res.content.decode())
-            self._draw_progress(40)
-            with subprocess.Popen(
-                    ["rpm", "--import", repo_res.get("keyfile", None)],
-                    stderr=subprocess.DEVNULL,
-                    stdout=subprocess.DEVNULL,
-            ) as ret_code_rpm:
-                if ret_code_rpm.wait() == 0:
-                    self._draw_progress(60)
+            tmp = Path(keyfile)
+            try:
+                tmp.parent.mkdir(parents=True, exist_ok=True)
+                with tmp.open('w', encoding="utf-8") as file:
+                    file.write(res.content.decode())
+                self._draw_progress(40)
+            except OSError as exc:
+                self.message_box(
+                    parameter.MsgBoxParams(
+                        _("Failed to write key file %(path)s: %(err)s")
+                        % {"path": keyfile, "err": str(exc)},
+                    ),
+                    size=parameter.Size(height=height + 1),
+                )
+                return
+            # On Debian/Ubuntu we also need to write the .list file from scratch.
+            if cui.distro.is_debian_family() and raw_url:
+                repofile = repo_res.get("repofile")
+                body = cui.distro.render_repo_file(
+                    baseurl=raw_url if raw_url.startswith("http") else f"https://{raw_url}",
+                    key_destination=keyfile,
+                )
+                try:
+                    with open(repofile, "w", encoding="utf-8") as fh:
+                        fh.write(body)
+                except OSError as exc:
+                    self.message_box(
+                        parameter.MsgBoxParams(
+                            _("Failed to write repo file %(path)s: %(err)s")
+                            % {"path": repofile, "err": str(exc)},
+                        ),
+                        size=parameter.Size(height=height + 1),
+                    )
+                    return
+            import_cmd = cui.distro.pkg_import_key_cmd(keyfile)
+            if import_cmd:
+                try:
                     with subprocess.Popen(
-                            ["zypper", "--non-interactive", "--gpg-auto-import-keys", "refresh"],
+                            import_cmd,
                             stderr=subprocess.DEVNULL,
                             stdout=subprocess.DEVNULL,
-                    ) as ret_code_zypper:
-                        if ret_code_zypper.wait() == 0:
+                    ) as ret_code_imp:
+                        ret_code_imp.wait()
+                except OSError:
+                    pass
+            self._draw_progress(60)
+            refresh_cmd = cui.distro.pkg_refresh_cmd()
+            if refresh_cmd:
+                try:
+                    with subprocess.Popen(
+                            refresh_cmd,
+                            stderr=subprocess.DEVNULL,
+                            stdout=subprocess.DEVNULL,
+                    ) as ret_code_ref:
+                        if ret_code_ref.wait() == 0:
                             self._draw_progress(100)
                             got_keyfile = True
+                except OSError:
+                    pass
+            else:
+                # No package manager available; we've at least written the files.
+                got_keyfile = True
         if got_keyfile:
             self.message_box(
                 parameter.MsgBoxParams(
@@ -440,14 +505,18 @@ class ApplicationHandler(ApplicationModel):
     def _init_repo_selection(self, key, height):
         self._handle_standard_tab_behaviour(key)
         keyurl = 'https://download.grommunio.com/RPM-GPG-KEY-grommunio'
-        keyfile = '/tmp/RPM-GPG-KEY-grommunio'
-        repofile = '/etc/zypp/repos.d/grommunio.repo'
-        config = cui.classes.parser.ConfigParser(infile=repofile)
-        # config.filename = repofile
-        if not config.get('grommunio'):
-            config['grommunio'] = {}
-            config['grommunio']['enabled'] = 1
-            config['grommunio']['autorefresh'] = 1
+        keyfile = cui.distro.get_keyfile_destination()
+        repofile = cui.distro.get_repo_file_path()
+        config = None
+        if not cui.distro.is_debian_family():
+            try:
+                config = cui.classes.parser.ConfigParser(infile=repofile)
+                if not config.get('grommunio'):
+                    config['grommunio'] = {}
+                    config['grommunio']['enabled'] = 1
+                    config['grommunio']['autorefresh'] = 1
+            except Exception:
+                config = None
         button_type = util.get_button_type(
             key,
             self._open_main_menu,
@@ -581,7 +650,21 @@ class ApplicationHandler(ApplicationModel):
         )
 
     def _run_yast_module(self, modulename: str):
-        """Run yast module `modulename`."""
+        """Run yast2 if present (openSUSE).
+
+        Built-in alternatives are wired up for non-SUSE distributions in the
+        main-menu dispatcher; this routine is only called when has_yast() is
+        true, but we double-check defensively.
+        """
+        if not cui.distro.has_yast():
+            self.message_box(
+                parameter.MsgBoxParams(
+                    _("yast2 is not available on this distribution."),
+                    _("Unsupported"),
+                ),
+                size=parameter.Size(height=10),
+            )
+            return
         self.control.app_control.loop.stop()
         self.view.gscreen.screen.tty_signal_keys(*self.view.gscreen.old_termios)
         print("\x1b[K")
@@ -590,34 +673,32 @@ class ApplicationHandler(ApplicationModel):
             _("Please wait while `yast2 %s` is being run.") % modulename
         )
         print("\x1b[J")
-        os.system(f"yast2 {modulename}")
+        subprocess.run(["yast2", modulename], check=False)
         self.view.gscreen.screen.tty_signal_keys(*self.view.gscreen.blank_termios)
         self.control.app_control.loop.start()
 
     def _run_update(self):
-        """Run zypper modules `ref && up`."""
+        """Refresh package metadata and run a full upgrade via the system PM."""
+        refresh = cui.distro.pkg_refresh_cmd()
+        update = cui.distro.pkg_update_cmd()
+        if not refresh or not update:
+            self.message_box(
+                parameter.MsgBoxParams(
+                    _("No supported package manager (zypper, dnf, apt-get) was found."),
+                    _("System update"),
+                ),
+                size=parameter.Size(height=10),
+            )
+            return
         self.control.app_control.loop.stop()
         self.view.gscreen.screen.tty_signal_keys(*self.view.gscreen.old_termios)
         print("\x1b[K")
-        print("\x1b[K \x1b[36m▼\x1b[0m Please wait while zypper is invoked.")
+        print("\x1b[K \x1b[36m▼\x1b[0m",
+              _("Please wait while %s is invoked.") % refresh[0])
         print("\x1b[J")
-        os.system(f"zypper --gpg-auto-import-keys ref")
-        os.system(f"zypper up")
-        input("\n \x1b[36m▼\x1b[0m Press ENTER to return to the CUI.")
-        self.view.gscreen.screen.tty_signal_keys(*self.view.gscreen.blank_termios)
-        self.control.app_control.loop.start()
-        #self._run_zypper("ref")
-        #self._run_zypper("up")
-
-    def _run_zypper(self, subcmd: str):
-        """Run zypper modul `subcmd`."""
-        self.control.app_control.loop.stop()
-        self.view.gscreen.screen.tty_signal_keys(*self.view.gscreen.old_termios)
-        print("\x1b[K")
-        print("\x1b[K \x1b[36m▼\x1b[0m Please wait while zypper is invoked.")
-        print("\x1b[J")
-        os.system(f"zypper {subcmd}")
-        input("\n \x1b[36m▼\x1b[0m Press ENTER to return to the CUI.")
+        subprocess.run(refresh, check=False)
+        subprocess.run(update, check=False)
+        input("\n \x1b[36m▼\x1b[0m " + _("Press ENTER to return to the CUI."))
         self.view.gscreen.screen.tty_signal_keys(*self.view.gscreen.blank_termios)
         self.control.app_control.loop.start()
 
