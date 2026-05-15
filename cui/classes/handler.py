@@ -177,7 +177,7 @@ class ApplicationHandler(ApplicationModel):
                 self.control.app_control.current_window = self.control.app_control.input_box_caller
                 self.message_box(
                     parameter.MsgBoxParams(
-                        _(f"System password reset {success_msg}!"),
+                        _("System password reset %s!") % success_msg,
                         _("System password reset"),
                     ),
                     size=parameter.Size(height=10)
@@ -354,7 +354,7 @@ class ApplicationHandler(ApplicationModel):
                 self.control.app_control.current_window = self.control.app_control.input_box_caller
                 self.message_box(
                     parameter.MsgBoxParams(
-                        _(f"Admin password reset {success_msg}!"),
+                        _("Admin password reset %s!") % success_msg,
                         _("Admin password reset"),
                     ),
                     size=parameter.Size(height=10)
@@ -494,7 +494,7 @@ class ApplicationHandler(ApplicationModel):
                     success_msg = _("failed")
             self.message_box(
                 parameter.MsgBoxParams(
-                    _(f"Timesyncd configuration change {success_msg}!"),
+                    _("Timesyncd configuration change %s!") % success_msg,
                     _("Timesyncd Configuration"),
                 ),
                 size=parameter.Size(height=10)
