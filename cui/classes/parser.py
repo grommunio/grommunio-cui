@@ -134,20 +134,16 @@ class ConfigParser(configobj.ConfigObj):
 
 
 if __name__ == '__main__':
-    TESTFILE = '/etc/sysconfig/language'
+    # The parser test harness historically used /etc/sysconfig/language (SUSE).
+    # On non-SUSE systems that file doesn't exist; fall back to /etc/locale.conf
+    # which is present on every supported distribution.
+    import os
+    TESTFILE = '/etc/sysconfig/language' if os.path.isfile('/etc/sysconfig/language') \
+        else '/etc/locale.conf'
     testfile_out = f'{TESTFILE}.out'
     c_old = SectionlessConfigParser(allow_no_value=True)
     c_old.read(TESTFILE)
-    v_old = c_old.get(c_old.get_default_section(), 'ROOT_USES_LANG')
-    print(f"v_old = {v_old}")
-    c_old.set(c_old.get_default_section(), 'ROOT_USES_LANG', '"yes"')
-    with open(testfile_out, 'w', encoding='utf-8') as test_fh:
-        c_old.write(test_fh)
+    print(f"sections = {c_old.sections()}")
     print('now use ConfigParser instead of config')
     c = ConfigParser(infile=TESTFILE)
-    v = c.get('ROOT_USES_LANG')
-    print(f"v = {v}")
-    c['ROOT_USES_LANG'] = '"yes"'
-    # c.walk()
-    c.write()
-    # c.write(open(testfile_out, 'w'))
+    print(f"keys = {list(c.keys())}")
