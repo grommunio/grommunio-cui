@@ -19,7 +19,7 @@ from cui.classes.menu import MenuItem
 from cui.symbol import LOG_VIEWER, MAIN, MESSAGE_BOX, INPUT_BOX, TERMINAL, PASSWORD, LOGIN, \
     REBOOT, SHUTDOWN, MAIN_MENU, UNSUPPORTED, ADMIN_WEB_PW, TIMESYNCD, REPO_SELECTION, \
     KEYBOARD_SWITCH, PRODUCTION, LOCALE_SELECTION, TIMEZONE_SELECTION, \
-    NETWORK_INTERFACE_SELECT, NETWORK_INTERFACE_EDIT
+    NETWORK_INTERFACE_SELECT, NETWORK_INTERFACE_EDIT, NETWORK_BOND_CREATE
 from cui import util, parameter
 from cui.classes.model import ApplicationModel
 from cui.util import _
@@ -76,6 +76,7 @@ class ApplicationHandler(ApplicationModel):
             TIMEZONE_SELECTION: (self._key_ev_timezone_selection, key),
             NETWORK_INTERFACE_SELECT: (self._key_ev_network_iface_select, key),
             NETWORK_INTERFACE_EDIT: (self._key_ev_network_iface_edit, key),
+            NETWORK_BOND_CREATE: (self._key_ev_network_bond_create, key),
         }.get(self.control.app_control.current_window, (lambda *_a: None, None))
         if var:
             func(var)
@@ -1053,38 +1054,38 @@ class ApplicationHandler(ApplicationModel):
     # Network interface configuration dialogs
     # ------------------------------------------------------------------
 
+    _BOND_CREATE_SENTINEL = "__create_bond__"
+
     def _open_network_interface_select(self):
-        """Show a list of interfaces; selecting one opens the editor."""
+        """Show a list of interfaces plus a 'Create bond' entry."""
         self._reset_layout()
         self.print(_("Opening network configuration"))
         self.control.app_control.current_window = NETWORK_INTERFACE_SELECT
         ifaces = cui.network.list_interfaces()
-        if not ifaces:
-            self.message_box(
-                parameter.MsgBoxParams(
-                    _("No configurable network interfaces were found."),
-                    _("Network configuration"),
-                ),
-                size=parameter.Size(height=10),
-            )
-            return
         self._iface_choices = ifaces
         self._iface_radiogroup = []
         rows = []
+        first = True
         for name in ifaces:
             state = cui.network.current_runtime_state(name)
+            kind = state.get("kind", "ethernet")
             v4 = ", ".join(state.get("addresses_v4", []) or [_("no IPv4")])
-            label = f"{name}  {v4}"
-            rb = urwid.RadioButton(self._iface_radiogroup, label,
-                                   state=(name == ifaces[0]))
+            label = f"{name} [{kind}]  {v4}"
+            rb = urwid.RadioButton(self._iface_radiogroup, label, state=first)
             rows.append(urwid.AttrMap(rb, "selectable", "focus"))
-        backend = cui.distro.get_network_backend() or "networkd"
+            first = False
+        # Last entry: create a new bond device.
+        bond_label = self._BOND_CREATE_SENTINEL + "  " + _("[ Create new bond device... ]")
+        rb_new = urwid.RadioButton(self._iface_radiogroup, bond_label, state=not ifaces)
+        rows.append(urwid.AttrMap(rb_new, "selectable", "focus"))
+        backend = cui.network.get_backend()
         header = GText(
-            _("Backend: %s. Select an interface and choose Edit.") % backend,
+            _("Active backend: %s. Choose an interface and press Edit, "
+              "or pick 'Create new bond device' to set one up.") % backend,
             urwid.CENTER,
         )
         body = urwid.Pile([
-            (1, urwid.Filler(header)),
+            (2, urwid.Filler(header)),
             urwid.AttrMap(cui.classes.scroll.ScrollBar(
                 cui.classes.scroll.Scrollable(urwid.Pile(rows))
             ), "body"),
@@ -1104,7 +1105,7 @@ class ApplicationHandler(ApplicationModel):
         self.dialog(
             frame,
             alignment=parameter.Alignment(urwid.CENTER, urwid.MIDDLE),
-            size=parameter.Size(width=70, height=18),
+            size=parameter.Size(width=78, height=20),
             title=_("Network interfaces"),
         )
 
@@ -1119,44 +1120,73 @@ class ApplicationHandler(ApplicationModel):
                 (rb.label.split()[0] for rb in self._iface_radiogroup if rb.state),
                 "",
             )
-            if selected:
+            if selected == self._BOND_CREATE_SENTINEL:
+                self._open_network_bond_create()
+            elif selected:
                 self._open_network_interface_edit(selected)
         elif self._is_cancel_or_esc(button_type, key):
             self._open_main_menu()
 
+    # ------------------------------------------------------------------
+    # Interface editor: addresses, routes, DNS, and bond-specific fields.
+    # ------------------------------------------------------------------
+
     def _open_network_interface_edit(self, iface: str):
-        """Show the editor for a single interface."""
         self._reset_layout()
         self.control.app_control.current_window = NETWORK_INTERFACE_EDIT
         cfg = cui.network.load_interface_config(iface)
         self._iface_editing = iface
-        self._iface_dhcp4_rb_group = []
-        rb_dhcp_yes = urwid.RadioButton(
-            self._iface_dhcp4_rb_group, _("DHCP (automatic)"), state=cfg.dhcp4,
+        self._iface_kind = cfg.kind
+        self._iface_dhcp4_cb = urwid.CheckBox(_("DHCPv4"), state=cfg.dhcp4)
+        self._iface_dhcp6_cb = urwid.CheckBox(_("DHCPv6"), state=cfg.dhcp6)
+        self._iface_edit_addrs = cui.classes.gwidgets.GEdit(
+            (18, _("Addresses: ")),
+            edit_text="\n".join(cfg.addresses),
+            multiline=True,
         )
-        rb_dhcp_no = urwid.RadioButton(
-            self._iface_dhcp4_rb_group, _("Static IPv4"), state=(not cfg.dhcp4),
+        self._iface_edit_gw4 = cui.classes.gwidgets.GEdit(
+            (18, _("Default gw v4: ")), edit_text=cfg.gateway4,
         )
-        addr_default = cfg.addresses[0] if cfg.addresses else ""
-        self._iface_edit_addr = cui.classes.gwidgets.GEdit(
-            (18, _("Address (CIDR): ")), edit_text=addr_default,
+        self._iface_edit_gw6 = cui.classes.gwidgets.GEdit(
+            (18, _("Default gw v6: ")), edit_text=cfg.gateway6,
         )
-        self._iface_edit_gw = cui.classes.gwidgets.GEdit(
-            (18, _("Gateway: ")), edit_text=cfg.gateway4,
+        self._iface_edit_routes = cui.classes.gwidgets.GEdit(
+            (18, _("Static routes: ")),
+            edit_text="\n".join(
+                f"{d} via {g}" if g else d for d, g in cfg.routes
+            ),
+            multiline=True,
         )
         self._iface_edit_dns = cui.classes.gwidgets.GEdit(
-            (18, _("DNS (space sep): ")), edit_text=" ".join(cfg.dns),
+            (18, _("DNS servers: ")),
+            edit_text="\n".join(cfg.dns),
+            multiline=True,
         )
-        body = urwid.Padding(urwid.Filler(urwid.Pile([
-            GText(_("Configuring interface: %s") % iface, urwid.CENTER),
+        pile_items = [
+            GText(_("Interface: %(name)s (%(kind)s)") %
+                  {"name": iface, "kind": cfg.kind}, urwid.CENTER),
+            GText(_("One value per line. CIDR for addresses; "
+                    "'<dest> via <gw>' for routes."), urwid.CENTER),
             urwid.Divider(),
-            urwid.AttrMap(rb_dhcp_yes, "selectable", "focus"),
-            urwid.AttrMap(rb_dhcp_no, "selectable", "focus"),
+            urwid.AttrMap(self._iface_dhcp4_cb, "selectable", "focus"),
+            urwid.AttrMap(self._iface_dhcp6_cb, "selectable", "focus"),
             urwid.Divider(),
-            self._iface_edit_addr,
-            self._iface_edit_gw,
+            self._iface_edit_addrs,
+            self._iface_edit_gw4,
+            self._iface_edit_gw6,
+            self._iface_edit_routes,
             self._iface_edit_dns,
-        ]), urwid.TOP))
+        ]
+        if cfg.kind == "bond":
+            pile_items.append(urwid.Divider())
+            pile_items.append(
+                GText(_("Bond mode: %(mode)s   MIIMON: %(miimon)d ms   "
+                        "Members: %(members)s") %
+                      {"mode": cfg.bond_mode,
+                       "miimon": cfg.bond_miimon,
+                       "members": ", ".join(cfg.bond_members) or _("(none)")},
+                      urwid.CENTER))
+        body = urwid.Padding(urwid.Filler(urwid.Pile(pile_items), urwid.TOP))
         footer = urwid.AttrMap(
             urwid.Columns([
                 self.view.button_store.save_button,
@@ -1172,7 +1202,7 @@ class ApplicationHandler(ApplicationModel):
         self.dialog(
             frame,
             alignment=parameter.Alignment(urwid.CENTER, urwid.MIDDLE),
-            size=parameter.Size(width=72, height=18),
+            size=parameter.Size(width=80, height=24),
             title=_("Edit interface %s") % iface,
         )
 
@@ -1183,52 +1213,219 @@ class ApplicationHandler(ApplicationModel):
             size=parameter.Size(height=10),
         )
         if self._is_save_or_ok(button_type):
-            iface = getattr(self, "_iface_editing", None)
-            if not iface:
-                self._open_main_menu()
+            err = self._save_iface_from_form()
+            if err:
+                self.message_box(
+                    parameter.MsgBoxParams(err, _("Network configuration")),
+                    size=parameter.Size(height=10),
+                )
                 return
-            dhcp = self._iface_dhcp4_rb_group[0].state
-            addr = self._iface_edit_addr.edit_text.strip()
-            gw = self._iface_edit_gw.edit_text.strip()
-            dns_field = self._iface_edit_dns.edit_text.strip()
-            if not dhcp:
-                err = cui.network.validate_cidr(addr)
-                if err:
-                    self.message_box(
-                        parameter.MsgBoxParams(
-                            _("Invalid IPv4/IPv6 address: %s") % err,
-                            _("Network configuration"),
-                        ),
-                        size=parameter.Size(height=10),
-                    )
-                    return
-                if gw and cui.network.validate_ip(gw):
-                    self.message_box(
-                        parameter.MsgBoxParams(
-                            _("Invalid gateway address."),
-                            _("Network configuration"),
-                        ),
-                        size=parameter.Size(height=10),
-                    )
-                    return
-            cfg = cui.network.InterfaceConfig(
-                name=iface,
-                dhcp4=dhcp,
-                dhcp6=dhcp,
-                addresses=[addr] if (not dhcp and addr) else [],
-                gateway4=gw if not dhcp else "",
-                dns=[d for d in dns_field.split() if d] if not dhcp else [],
-            )
-            ok = cui.network.save_interface_config(cfg)
-            self.message_box(
-                parameter.MsgBoxParams(
-                    _("Interface %(iface)s saved.") % {"iface": iface}
-                    if ok else
-                    _("Failed to save interface %(iface)s.") % {"iface": iface},
-                    _("Network configuration"),
-                ),
-                size=parameter.Size(height=10),
-            )
             self._open_main_menu()
         elif self._is_cancel_or_esc(button_type, key):
             self._open_network_interface_select()
+
+    def _save_iface_from_form(self) -> str:
+        """Validate the form and write the new config; return error or ''."""
+        iface = getattr(self, "_iface_editing", None)
+        if not iface:
+            return _("No interface selected.")
+        dhcp4 = self._iface_dhcp4_cb.state
+        dhcp6 = self._iface_dhcp6_cb.state
+        addrs = [a.strip() for a in self._iface_edit_addrs.edit_text.splitlines()
+                 if a.strip()]
+        gw4 = self._iface_edit_gw4.edit_text.strip()
+        gw6 = self._iface_edit_gw6.edit_text.strip()
+        dns = [d.strip() for d in self._iface_edit_dns.edit_text.splitlines()
+               if d.strip()]
+        route_lines = [r.strip() for r in self._iface_edit_routes.edit_text.splitlines()
+                       if r.strip()]
+        routes = []
+        for line in route_lines:
+            rerr = cui.network.validate_route(line)
+            if rerr:
+                return _("Invalid route '%(line)s': %(err)s") % {
+                    "line": line, "err": rerr,
+                }
+            parsed = cui.network.parse_route_line(line)
+            if parsed:
+                routes.append(parsed)
+        for addr in addrs:
+            aerr = cui.network.validate_cidr(addr)
+            if aerr:
+                return _("Invalid address '%(addr)s': %(err)s") % {
+                    "addr": addr, "err": aerr,
+                }
+        for label, gw in (("gateway v4", gw4), ("gateway v6", gw6)):
+            if gw:
+                gwerr = cui.network.validate_ip(gw)
+                if gwerr:
+                    return _("Invalid %(label)s '%(gw)s': %(err)s") % {
+                        "label": label, "gw": gw, "err": gwerr,
+                    }
+        for d in dns:
+            derr = cui.network.validate_ip(d)
+            if derr:
+                return _("Invalid DNS server '%(d)s': %(err)s") % {
+                    "d": d, "err": derr,
+                }
+        # Preserve any bond-specific fields the user didn't touch in this dialog.
+        existing = cui.network.load_interface_config(iface)
+        cfg = cui.network.InterfaceConfig(
+            name=iface,
+            kind=existing.kind,
+            dhcp4=dhcp4,
+            dhcp6=dhcp6,
+            addresses=addrs,
+            gateway4=gw4,
+            gateway6=gw6,
+            dns=dns,
+            routes=routes,
+            bond_mode=existing.bond_mode,
+            bond_miimon=existing.bond_miimon,
+            bond_members=existing.bond_members,
+            bond_master=existing.bond_master,
+        )
+        ok = cui.network.save_interface_config(cfg)
+        if not ok:
+            return _("Failed to write the interface configuration.")
+        self.message_box(
+            parameter.MsgBoxParams(
+                _("Interface %(iface)s saved.") % {"iface": iface},
+                _("Network configuration"),
+            ),
+            size=parameter.Size(height=10),
+        )
+        return ""
+
+    # ------------------------------------------------------------------
+    # Bond creation dialog.
+    # ------------------------------------------------------------------
+
+    def _open_network_bond_create(self):
+        """Dialog to create a new bond device with member selection."""
+        self._reset_layout()
+        self.control.app_control.current_window = NETWORK_BOND_CREATE
+        candidates = cui.network.list_bondable_interfaces()
+        if not candidates:
+            self.message_box(
+                parameter.MsgBoxParams(
+                    _("No physical interfaces available for bonding."),
+                    _("Bond creation"),
+                ),
+                size=parameter.Size(height=10),
+            )
+            self._open_network_interface_select()
+            return
+        # Suggest the next free bondN name.
+        existing = {n for n in cui.network.list_interfaces()
+                    if n.startswith("bond")}
+        suggested = next(
+            (f"bond{i}" for i in range(0, 16) if f"bond{i}" not in existing),
+            "bond0",
+        )
+        self._bond_name_edit = cui.classes.gwidgets.GEdit(
+            (18, _("Bond name: ")), edit_text=suggested,
+        )
+        self._bond_miimon_edit = cui.classes.gwidgets.GEdit(
+            (18, _("MIIMON (ms): ")), edit_text="100",
+        )
+        self._bond_mode_rb_group = []
+        mode_items = []
+        for mode in cui.network.BOND_MODES:
+            rb = urwid.RadioButton(self._bond_mode_rb_group, mode,
+                                   state=(mode == "active-backup"))
+            mode_items.append(urwid.AttrMap(rb, "selectable", "focus"))
+        self._bond_member_checks = []
+        member_items = []
+        for name in candidates:
+            cb = urwid.CheckBox(name, state=False)
+            self._bond_member_checks.append((name, cb))
+            member_items.append(urwid.AttrMap(cb, "selectable", "focus"))
+        pile_items = [
+            GText(_("Create a new bond device. Pick the mode, the MIIMON "
+                    "interval and at least one physical member."),
+                  urwid.CENTER),
+            urwid.Divider(),
+            self._bond_name_edit,
+            self._bond_miimon_edit,
+            urwid.Divider(),
+            GText(_("Mode:"), urwid.LEFT),
+            urwid.Pile(mode_items),
+            urwid.Divider(),
+            GText(_("Members:"), urwid.LEFT),
+            urwid.Pile(member_items),
+        ]
+        body = urwid.Padding(urwid.Filler(urwid.Pile(pile_items), urwid.TOP))
+        footer = urwid.AttrMap(
+            urwid.Columns([
+                self.view.button_store.save_button,
+                self.view.button_store.cancel_button,
+            ]),
+            "buttonbar",
+        )
+        frame = parameter.Frame(
+            body=urwid.AttrMap(body, "body"),
+            footer=footer,
+            focus_part="body",
+        )
+        self.dialog(
+            frame,
+            alignment=parameter.Alignment(urwid.CENTER, urwid.MIDDLE),
+            size=parameter.Size(width=72, height=22),
+            title=_("Create bond device"),
+        )
+
+    def _key_ev_network_bond_create(self, key: str):
+        self._handle_standard_tab_behaviour(key)
+        button_type = util.get_button_type(
+            key, self._open_network_interface_select, None, None,
+            size=parameter.Size(height=10),
+        )
+        if self._is_save_or_ok(button_type):
+            err = self._create_bond_from_form()
+            if err:
+                self.message_box(
+                    parameter.MsgBoxParams(err, _("Bond creation")),
+                    size=parameter.Size(height=10),
+                )
+                return
+            self._open_main_menu()
+        elif self._is_cancel_or_esc(button_type, key):
+            self._open_network_interface_select()
+
+    def _create_bond_from_form(self) -> str:
+        name = self._bond_name_edit.edit_text.strip()
+        if not name or not name.isidentifier() and not name.startswith("bond"):
+            return _("Bond name must look like 'bond0', 'bond1', ...")
+        try:
+            miimon = int(self._bond_miimon_edit.edit_text.strip() or "100")
+        except ValueError:
+            return _("MIIMON must be a positive integer (milliseconds).")
+        if miimon <= 0:
+            return _("MIIMON must be a positive integer (milliseconds).")
+        mode = next((rb.label for rb in self._bond_mode_rb_group if rb.state),
+                    "active-backup")
+        members = [n for n, cb in self._bond_member_checks if cb.state]
+        if not members:
+            return _("Select at least one physical member.")
+        cfg = cui.network.InterfaceConfig(
+            name=name,
+            kind="bond",
+            bond_mode=mode,
+            bond_miimon=miimon,
+            bond_members=members,
+            dhcp4=True,
+        )
+        ok = cui.network.create_bond(cfg)
+        if not ok:
+            return _("Failed to create the bond device.")
+        self.message_box(
+            parameter.MsgBoxParams(
+                _("Bond %(name)s created with %(count)d members.") % {
+                    "name": name, "count": len(members),
+                },
+                _("Bond creation"),
+            ),
+            size=parameter.Size(height=10),
+        )
+        return ""
