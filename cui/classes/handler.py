@@ -12,11 +12,14 @@ import urwid
 
 import cui.classes
 import cui.distro
+import cui.network
+import cui.sysconfig
 from cui.classes.application import setup_state
 from cui.classes.menu import MenuItem
 from cui.symbol import LOG_VIEWER, MAIN, MESSAGE_BOX, INPUT_BOX, TERMINAL, PASSWORD, LOGIN, \
     REBOOT, SHUTDOWN, MAIN_MENU, UNSUPPORTED, ADMIN_WEB_PW, TIMESYNCD, REPO_SELECTION, \
-    KEYBOARD_SWITCH, PRODUCTION
+    KEYBOARD_SWITCH, PRODUCTION, LOCALE_SELECTION, TIMEZONE_SELECTION, \
+    NETWORK_INTERFACE_SELECT, NETWORK_INTERFACE_EDIT
 from cui import util, parameter
 from cui.classes.model import ApplicationModel
 from cui.util import _
@@ -69,7 +72,11 @@ class ApplicationHandler(ApplicationModel):
             TIMESYNCD: (self._key_ev_timesyncd, key),
             REPO_SELECTION: (self._key_ev_repo_selection, key),
             KEYBOARD_SWITCH: (self._key_ev_kbd_switch, key),
-        }.get(self.control.app_control.current_window)
+            LOCALE_SELECTION: (self._key_ev_locale_selection, key),
+            TIMEZONE_SELECTION: (self._key_ev_timezone_selection, key),
+            NETWORK_INTERFACE_SELECT: (self._key_ev_network_iface_select, key),
+            NETWORK_INTERFACE_EDIT: (self._key_ev_network_iface_edit, key),
+        }.get(self.control.app_control.current_window, (lambda *_a: None, None))
         if var:
             func(var)
         else:
@@ -870,3 +877,383 @@ class ApplicationHandler(ApplicationModel):
                 jump_part(self.view.gscreen.layout.body)
             elif current_part == 'footer':
                 jump_part(self.view.gscreen.layout.footer)
+
+    # ------------------------------------------------------------------
+    # Helpers for matching translated button labels in a case-/locale-safe way.
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _button_aliases(*sources):
+        """Lower-cased aliases for translatable button labels."""
+        out = set()
+        for src in sources:
+            if src is None:
+                continue
+            out.add(src.lower())
+        return out
+
+    def _is_save_or_ok(self, button_type: str) -> bool:
+        if not button_type:
+            return False
+        aliases = self._button_aliases(_("OK"), _("Ok"), _("ok"),
+                                       _("Save"), _("save"))
+        return button_type.lower() in aliases
+
+    def _is_edit_or_ok(self, button_type: str) -> bool:
+        if not button_type:
+            return False
+        aliases = self._button_aliases(_("OK"), _("Ok"), _("ok"),
+                                       _("Edit"), _("edit"))
+        return button_type.lower() in aliases
+
+    def _is_cancel_or_esc(self, button_type: str, key: str) -> bool:
+        if key and key.lower() == "esc":
+            return True
+        if not button_type:
+            return False
+        aliases = self._button_aliases(_("Cancel"), _("cancel"))
+        return button_type.lower() in aliases
+
+    # ------------------------------------------------------------------
+    # Locale selection dialog (replacement for `yast2 language` on non-SUSE)
+    # ------------------------------------------------------------------
+
+    def _open_locale_selection(self):
+        """Open the locale-picker dialog backed by localectl."""
+        self._reset_layout()
+        self.print(_("Opening language selection"))
+        self.control.app_control.current_window = LOCALE_SELECTION
+        locales = cui.sysconfig.list_locales()
+        if not locales:
+            self.message_box(
+                parameter.MsgBoxParams(
+                    _("Could not enumerate available locales (is localectl installed?)."),
+                    _("Language configuration"),
+                ),
+                size=parameter.Size(height=10),
+            )
+            return
+        current = cui.sysconfig.get_current_locale()
+        self._locale_choices = locales
+        self._locale_radiogroup = []
+        items = []
+        for loc in locales:
+            rb = urwid.RadioButton(self._locale_radiogroup, loc, state=(loc == current))
+            items.append(urwid.AttrMap(rb, "selectable", "focus"))
+        body = cui.classes.scroll.ScrollBar(
+            cui.classes.scroll.Scrollable(urwid.Pile(items))
+        )
+        footer = urwid.AttrMap(
+            urwid.Columns([
+                self.view.button_store.save_button,
+                self.view.button_store.cancel_button,
+            ]),
+            "buttonbar",
+        )
+        frame = parameter.Frame(
+            body=urwid.AttrMap(body, "body"),
+            footer=footer,
+            focus_part="body",
+        )
+        self.dialog(
+            frame,
+            alignment=parameter.Alignment(urwid.CENTER, urwid.MIDDLE),
+            size=parameter.Size(width=60, height=20),
+            title=_("Select system language"),
+        )
+
+    def _key_ev_locale_selection(self, key: str):
+        """Handle key events on the locale selection dialog."""
+        self._handle_standard_tab_behaviour(key)
+        button_type = util.get_button_type(
+            key, self._open_main_menu, None, None,
+            size=parameter.Size(height=10),
+        )
+        if self._is_save_or_ok(button_type):
+            selected = next(
+                (rb.label for rb in self._locale_radiogroup if rb.state),
+                "",
+            )
+            if selected and cui.sysconfig.set_locale(selected):
+                self.message_box(
+                    parameter.MsgBoxParams(
+                        _("System language set to %s.") % selected,
+                        _("Language configuration"),
+                    ),
+                    size=parameter.Size(height=10),
+                )
+            else:
+                self.message_box(
+                    parameter.MsgBoxParams(
+                        _("Failed to set the system language."),
+                        _("Language configuration"),
+                    ),
+                    size=parameter.Size(height=10),
+                )
+            self._open_main_menu()
+        elif self._is_cancel_or_esc(button_type, key):
+            self._open_main_menu()
+
+    # ------------------------------------------------------------------
+    # Timezone selection dialog
+    # ------------------------------------------------------------------
+
+    def _open_timezone_selection(self):
+        """Open the timezone-picker dialog backed by timedatectl."""
+        self._reset_layout()
+        self.print(_("Opening timezone selection"))
+        self.control.app_control.current_window = TIMEZONE_SELECTION
+        timezones = cui.sysconfig.list_timezones()
+        if not timezones:
+            self.message_box(
+                parameter.MsgBoxParams(
+                    _("Could not enumerate timezones (is timedatectl installed?)."),
+                    _("Timezone configuration"),
+                ),
+                size=parameter.Size(height=10),
+            )
+            return
+        current = cui.sysconfig.get_current_timezone()
+        self._timezone_choices = timezones
+        self._timezone_radiogroup = []
+        items = []
+        for tz in timezones:
+            rb = urwid.RadioButton(self._timezone_radiogroup, tz, state=(tz == current))
+            items.append(urwid.AttrMap(rb, "selectable", "focus"))
+        body = cui.classes.scroll.ScrollBar(
+            cui.classes.scroll.Scrollable(urwid.Pile(items))
+        )
+        footer = urwid.AttrMap(
+            urwid.Columns([
+                self.view.button_store.save_button,
+                self.view.button_store.cancel_button,
+            ]),
+            "buttonbar",
+        )
+        frame = parameter.Frame(
+            body=urwid.AttrMap(body, "body"),
+            footer=footer,
+            focus_part="body",
+        )
+        self.dialog(
+            frame,
+            alignment=parameter.Alignment(urwid.CENTER, urwid.MIDDLE),
+            size=parameter.Size(width=60, height=20),
+            title=_("Select system timezone"),
+        )
+
+    def _key_ev_timezone_selection(self, key: str):
+        """Handle key events on the timezone selection dialog."""
+        self._handle_standard_tab_behaviour(key)
+        button_type = util.get_button_type(
+            key, self._open_main_menu, None, None,
+            size=parameter.Size(height=10),
+        )
+        if self._is_save_or_ok(button_type):
+            selected = next(
+                (rb.label for rb in self._timezone_radiogroup if rb.state),
+                "",
+            )
+            if selected and cui.sysconfig.set_timezone(selected):
+                self.message_box(
+                    parameter.MsgBoxParams(
+                        _("System timezone set to %s.") % selected,
+                        _("Timezone configuration"),
+                    ),
+                    size=parameter.Size(height=10),
+                )
+            else:
+                self.message_box(
+                    parameter.MsgBoxParams(
+                        _("Failed to set the system timezone."),
+                        _("Timezone configuration"),
+                    ),
+                    size=parameter.Size(height=10),
+                )
+            self._open_main_menu()
+        elif self._is_cancel_or_esc(button_type, key):
+            self._open_main_menu()
+
+    # ------------------------------------------------------------------
+    # Network interface configuration dialogs
+    # ------------------------------------------------------------------
+
+    def _open_network_interface_select(self):
+        """Show a list of interfaces; selecting one opens the editor."""
+        self._reset_layout()
+        self.print(_("Opening network configuration"))
+        self.control.app_control.current_window = NETWORK_INTERFACE_SELECT
+        ifaces = cui.network.list_interfaces()
+        if not ifaces:
+            self.message_box(
+                parameter.MsgBoxParams(
+                    _("No configurable network interfaces were found."),
+                    _("Network configuration"),
+                ),
+                size=parameter.Size(height=10),
+            )
+            return
+        self._iface_choices = ifaces
+        self._iface_radiogroup = []
+        rows = []
+        for name in ifaces:
+            state = cui.network.current_runtime_state(name)
+            v4 = ", ".join(state.get("addresses_v4", []) or [_("no IPv4")])
+            label = f"{name}  {v4}"
+            rb = urwid.RadioButton(self._iface_radiogroup, label,
+                                   state=(name == ifaces[0]))
+            rows.append(urwid.AttrMap(rb, "selectable", "focus"))
+        backend = cui.distro.get_network_backend() or "networkd"
+        header = GText(
+            _("Backend: %s. Select an interface and choose Edit.") % backend,
+            urwid.CENTER,
+        )
+        body = urwid.Pile([
+            (1, urwid.Filler(header)),
+            urwid.AttrMap(cui.classes.scroll.ScrollBar(
+                cui.classes.scroll.Scrollable(urwid.Pile(rows))
+            ), "body"),
+        ])
+        footer = urwid.AttrMap(
+            urwid.Columns([
+                self.view.button_store.edit_button,
+                self.view.button_store.cancel_button,
+            ]),
+            "buttonbar",
+        )
+        frame = parameter.Frame(
+            body=body,
+            footer=footer,
+            focus_part="body",
+        )
+        self.dialog(
+            frame,
+            alignment=parameter.Alignment(urwid.CENTER, urwid.MIDDLE),
+            size=parameter.Size(width=70, height=18),
+            title=_("Network interfaces"),
+        )
+
+    def _key_ev_network_iface_select(self, key: str):
+        self._handle_standard_tab_behaviour(key)
+        button_type = util.get_button_type(
+            key, self._open_main_menu, None, None,
+            size=parameter.Size(height=10),
+        )
+        if self._is_edit_or_ok(button_type):
+            selected = next(
+                (rb.label.split()[0] for rb in self._iface_radiogroup if rb.state),
+                "",
+            )
+            if selected:
+                self._open_network_interface_edit(selected)
+        elif self._is_cancel_or_esc(button_type, key):
+            self._open_main_menu()
+
+    def _open_network_interface_edit(self, iface: str):
+        """Show the editor for a single interface."""
+        self._reset_layout()
+        self.control.app_control.current_window = NETWORK_INTERFACE_EDIT
+        cfg = cui.network.load_interface_config(iface)
+        self._iface_editing = iface
+        self._iface_dhcp4_rb_group = []
+        rb_dhcp_yes = urwid.RadioButton(
+            self._iface_dhcp4_rb_group, _("DHCP (automatic)"), state=cfg.dhcp4,
+        )
+        rb_dhcp_no = urwid.RadioButton(
+            self._iface_dhcp4_rb_group, _("Static IPv4"), state=(not cfg.dhcp4),
+        )
+        addr_default = cfg.addresses[0] if cfg.addresses else ""
+        self._iface_edit_addr = cui.classes.gwidgets.GEdit(
+            (18, _("Address (CIDR): ")), edit_text=addr_default,
+        )
+        self._iface_edit_gw = cui.classes.gwidgets.GEdit(
+            (18, _("Gateway: ")), edit_text=cfg.gateway4,
+        )
+        self._iface_edit_dns = cui.classes.gwidgets.GEdit(
+            (18, _("DNS (space sep): ")), edit_text=" ".join(cfg.dns),
+        )
+        body = urwid.Padding(urwid.Filler(urwid.Pile([
+            GText(_("Configuring interface: %s") % iface, urwid.CENTER),
+            urwid.Divider(),
+            urwid.AttrMap(rb_dhcp_yes, "selectable", "focus"),
+            urwid.AttrMap(rb_dhcp_no, "selectable", "focus"),
+            urwid.Divider(),
+            self._iface_edit_addr,
+            self._iface_edit_gw,
+            self._iface_edit_dns,
+        ]), urwid.TOP))
+        footer = urwid.AttrMap(
+            urwid.Columns([
+                self.view.button_store.save_button,
+                self.view.button_store.cancel_button,
+            ]),
+            "buttonbar",
+        )
+        frame = parameter.Frame(
+            body=urwid.AttrMap(body, "body"),
+            footer=footer,
+            focus_part="body",
+        )
+        self.dialog(
+            frame,
+            alignment=parameter.Alignment(urwid.CENTER, urwid.MIDDLE),
+            size=parameter.Size(width=72, height=18),
+            title=_("Edit interface %s") % iface,
+        )
+
+    def _key_ev_network_iface_edit(self, key: str):
+        self._handle_standard_tab_behaviour(key)
+        button_type = util.get_button_type(
+            key, self._open_network_interface_select, None, None,
+            size=parameter.Size(height=10),
+        )
+        if self._is_save_or_ok(button_type):
+            iface = getattr(self, "_iface_editing", None)
+            if not iface:
+                self._open_main_menu()
+                return
+            dhcp = self._iface_dhcp4_rb_group[0].state
+            addr = self._iface_edit_addr.edit_text.strip()
+            gw = self._iface_edit_gw.edit_text.strip()
+            dns_field = self._iface_edit_dns.edit_text.strip()
+            if not dhcp:
+                err = cui.network.validate_cidr(addr)
+                if err:
+                    self.message_box(
+                        parameter.MsgBoxParams(
+                            _("Invalid IPv4/IPv6 address: %s") % err,
+                            _("Network configuration"),
+                        ),
+                        size=parameter.Size(height=10),
+                    )
+                    return
+                if gw and cui.network.validate_ip(gw):
+                    self.message_box(
+                        parameter.MsgBoxParams(
+                            _("Invalid gateway address."),
+                            _("Network configuration"),
+                        ),
+                        size=parameter.Size(height=10),
+                    )
+                    return
+            cfg = cui.network.InterfaceConfig(
+                name=iface,
+                dhcp4=dhcp,
+                dhcp6=dhcp,
+                addresses=[addr] if (not dhcp and addr) else [],
+                gateway4=gw if not dhcp else "",
+                dns=[d for d in dns_field.split() if d] if not dhcp else [],
+            )
+            ok = cui.network.save_interface_config(cfg)
+            self.message_box(
+                parameter.MsgBoxParams(
+                    _("Interface %(iface)s saved.") % {"iface": iface}
+                    if ok else
+                    _("Failed to save interface %(iface)s.") % {"iface": iface},
+                    _("Network configuration"),
+                ),
+                size=parameter.Size(height=10),
+            )
+            self._open_main_menu()
+        elif self._is_cancel_or_esc(button_type, key):
+            self._open_network_interface_select()
