@@ -783,77 +783,30 @@ class ApplicationHandler(ApplicationModel):
         return idx
 
     def _handle_standard_tab_behaviour(self, key: str = "tab"):
-        """
-        Handles standard tabulator behaviour in dialogs. Switching from body
-        to footer and vice versa.
+        """Handle Tab / Shift+Tab in dialogs: switch focus between body and footer."""
+        if key not in ("tab", "shift tab", "meta tab"):
+            return
 
-        :param key: The key to be handled.
-        """
-        top_keys = ['shift tab', 'up', 'left', 'meta tab']
-        bottom_keys = ['tab', 'down', 'right']
+        layout = self.view.gscreen.layout
 
-        def switch_body_footer():
-            if self.view.gscreen.layout.focus_position == "body":
-                self.view.gscreen.layout.focus_position = "footer"
-            elif self.view.gscreen.layout.focus_position == "footer":
-                self.view.gscreen.layout.focus_position = "body"
+        # urwid.Frame.footer / .body are None when the frame was built
+        # without that part. Setting focus_position to a missing part
+        # raises IndexError, so guard explicitly.
+        has_footer = getattr(layout, "footer", None) is not None
+        has_body = getattr(layout, "body", None) is not None
+        if not (has_footer and has_body):
+            return
 
-        def count_selectables(widget_list, up_to: int = None):
-            if up_to is None:
-                up_to = len(widget_list) - 1
-            limit = up_to + 1
-            non_sels = 0
-            sels = 0
-            for widget in widget_list:
-                if widget.selectable():
-                    sels = sels + 1
-                else:
-                    non_sels = non_sels + 1
-                if non_sels + sels == limit:
-                    break
-            return sels
+        current = layout.focus_position
 
-        def jump_part(part):
-            """Within this function we ignore all not _selectables."""
-            first = 0
-            try:
-                last = len(part.base_widget.widget_list) - 1
-            except IndexError:
-                last = 0
-            current = part.base_widget.focus_position
-            # Reduce last and current by non selectables
-            non_sels_current = current + 1 - count_selectables(
-                part.base_widget.widget_list, current
-            )
-            non_sels_last = last + 1 - count_selectables(part.base_widget.widget_list, last)
-            last = last - non_sels_last
-            current = current - non_sels_current
-            if current <= first and key in top_keys \
-                    and self.view.gscreen.layout.focus_part == 'footer':
-                switch_body_footer()
-            if current >= last and key in bottom_keys \
-                    and self.view.gscreen.layout.focus_part == 'body':
-                switch_body_footer()
-            else:
-                move: int = 0
-                if first <= current < last and key in bottom_keys:
-                    move = 1
-                elif first < current <= last and key in top_keys:
-                    move = -1
-                new_focus = part.base_widget.focus_position + move
-                while 0 <= new_focus < len(part.base_widget.widget_list):
-                    if part.base_widget.widget_list[new_focus].selectable():
-                        part.base_widget.focus_position = new_focus
-                        break
-                    new_focus += move
-        # self.print(f"key is {key}")
-        if key.endswith("tab") or key.endswith("down") or key.endswith('up'):
-            current_part = self.view.gscreen.layout.focus_part
-            if current_part == 'body':
-                jump_part(self.view.gscreen.layout.body)
-            elif current_part == 'footer':
-                jump_part(self.view.gscreen.layout.footer)
-
+        if key in ("tab", "meta tab"):
+            if current == "body":
+                layout.focus_position = "footer"
+            elif current == "footer":
+                layout.focus_position = "body"
+        elif key == "shift tab":
+            if current == "footer":
+                layout.focus_position = "body"
     # ------------------------------------------------------------------
     # Helpers for matching translated button labels in a case-/locale-safe way.
     # ------------------------------------------------------------------
