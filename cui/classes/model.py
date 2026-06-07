@@ -386,7 +386,7 @@ class ApplicationModel(BaseApplication):
         )
         ntp_server = ntp_from_file.split(" ")
         fallback_server = fallback_from_file.split(" ")
-        text = _("Insert the NTP servers separated by <urwid.SPACE> char.")
+        text = _("Insert the NTP servers separated by <SPACE> char.")
         self.timesyncd_body = urwid.Padding(
                 urwid.Filler(
                     urwid.Pile(
@@ -418,22 +418,41 @@ class ApplicationModel(BaseApplication):
 
     def _prepare_repo_config(self):
         """Prepare repository configuration form."""
-        baseurl = 'https://download.grommunio.com/community/openSUSE_Leap_' \
-                  '15.6/?ssl_verify=no'
-        repofile = '/etc/zypp/repos.d/grommunio.repo'
-        config = cui.classes.parser.ConfigParser(infile=repofile)
+        import cui.distro as _distro
+        baseurl = _distro.get_repo_baseurl(channel='community')
+        repofile = _distro.get_repo_file_path()
+        # For rpm-md repos we can use the existing ConfigParser; for apt the
+        # file is a one-liner and we only inspect it cosmetically.
+        config = None
+        try:
+            if not _distro.is_debian_family():
+                config = cui.classes.parser.ConfigParser(infile=repofile)
+        except Exception:
+            config = None
         default_type = 'community'
         default_user = ''
         default_pw = ''
         is_community: bool = True
         is_supported: bool = False
-        if config.get('grommunio', None):
+        if config is not None and config.get('grommunio', None):
             match = re.match(
-                'https://([^:]*):?([^@]*)@?download.grommunio.com/(.+)/open.+',
+                r'https?://([^:/@]*):?([^@/]*)@?download\.grommunio\.com/(community|supported)/.+',
                 config['grommunio'].get('baseurl', baseurl)
             )
             if match:
                 (default_user, default_pw, default_type) = match.groups()
+        elif _distro.is_debian_family() and Path(repofile).is_file():
+            try:
+                with open(repofile, "r", encoding="utf-8") as fh:
+                    line = fh.read()
+                match = re.search(
+                    r'https?://([^:/@]*):?([^@/]*)@?download\.grommunio\.com/(community|supported)/',
+                    line,
+                )
+                if match:
+                    (default_user, default_pw, default_type) = match.groups()
+            except OSError:
+                pass
         if default_type == 'supported':
             is_community = False
             is_supported = True
@@ -460,12 +479,24 @@ class ApplicationModel(BaseApplication):
 
     def _open_setup_wizard(self):
         """Open grommunio setup wizard."""
+        exe = None
+        for candidate in ("/usr/sbin/grommunio-setup", "/usr/bin/grommunio-setup",
+                          "/usr/sbin/grammm-setup"):
+            if Path(candidate).exists():
+                exe = candidate
+                break
+        if exe is None:
+            self.message_box(
+                parameter.MsgBoxParams(
+                    _("grommunio-setup is not installed."),
+                    _("Setup wizard"),
+                ),
+                size=parameter.Size(height=10),
+            )
+            return
         self.control.app_control.loop.stop()
         self.view.gscreen.screen.tty_signal_keys(*self.view.gscreen.old_termios)
-        if Path("/usr/sbin/grommunio-setup").exists():
-            os.system("/usr/sbin/grommunio-setup")
-        else:
-            os.system("/usr/sbin/grammm-setup")
+        subprocess.run([exe], check=False)
         self.view.gscreen.screen.tty_signal_keys(*self.view.gscreen.blank_termios)
         self.control.app_control.loop.start()
 
@@ -511,13 +542,30 @@ class ApplicationModel(BaseApplication):
         self.dialog(frame, alignment=alignment, size=size)
 
     def _set_kbd_layout(self, layout):
-        """Set and save selected keyboard layout."""
-        # Do read the file again so newly added keys do not get lost
-        file = "/etc/vconsole.conf"
-        var = util.minishell_read(file)
-        var["KEYMAP"] = layout
-        util.minishell_write(file, var)
-        os.system("systemctl restart systemd-vconsole-setup")
+        """Set and save selected keyboard layout.
+
+        Prefers localectl (works on every supported distro). Falls back to
+        editing /etc/vconsole.conf directly and triggering the systemd unit so
+        the system stays usable even if localectl is missing.
+        """
+        if not isinstance(layout, str):
+            # Defensive: when called via the radio button signal we get the
+            # layout string, but the legacy kbd-switch dispatch hands us an
+            # urwid.AttrMap wrapping a RadioButton.
+            widget = getattr(layout, "base_widget", layout)
+            layout = getattr(widget, "label", str(widget))
+        from cui import sysconfig as _sysconfig
+        ok = _sysconfig.set_keymap(layout)
+        if not ok:
+            file = "/etc/vconsole.conf"
+            var = util.minishell_read(file)
+            var["KEYMAP"] = layout
+            util.minishell_write(file, var)
+            subprocess.run(
+                ["systemctl", "restart", "systemd-vconsole-setup"],
+                check=False,
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            )
         self.view.header.set_kbdlayout(layout)
         self.view.header.refresh_head_text()
         self.view.header.refresh_content()
@@ -531,12 +579,21 @@ class ApplicationModel(BaseApplication):
                 self._return_to()
 
         keyboards: Set[str] = {"de-latin1-nodeadkeys", "us"}
-        all_kbds = [
-            y.split(".")
-            for x in os.walk("/usr/share/kbd/keymaps")
-            for y in x[2]
-        ]
-        all_kbds = [x[0] for x in all_kbds if len(x) >= 2 and x[1] == "map"]
+        # `localectl list-keymaps` works on every supported distro and is the
+        # canonical answer. /usr/share/kbd/keymaps is the openSUSE/Fedora layout
+        # but Debian places the same data under /usr/share/keymaps.
+        from cui import sysconfig as _sysconfig
+        all_kbds = _sysconfig.list_keymaps()
+        if not all_kbds:
+            for base in ("/usr/share/kbd/keymaps", "/usr/share/keymaps"):
+                if os.path.isdir(base):
+                    all_kbds = [
+                        y.split(".")[0]
+                        for x in os.walk(base)
+                        for y in x[2]
+                        if y.endswith(".map") or y.endswith(".map.gz")
+                    ]
+                    break
         _ = [
             keyboards.add(kbd)
             for kbd in all_kbds

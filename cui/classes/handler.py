@@ -2,20 +2,29 @@
 # SPDX-FileCopyrightText: 2022–2024 grommunio GmbH
 """The module contains the handling code of grommunio-cui"""
 import os
+import re
 import subprocess
 from pathlib import Path
 from typing import Any, Tuple
 from getpass import getuser
 
-import requests
+try:
+    import requests
+except ImportError:  # requests is optional; only the repo dialog uses it
+    requests = None
+
 import urwid
 
 import cui.classes
+import cui.distro
+import cui.network
+import cui.sysconfig
 from cui.classes.application import setup_state
 from cui.classes.menu import MenuItem
 from cui.symbol import LOG_VIEWER, MAIN, MESSAGE_BOX, INPUT_BOX, TERMINAL, PASSWORD, LOGIN, \
     REBOOT, SHUTDOWN, MAIN_MENU, UNSUPPORTED, ADMIN_WEB_PW, TIMESYNCD, REPO_SELECTION, \
-    KEYBOARD_SWITCH, PRODUCTION
+    KEYBOARD_SWITCH, PRODUCTION, LOCALE_SELECTION, TIMEZONE_SELECTION, \
+    NETWORK_INTERFACE_SELECT, NETWORK_INTERFACE_EDIT, NETWORK_BOND_CREATE
 from cui import util, parameter
 from cui.classes.model import ApplicationModel
 from cui.util import _
@@ -68,7 +77,12 @@ class ApplicationHandler(ApplicationModel):
             TIMESYNCD: (self._key_ev_timesyncd, key),
             REPO_SELECTION: (self._key_ev_repo_selection, key),
             KEYBOARD_SWITCH: (self._key_ev_kbd_switch, key),
-        }.get(self.control.app_control.current_window)
+            LOCALE_SELECTION: (self._key_ev_locale_selection, key),
+            TIMEZONE_SELECTION: (self._key_ev_timezone_selection, key),
+            NETWORK_INTERFACE_SELECT: (self._key_ev_network_iface_select, key),
+            NETWORK_INTERFACE_EDIT: (self._key_ev_network_iface_edit, key),
+            NETWORK_BOND_CREATE: (self._key_ev_network_bond_create, key),
+        }.get(self.control.app_control.current_window, (lambda *_a: None, None))
         if var:
             func(var)
         else:
@@ -177,7 +191,7 @@ class ApplicationHandler(ApplicationModel):
                 self.control.app_control.current_window = self.control.app_control.input_box_caller
                 self.message_box(
                     parameter.MsgBoxParams(
-                        _(f"System password reset {success_msg}!"),
+                        _("System password reset %s!") % success_msg,
                         _("System password reset"),
                     ),
                     size=parameter.Size(height=10)
@@ -220,9 +234,12 @@ class ApplicationHandler(ApplicationModel):
     def _key_ev_mainmenu(self, key):
         """Handle event on main menu."""
         def menu_language():
-            pre = cui.classes.parser.ConfigParser(infile='/etc/locale.conf')
-            self._run_yast_module("language")
-            post = cui.classes.parser.ConfigParser(infile='/etc/locale.conf')
+            locale_path = cui.distro.get_locale_conf_path()
+            pre = cui.classes.parser.ConfigParser(infile=locale_path) \
+                if Path(locale_path).is_file() else None
+            self._open_locale_selection()
+            post = cui.classes.parser.ConfigParser(infile=locale_path) \
+                if Path(locale_path).is_file() else None
             if pre != post:
                 util._ = util.restart_gui()
 
@@ -238,8 +255,8 @@ class ApplicationHandler(ApplicationModel):
             (func, val) = {
                 1: (menu_language, None),
                 2: (self._open_change_password, None),
-                3: (self._run_yast_module, "lan"),
-                4: (self._run_yast_module, "timezone"),
+                3: (self._open_network_interface_select, None),
+                4: (self._open_timezone_selection, None),
                 5: (self._open_timesyncd_conf, None),
                 6: (self._open_repo_conf, None),
                 7: (self._run_update, None),
@@ -354,7 +371,7 @@ class ApplicationHandler(ApplicationModel):
                 self.control.app_control.current_window = self.control.app_control.input_box_caller
                 self.message_box(
                     parameter.MsgBoxParams(
-                        _(f"Admin password reset {success_msg}!"),
+                        _("Admin password reset %s!") % success_msg,
                         _("Admin password reset"),
                     ),
                     size=parameter.Size(height=10)
@@ -370,22 +387,41 @@ class ApplicationHandler(ApplicationModel):
             t.lower() for t in [_("Ok"), _("Save"), _("ok"), _("save"), _("OK"), _("SAVE")]
         ]:
             updateable, url = util.check_repo_dialog(self, height)
-            if updateable:
-                repo_res.get("config", None)['grommunio']['baseurl'] = f'https://{url}'
-                repo_res.get("config", None)['grommunio']['type'] = 'rpm-md'
-                config2 = cui.classes.parser.ConfigParser(infile=repo_res.get("repofile", None))
-                repo_res.get("config", None).write()
-                if repo_res.get("config", None) == config2:
-                    self.message_box(
-                        parameter.MsgBoxParams(
-                            _('The repo file has not been changed.')
-                        ),
-                        size=parameter.Size(height=height)
-                    )
-                else:
-                    self._process_changed_repo_config(height, repo_res)
+            if not updateable:
+                return
+            if cui.distro.is_debian_family():
+                # apt: we rewrite the .list file from scratch below; nothing
+                # to update in `config` here.
+                self._process_changed_repo_config(height, repo_res, raw_url=url)
+                return
+            cfg = repo_res.get("config")
+            if cfg is None:
+                self._process_changed_repo_config(height, repo_res, raw_url=url)
+                return
+            cfg['grommunio']['baseurl'] = url if url.startswith("http") else f'https://{url}'
+            cfg['grommunio']['type'] = 'rpm-md'
+            config2 = cui.classes.parser.ConfigParser(infile=repo_res.get("repofile", None))
+            cfg.write()
+            if cfg == config2:
+                self.message_box(
+                    parameter.MsgBoxParams(
+                        _('The repo file has not been changed.')
+                    ),
+                    size=parameter.Size(height=height)
+                )
+            else:
+                self._process_changed_repo_config(height, repo_res)
 
-    def _process_changed_repo_config(self, height, repo_res):
+    def _process_changed_repo_config(self, height, repo_res, raw_url: str = None):
+        if requests is None:
+            self.message_box(
+                parameter.MsgBoxParams(
+                    _('The "requests" Python package is required to download '
+                      'the repository key but is not installed.'),
+                ),
+                size=parameter.Size(height=height + 2),
+            )
+            return
         header = GText(_("One moment, please ..."))
         footer = GText(_('Fetching GPG-KEY file and refreshing '
                           'repositories. This may take a while ...'))
@@ -396,29 +432,83 @@ class ApplicationHandler(ApplicationModel):
         frame: parameter.Frame = parameter.Frame(linebox, header, footer)
         self.dialog(frame)
         self._draw_progress(20)
-        res: requests.Response = requests.get(repo_res.get("keyurl", None))
+        keyurl = repo_res.get("keyurl")
+        keyfile = repo_res.get("keyfile")
+        try:
+            res = requests.get(keyurl, timeout=30)
+        except requests.RequestException:
+            self.message_box(
+                parameter.MsgBoxParams(
+                    _("Could not download the grommunio GPG key from %s.") % keyurl,
+                ),
+                size=parameter.Size(height=height + 1),
+            )
+            return
         got_keyfile: bool = False
         if res.status_code == 200:
             self._draw_progress(30)
-            tmp = Path(repo_res.get("keyfile", None))
-            with tmp.open('w', encoding="utf-8") as file:
-                file.write(res.content.decode())
-            self._draw_progress(40)
-            with subprocess.Popen(
-                    ["rpm", "--import", repo_res.get("keyfile", None)],
-                    stderr=subprocess.DEVNULL,
-                    stdout=subprocess.DEVNULL,
-            ) as ret_code_rpm:
-                if ret_code_rpm.wait() == 0:
-                    self._draw_progress(60)
+            tmp = Path(keyfile)
+            try:
+                tmp.parent.mkdir(parents=True, exist_ok=True)
+                with tmp.open('w', encoding="utf-8") as file:
+                    file.write(res.content.decode())
+                self._draw_progress(40)
+            except OSError as exc:
+                self.message_box(
+                    parameter.MsgBoxParams(
+                        _("Failed to write key file %(path)s: %(err)s")
+                        % {"path": keyfile, "err": str(exc)},
+                    ),
+                    size=parameter.Size(height=height + 1),
+                )
+                return
+            # On Debian/Ubuntu we also need to write the .list file from scratch.
+            if cui.distro.is_debian_family() and raw_url:
+                repofile = repo_res.get("repofile")
+                body = cui.distro.render_repo_file(
+                    baseurl=raw_url if raw_url.startswith("http") else f"https://{raw_url}",
+                    key_destination=keyfile,
+                )
+                try:
+                    with open(repofile, "w", encoding="utf-8") as fh:
+                        fh.write(body)
+                except OSError as exc:
+                    self.message_box(
+                        parameter.MsgBoxParams(
+                            _("Failed to write repo file %(path)s: %(err)s")
+                            % {"path": repofile, "err": str(exc)},
+                        ),
+                        size=parameter.Size(height=height + 1),
+                    )
+                    return
+            import_cmd = cui.distro.pkg_import_key_cmd(keyfile)
+            if import_cmd:
+                try:
                     with subprocess.Popen(
-                            ["zypper", "--non-interactive", "--gpg-auto-import-keys", "refresh"],
+                            import_cmd,
                             stderr=subprocess.DEVNULL,
                             stdout=subprocess.DEVNULL,
-                    ) as ret_code_zypper:
-                        if ret_code_zypper.wait() == 0:
+                    ) as ret_code_imp:
+                        ret_code_imp.wait()
+                except OSError:
+                    pass
+            self._draw_progress(60)
+            refresh_cmd = cui.distro.pkg_refresh_cmd()
+            if refresh_cmd:
+                try:
+                    with subprocess.Popen(
+                            refresh_cmd,
+                            stderr=subprocess.DEVNULL,
+                            stdout=subprocess.DEVNULL,
+                    ) as ret_code_ref:
+                        if ret_code_ref.wait() == 0:
                             self._draw_progress(100)
                             got_keyfile = True
+                except OSError:
+                    pass
+            else:
+                # No package manager available; we've at least written the files.
+                got_keyfile = True
         if got_keyfile:
             self.message_box(
                 parameter.MsgBoxParams(
@@ -440,14 +530,18 @@ class ApplicationHandler(ApplicationModel):
     def _init_repo_selection(self, key, height):
         self._handle_standard_tab_behaviour(key)
         keyurl = 'https://download.grommunio.com/RPM-GPG-KEY-grommunio'
-        keyfile = '/tmp/RPM-GPG-KEY-grommunio'
-        repofile = '/etc/zypp/repos.d/grommunio.repo'
-        config = cui.classes.parser.ConfigParser(infile=repofile)
-        # config.filename = repofile
-        if not config.get('grommunio'):
-            config['grommunio'] = {}
-            config['grommunio']['enabled'] = 1
-            config['grommunio']['autorefresh'] = 1
+        keyfile = cui.distro.get_keyfile_destination()
+        repofile = cui.distro.get_repo_file_path()
+        config = None
+        if not cui.distro.is_debian_family():
+            try:
+                config = cui.classes.parser.ConfigParser(infile=repofile)
+                if not config.get('grommunio'):
+                    config['grommunio'] = {}
+                    config['grommunio']['enabled'] = 1
+                    config['grommunio']['autorefresh'] = 1
+            except Exception:
+                config = None
         button_type = util.get_button_type(
             key,
             self._open_main_menu,
@@ -494,7 +588,7 @@ class ApplicationHandler(ApplicationModel):
                     success_msg = _("failed")
             self.message_box(
                 parameter.MsgBoxParams(
-                    _(f"Timesyncd configuration change {success_msg}!"),
+                    _("Timesyncd configuration change %s!") % success_msg,
                     _("Timesyncd Configuration"),
                 ),
                 size=parameter.Size(height=10)
@@ -580,44 +674,28 @@ class ApplicationHandler(ApplicationModel):
             view_buttons=parameter.ViewOkCancel(view_ok=True, view_cancel=True)
         )
 
-    def _run_yast_module(self, modulename: str):
-        """Run yast module `modulename`."""
-        self.control.app_control.loop.stop()
-        self.view.gscreen.screen.tty_signal_keys(*self.view.gscreen.old_termios)
-        print("\x1b[K")
-        print(
-            "\x1b[K \x1b[36m▼\x1b[0m",
-            _("Please wait while `yast2 %s` is being run.") % modulename
-        )
-        print("\x1b[J")
-        os.system(f"yast2 {modulename}")
-        self.view.gscreen.screen.tty_signal_keys(*self.view.gscreen.blank_termios)
-        self.control.app_control.loop.start()
-
     def _run_update(self):
-        """Run zypper modules `ref && up`."""
+        """Refresh package metadata and run a full upgrade via the system PM."""
+        refresh = cui.distro.pkg_refresh_cmd()
+        update = cui.distro.pkg_update_cmd()
+        if not refresh or not update:
+            self.message_box(
+                parameter.MsgBoxParams(
+                    _("No supported package manager (zypper, dnf, apt-get) was found."),
+                    _("System update"),
+                ),
+                size=parameter.Size(height=10),
+            )
+            return
         self.control.app_control.loop.stop()
         self.view.gscreen.screen.tty_signal_keys(*self.view.gscreen.old_termios)
         print("\x1b[K")
-        print("\x1b[K \x1b[36m▼\x1b[0m Please wait while zypper is invoked.")
+        print("\x1b[K \x1b[36m▼\x1b[0m",
+              _("Please wait while %s is invoked.") % refresh[0])
         print("\x1b[J")
-        os.system(f"zypper --gpg-auto-import-keys ref")
-        os.system(f"zypper up")
-        input("\n \x1b[36m▼\x1b[0m Press ENTER to return to the CUI.")
-        self.view.gscreen.screen.tty_signal_keys(*self.view.gscreen.blank_termios)
-        self.control.app_control.loop.start()
-        #self._run_zypper("ref")
-        #self._run_zypper("up")
-
-    def _run_zypper(self, subcmd: str):
-        """Run zypper modul `subcmd`."""
-        self.control.app_control.loop.stop()
-        self.view.gscreen.screen.tty_signal_keys(*self.view.gscreen.old_termios)
-        print("\x1b[K")
-        print("\x1b[K \x1b[36m▼\x1b[0m Please wait while zypper is invoked.")
-        print("\x1b[J")
-        os.system(f"zypper {subcmd}")
-        input("\n \x1b[36m▼\x1b[0m Press ENTER to return to the CUI.")
+        subprocess.run(refresh, check=False)
+        subprocess.run(update, check=False)
+        input("\n \x1b[36m▼\x1b[0m " + _("Press ENTER to return to the CUI."))
         self.view.gscreen.screen.tty_signal_keys(*self.view.gscreen.blank_termios)
         self.control.app_control.loop.start()
 
@@ -719,73 +797,610 @@ class ApplicationHandler(ApplicationModel):
         return idx
 
     def _handle_standard_tab_behaviour(self, key: str = "tab"):
-        """
-        Handles standard tabulator behaviour in dialogs. Switching from body
-        to footer and vice versa.
+        """Handle Tab / Shift+Tab in dialogs: switch focus between body and footer."""
+        if key not in ("tab", "shift tab", "meta tab"):
+            return
 
-        :param key: The key to be handled.
-        """
-        top_keys = ['shift tab', 'up', 'left', 'meta tab']
-        bottom_keys = ['tab', 'down', 'right']
+        layout = self.view.gscreen.layout
 
-        def switch_body_footer():
-            if self.view.gscreen.layout.focus_position == "body":
-                self.view.gscreen.layout.focus_position = "footer"
-            elif self.view.gscreen.layout.focus_position == "footer":
-                self.view.gscreen.layout.focus_position = "body"
+        # urwid.Frame.footer / .body are None when the frame was built
+        # without that part. Setting focus_position to a missing part
+        # raises IndexError, so guard explicitly.
+        has_footer = getattr(layout, "footer", None) is not None
+        has_body = getattr(layout, "body", None) is not None
+        if not (has_footer and has_body):
+            return
 
-        def count_selectables(widget_list, up_to: int = None):
-            if up_to is None:
-                up_to = len(widget_list) - 1
-            limit = up_to + 1
-            non_sels = 0
-            sels = 0
-            for widget in widget_list:
-                if widget.selectable():
-                    sels = sels + 1
-                else:
-                    non_sels = non_sels + 1
-                if non_sels + sels == limit:
-                    break
-            return sels
+        current = layout.focus_position
 
-        def jump_part(part):
-            """Within this function we ignore all not _selectables."""
-            first = 0
-            try:
-                last = len(part.base_widget.widget_list) - 1
-            except IndexError:
-                last = 0
-            current = part.base_widget.focus_position
-            # Reduce last and current by non selectables
-            non_sels_current = current + 1 - count_selectables(
-                part.base_widget.widget_list, current
+        if key in ("tab", "meta tab"):
+            if current == "body":
+                layout.focus_position = "footer"
+            elif current == "footer":
+                layout.focus_position = "body"
+        elif key == "shift tab":
+            if current == "footer":
+                layout.focus_position = "body"
+    # ------------------------------------------------------------------
+    # Helpers for matching translated button labels in a case-/locale-safe way.
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _button_aliases(*sources):
+        """Lower-cased aliases for translatable button labels."""
+        out = set()
+        for src in sources:
+            if src is None:
+                continue
+            out.add(src.lower())
+        return out
+
+    def _is_save_or_ok(self, button_type: str) -> bool:
+        if not button_type:
+            return False
+        aliases = self._button_aliases(_("OK"), _("Ok"), _("ok"),
+                                       _("Save"), _("save"))
+        return button_type.lower() in aliases
+
+    def _is_edit_or_ok(self, button_type: str) -> bool:
+        if not button_type:
+            return False
+        aliases = self._button_aliases(_("OK"), _("Ok"), _("ok"),
+                                       _("Edit"), _("edit"))
+        return button_type.lower() in aliases
+
+    def _is_cancel_or_esc(self, button_type: str, key: str) -> bool:
+        if key and key.lower() == "esc":
+            return True
+        if not button_type:
+            return False
+        aliases = self._button_aliases(_("Cancel"), _("cancel"))
+        return button_type.lower() in aliases
+
+    # ------------------------------------------------------------------
+    # Locale selection dialog
+    # ------------------------------------------------------------------
+
+    def _open_locale_selection(self):
+        """Open the locale-picker dialog backed by localectl."""
+        self._reset_layout()
+        self.print(_("Opening language selection"))
+        self.control.app_control.current_window = LOCALE_SELECTION
+        locales = cui.sysconfig.list_locales()
+        if not locales:
+            self.message_box(
+                parameter.MsgBoxParams(
+                    _("Could not enumerate available locales (is localectl installed?)."),
+                    _("Language configuration"),
+                ),
+                size=parameter.Size(height=10),
             )
-            non_sels_last = last + 1 - count_selectables(part.base_widget.widget_list, last)
-            last = last - non_sels_last
-            current = current - non_sels_current
-            if current <= first and key in top_keys \
-                    and self.view.gscreen.layout.focus_part == 'footer':
-                switch_body_footer()
-            if current >= last and key in bottom_keys \
-                    and self.view.gscreen.layout.focus_part == 'body':
-                switch_body_footer()
+            return
+        current = cui.sysconfig.get_current_locale()
+        self._locale_choices = locales
+        self._locale_radiogroup = []
+        items = []
+        for loc in locales:
+            rb = urwid.RadioButton(self._locale_radiogroup, loc, state=(loc == current))
+            items.append(urwid.AttrMap(rb, "selectable", "focus"))
+        body = cui.classes.scroll.ScrollBar(
+            cui.classes.scroll.Scrollable(urwid.Pile(items))
+        )
+        footer = urwid.AttrMap(
+            urwid.Columns([
+                self.view.button_store.save_button,
+                self.view.button_store.cancel_button,
+            ]),
+            "buttonbar",
+        )
+        frame = parameter.Frame(
+            body=urwid.AttrMap(body, "body"),
+            footer=footer,
+            focus_part="body",
+        )
+        self.dialog(
+            frame,
+            alignment=parameter.Alignment(urwid.CENTER, urwid.MIDDLE),
+            size=parameter.Size(width=60, height=20),
+            title=_("Select system language"),
+        )
+
+    def _key_ev_locale_selection(self, key: str):
+        """Handle key events on the locale selection dialog."""
+        self._handle_standard_tab_behaviour(key)
+        button_type = util.get_button_type(
+            key, self._open_main_menu, None, None,
+            size=parameter.Size(height=10),
+        )
+        if self._is_save_or_ok(button_type):
+            selected = next(
+                (rb.label for rb in self._locale_radiogroup if rb.state),
+                "",
+            )
+            if selected and cui.sysconfig.set_locale(selected):
+                self.message_box(
+                    parameter.MsgBoxParams(
+                        _("System language set to %s.") % selected,
+                        _("Language configuration"),
+                    ),
+                    size=parameter.Size(height=10),
+                )
             else:
-                move: int = 0
-                if first <= current < last and key in bottom_keys:
-                    move = 1
-                elif first < current <= last and key in top_keys:
-                    move = -1
-                new_focus = part.base_widget.focus_position + move
-                while 0 <= new_focus < len(part.base_widget.widget_list):
-                    if part.base_widget.widget_list[new_focus].selectable():
-                        part.base_widget.focus_position = new_focus
-                        break
-                    new_focus += move
-        # self.print(f"key is {key}")
-        if key.endswith("tab") or key.endswith("down") or key.endswith('up'):
-            current_part = self.view.gscreen.layout.focus_part
-            if current_part == 'body':
-                jump_part(self.view.gscreen.layout.body)
-            elif current_part == 'footer':
-                jump_part(self.view.gscreen.layout.footer)
+                self.message_box(
+                    parameter.MsgBoxParams(
+                        _("Failed to set the system language."),
+                        _("Language configuration"),
+                    ),
+                    size=parameter.Size(height=10),
+                )
+            self._open_main_menu()
+        elif self._is_cancel_or_esc(button_type, key):
+            self._open_main_menu()
+
+    # ------------------------------------------------------------------
+    # Timezone selection dialog
+    # ------------------------------------------------------------------
+
+    def _open_timezone_selection(self):
+        """Open the timezone-picker dialog backed by timedatectl."""
+        self._reset_layout()
+        self.print(_("Opening timezone selection"))
+        self.control.app_control.current_window = TIMEZONE_SELECTION
+        timezones = cui.sysconfig.list_timezones()
+        if not timezones:
+            self.message_box(
+                parameter.MsgBoxParams(
+                    _("Could not enumerate timezones (is timedatectl installed?)."),
+                    _("Timezone configuration"),
+                ),
+                size=parameter.Size(height=10),
+            )
+            return
+        current = cui.sysconfig.get_current_timezone()
+        self._timezone_choices = timezones
+        self._timezone_radiogroup = []
+        items = []
+        for tz in timezones:
+            rb = urwid.RadioButton(self._timezone_radiogroup, tz, state=(tz == current))
+            items.append(urwid.AttrMap(rb, "selectable", "focus"))
+        body = cui.classes.scroll.ScrollBar(
+            cui.classes.scroll.Scrollable(urwid.Pile(items))
+        )
+        footer = urwid.AttrMap(
+            urwid.Columns([
+                self.view.button_store.save_button,
+                self.view.button_store.cancel_button,
+            ]),
+            "buttonbar",
+        )
+        frame = parameter.Frame(
+            body=urwid.AttrMap(body, "body"),
+            footer=footer,
+            focus_part="body",
+        )
+        self.dialog(
+            frame,
+            alignment=parameter.Alignment(urwid.CENTER, urwid.MIDDLE),
+            size=parameter.Size(width=60, height=20),
+            title=_("Select system timezone"),
+        )
+
+    def _key_ev_timezone_selection(self, key: str):
+        """Handle key events on the timezone selection dialog."""
+        self._handle_standard_tab_behaviour(key)
+        button_type = util.get_button_type(
+            key, self._open_main_menu, None, None,
+            size=parameter.Size(height=10),
+        )
+        if self._is_save_or_ok(button_type):
+            selected = next(
+                (rb.label for rb in self._timezone_radiogroup if rb.state),
+                "",
+            )
+            if selected and cui.sysconfig.set_timezone(selected):
+                self.message_box(
+                    parameter.MsgBoxParams(
+                        _("System timezone set to %s.") % selected,
+                        _("Timezone configuration"),
+                    ),
+                    size=parameter.Size(height=10),
+                )
+            else:
+                self.message_box(
+                    parameter.MsgBoxParams(
+                        _("Failed to set the system timezone."),
+                        _("Timezone configuration"),
+                    ),
+                    size=parameter.Size(height=10),
+                )
+            self._open_main_menu()
+        elif self._is_cancel_or_esc(button_type, key):
+            self._open_main_menu()
+
+    # ------------------------------------------------------------------
+    # Network interface configuration dialogs
+    # ------------------------------------------------------------------
+
+    _BOND_CREATE_SENTINEL = "__create_bond__"
+
+    def _open_network_interface_select(self):
+        """Show a list of interfaces plus a 'Create bond' entry."""
+        self._reset_layout()
+        self.print(_("Opening network configuration"))
+        self.control.app_control.current_window = NETWORK_INTERFACE_SELECT
+        ifaces = cui.network.list_interfaces()
+        self._iface_choices = ifaces
+        self._iface_radiogroup = []
+        rows = []
+        first = True
+        for name in ifaces:
+            state = cui.network.current_runtime_state(name)
+            kind = state.get("kind", "ethernet")
+            v4 = ", ".join(state.get("addresses_v4", []) or [_("no IPv4")])
+            label = f"{name} [{kind}]  {v4}"
+            rb = urwid.RadioButton(self._iface_radiogroup, label, state=first)
+            rows.append(urwid.AttrMap(rb, "selectable", "focus"))
+            first = False
+        # Last entry: create a new bond device.
+        bond_label = self._BOND_CREATE_SENTINEL + "  " + _("[ Create new bond device... ]")
+        rb_new = urwid.RadioButton(self._iface_radiogroup, bond_label, state=not ifaces)
+        rows.append(urwid.AttrMap(rb_new, "selectable", "focus"))
+        backend = cui.network.get_backend()
+        header = GText(
+            _("Active backend: %s. Choose an interface and press Edit, "
+              "or pick 'Create new bond device' to set one up.") % backend,
+            urwid.CENTER,
+        )
+        body = urwid.Pile([
+            (2, urwid.Filler(header)),
+            urwid.AttrMap(cui.classes.scroll.ScrollBar(
+                cui.classes.scroll.Scrollable(urwid.Pile(rows))
+            ), "body"),
+        ])
+        footer = urwid.AttrMap(
+            urwid.Columns([
+                self.view.button_store.edit_button,
+                self.view.button_store.cancel_button,
+            ]),
+            "buttonbar",
+        )
+        frame = parameter.Frame(
+            body=body,
+            footer=footer,
+            focus_part="body",
+        )
+        self.dialog(
+            frame,
+            alignment=parameter.Alignment(urwid.CENTER, urwid.MIDDLE),
+            size=parameter.Size(width=78, height=20),
+            title=_("Network interfaces"),
+        )
+
+    def _key_ev_network_iface_select(self, key: str):
+        self._handle_standard_tab_behaviour(key)
+        button_type = util.get_button_type(
+            key, self._open_main_menu, None, None,
+            size=parameter.Size(height=10),
+        )
+        if self._is_edit_or_ok(button_type):
+            selected = next(
+                (rb.label.split()[0] for rb in self._iface_radiogroup if rb.state),
+                "",
+            )
+            if selected == self._BOND_CREATE_SENTINEL:
+                self._open_network_bond_create()
+            elif selected:
+                self._open_network_interface_edit(selected)
+        elif self._is_cancel_or_esc(button_type, key):
+            self._open_main_menu()
+
+    # ------------------------------------------------------------------
+    # Interface editor: addresses, routes, DNS, and bond-specific fields.
+    # ------------------------------------------------------------------
+
+    def _open_network_interface_edit(self, iface: str):
+        self._reset_layout()
+        self.control.app_control.current_window = NETWORK_INTERFACE_EDIT
+        cfg = cui.network.load_interface_config(iface)
+        self._iface_editing = iface
+        self._iface_kind = cfg.kind
+        self._iface_dhcp4_cb = urwid.CheckBox(_("DHCPv4"), state=cfg.dhcp4)
+        self._iface_dhcp6_cb = urwid.CheckBox(_("DHCPv6"), state=cfg.dhcp6)
+        self._iface_edit_addrs = cui.classes.gwidgets.GEdit(
+            (18, _("Addresses: ")),
+            edit_text="\n".join(cfg.addresses),
+            multiline=True,
+        )
+        self._iface_edit_gw4 = cui.classes.gwidgets.GEdit(
+            (18, _("Default gw v4: ")), edit_text=cfg.gateway4,
+        )
+        self._iface_edit_gw6 = cui.classes.gwidgets.GEdit(
+            (18, _("Default gw v6: ")), edit_text=cfg.gateway6,
+        )
+        self._iface_edit_routes = cui.classes.gwidgets.GEdit(
+            (18, _("Static routes: ")),
+            edit_text="\n".join(
+                f"{d} via {g}" if g else d for d, g in cfg.routes
+            ),
+            multiline=True,
+        )
+        self._iface_edit_dns = cui.classes.gwidgets.GEdit(
+            (18, _("DNS servers: ")),
+            edit_text="\n".join(cfg.dns),
+            multiline=True,
+        )
+        pile_items = [
+            GText(_("Interface: %(name)s (%(kind)s)") %
+                  {"name": iface, "kind": cfg.kind}, urwid.CENTER),
+            GText(_("One value per line. CIDR for addresses; "
+                    "'<dest> via <gw>' for routes."), urwid.CENTER),
+            urwid.Divider(),
+            urwid.AttrMap(self._iface_dhcp4_cb, "selectable", "focus"),
+            urwid.AttrMap(self._iface_dhcp6_cb, "selectable", "focus"),
+            urwid.Divider(),
+            self._iface_edit_addrs,
+            self._iface_edit_gw4,
+            self._iface_edit_gw6,
+            self._iface_edit_routes,
+            self._iface_edit_dns,
+        ]
+        if cfg.kind == "bond":
+            pile_items.append(urwid.Divider())
+            pile_items.append(
+                GText(_("Bond mode: %(mode)s   MIIMON: %(miimon)d ms   "
+                        "Members: %(members)s") %
+                      {"mode": cfg.bond_mode,
+                       "miimon": cfg.bond_miimon,
+                       "members": ", ".join(cfg.bond_members) or _("(none)")},
+                      urwid.CENTER))
+        body = urwid.Padding(urwid.Filler(urwid.Pile(pile_items), urwid.TOP))
+        footer = urwid.AttrMap(
+            urwid.Columns([
+                self.view.button_store.save_button,
+                self.view.button_store.cancel_button,
+            ]),
+            "buttonbar",
+        )
+        frame = parameter.Frame(
+            body=urwid.AttrMap(body, "body"),
+            footer=footer,
+            focus_part="body",
+        )
+        self.dialog(
+            frame,
+            alignment=parameter.Alignment(urwid.CENTER, urwid.MIDDLE),
+            size=parameter.Size(width=80, height=24),
+            title=_("Edit interface %s") % iface,
+        )
+
+    def _key_ev_network_iface_edit(self, key: str):
+        self._handle_standard_tab_behaviour(key)
+        button_type = util.get_button_type(
+            key, self._open_network_interface_select, None, None,
+            size=parameter.Size(height=10),
+        )
+        if self._is_save_or_ok(button_type):
+            err = self._save_iface_from_form()
+            if err:
+                self.message_box(
+                    parameter.MsgBoxParams(err, _("Network configuration")),
+                    size=parameter.Size(height=10),
+                )
+                return
+            self._open_main_menu()
+        elif self._is_cancel_or_esc(button_type, key):
+            self._open_network_interface_select()
+
+    def _save_iface_from_form(self) -> str:
+        """Validate the form and write the new config; return error or ''."""
+        iface = getattr(self, "_iface_editing", None)
+        if not iface:
+            return _("No interface selected.")
+        dhcp4 = self._iface_dhcp4_cb.state
+        dhcp6 = self._iface_dhcp6_cb.state
+        addrs = [a.strip() for a in self._iface_edit_addrs.edit_text.splitlines()
+                 if a.strip()]
+        gw4 = self._iface_edit_gw4.edit_text.strip()
+        gw6 = self._iface_edit_gw6.edit_text.strip()
+        dns = [d.strip() for d in self._iface_edit_dns.edit_text.splitlines()
+               if d.strip()]
+        route_lines = [r.strip() for r in self._iface_edit_routes.edit_text.splitlines()
+                       if r.strip()]
+        routes = []
+        for line in route_lines:
+            rerr = cui.network.validate_route(line)
+            if rerr:
+                return _("Invalid route '%(line)s': %(err)s") % {
+                    "line": line, "err": rerr,
+                }
+            parsed = cui.network.parse_route_line(line)
+            if parsed:
+                routes.append(parsed)
+        for addr in addrs:
+            aerr = cui.network.validate_cidr(addr)
+            if aerr:
+                return _("Invalid address '%(addr)s': %(err)s") % {
+                    "addr": addr, "err": aerr,
+                }
+        for label, gw in (("gateway v4", gw4), ("gateway v6", gw6)):
+            if gw:
+                gwerr = cui.network.validate_ip(gw)
+                if gwerr:
+                    return _("Invalid %(label)s '%(gw)s': %(err)s") % {
+                        "label": label, "gw": gw, "err": gwerr,
+                    }
+        for d in dns:
+            derr = cui.network.validate_ip(d)
+            if derr:
+                return _("Invalid DNS server '%(d)s': %(err)s") % {
+                    "d": d, "err": derr,
+                }
+        # Preserve any bond-specific fields the user didn't touch in this dialog.
+        existing = cui.network.load_interface_config(iface)
+        cfg = cui.network.InterfaceConfig(
+            name=iface,
+            kind=existing.kind,
+            dhcp4=dhcp4,
+            dhcp6=dhcp6,
+            addresses=addrs,
+            gateway4=gw4,
+            gateway6=gw6,
+            dns=dns,
+            routes=routes,
+            bond_mode=existing.bond_mode,
+            bond_miimon=existing.bond_miimon,
+            bond_members=existing.bond_members,
+            bond_master=existing.bond_master,
+        )
+        # Carry over the on-disk file and the directives the editor does not
+        # surface (unmanaged [Network] keys, full route sections) so a save
+        # never drops operator-authored config.
+        cfg.source_file = existing.source_file
+        cfg.extra_network = existing.extra_network
+        cfg.extra_lines = existing.extra_lines
+        cfg.raw_routes = existing.raw_routes
+        ok = cui.network.save_interface_config(cfg)
+        if not ok:
+            return _("Failed to write the interface configuration.")
+        self.message_box(
+            parameter.MsgBoxParams(
+                _("Interface %(iface)s saved.") % {"iface": iface},
+                _("Network configuration"),
+            ),
+            size=parameter.Size(height=10),
+        )
+        return ""
+
+    # ------------------------------------------------------------------
+    # Bond creation dialog.
+    # ------------------------------------------------------------------
+
+    def _open_network_bond_create(self):
+        """Dialog to create a new bond device with member selection."""
+        self._reset_layout()
+        self.control.app_control.current_window = NETWORK_BOND_CREATE
+        candidates = cui.network.list_bondable_interfaces()
+        if not candidates:
+            self.message_box(
+                parameter.MsgBoxParams(
+                    _("No physical interfaces available for bonding."),
+                    _("Bond creation"),
+                ),
+                size=parameter.Size(height=10),
+            )
+            self._open_network_interface_select()
+            return
+        # Suggest the next free bondN name.
+        existing = {n for n in cui.network.list_interfaces()
+                    if n.startswith("bond")}
+        suggested = next(
+            (f"bond{i}" for i in range(0, 16) if f"bond{i}" not in existing),
+            "bond0",
+        )
+        self._bond_name_edit = cui.classes.gwidgets.GEdit(
+            (18, _("Bond name: ")), edit_text=suggested,
+        )
+        self._bond_miimon_edit = cui.classes.gwidgets.GEdit(
+            (18, _("MIIMON (ms): ")), edit_text="100",
+        )
+        self._bond_mode_rb_group = []
+        mode_items = []
+        for mode in cui.network.BOND_MODES:
+            rb = urwid.RadioButton(self._bond_mode_rb_group, mode,
+                                   state=(mode == "active-backup"))
+            mode_items.append(urwid.AttrMap(rb, "selectable", "focus"))
+        self._bond_member_checks = []
+        member_items = []
+        for name in candidates:
+            cb = urwid.CheckBox(name, state=False)
+            self._bond_member_checks.append((name, cb))
+            member_items.append(urwid.AttrMap(cb, "selectable", "focus"))
+        pile_items = [
+            GText(_("Create a new bond device. Pick the mode, the MIIMON "
+                    "interval and at least one physical member."),
+                  urwid.CENTER),
+            urwid.Divider(),
+            self._bond_name_edit,
+            self._bond_miimon_edit,
+            urwid.Divider(),
+            GText(_("Mode:"), urwid.LEFT),
+            urwid.Pile(mode_items),
+            urwid.Divider(),
+            GText(_("Members:"), urwid.LEFT),
+            urwid.Pile(member_items),
+        ]
+        body = urwid.Padding(urwid.Filler(urwid.Pile(pile_items), urwid.TOP))
+        footer = urwid.AttrMap(
+            urwid.Columns([
+                self.view.button_store.save_button,
+                self.view.button_store.cancel_button,
+            ]),
+            "buttonbar",
+        )
+        frame = parameter.Frame(
+            body=urwid.AttrMap(body, "body"),
+            footer=footer,
+            focus_part="body",
+        )
+        self.dialog(
+            frame,
+            alignment=parameter.Alignment(urwid.CENTER, urwid.MIDDLE),
+            size=parameter.Size(width=72, height=22),
+            title=_("Create bond device"),
+        )
+
+    def _key_ev_network_bond_create(self, key: str):
+        self._handle_standard_tab_behaviour(key)
+        button_type = util.get_button_type(
+            key, self._open_network_interface_select, None, None,
+            size=parameter.Size(height=10),
+        )
+        if self._is_save_or_ok(button_type):
+            err = self._create_bond_from_form()
+            if err:
+                self.message_box(
+                    parameter.MsgBoxParams(err, _("Bond creation")),
+                    size=parameter.Size(height=10),
+                )
+                return
+            self._open_main_menu()
+        elif self._is_cancel_or_esc(button_type, key):
+            self._open_network_interface_select()
+
+    def _create_bond_from_form(self) -> str:
+        name = self._bond_name_edit.edit_text.strip()
+        # Bond device names must be 'bond' followed by a number (bond0, bond1).
+        if not re.match(r"^bond[0-9]+$", name):
+            return _("Bond name must look like 'bond0', 'bond1', ...")
+        try:
+            miimon = int(self._bond_miimon_edit.edit_text.strip() or "100")
+        except ValueError:
+            return _("MIIMON must be a positive integer (milliseconds).")
+        if miimon <= 0:
+            return _("MIIMON must be a positive integer (milliseconds).")
+        mode = next((rb.label for rb in self._bond_mode_rb_group if rb.state),
+                    "active-backup")
+        members = [n for n, cb in self._bond_member_checks if cb.state]
+        if not members:
+            return _("Select at least one physical member.")
+        cfg = cui.network.InterfaceConfig(
+            name=name,
+            kind="bond",
+            bond_mode=mode,
+            bond_miimon=miimon,
+            bond_members=members,
+            dhcp4=True,
+        )
+        ok = cui.network.create_bond(cfg)
+        if not ok:
+            return _("Failed to create the bond device.")
+        self.message_box(
+            parameter.MsgBoxParams(
+                _("Bond %(name)s created with %(count)d members.") % {
+                    "name": name, "count": len(members),
+                },
+                _("Bond creation"),
+            ),
+            size=parameter.Size(height=10),
+        )
+        return ""

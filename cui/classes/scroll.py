@@ -85,7 +85,11 @@ class Scrollable(urwid.WidgetDecoration):
         #         canv.pad_trim_top_bottom(0, fill_height)
 
         if canv_cols <= var["maxcol"] and canv_rows <= var["maxrow"]:
-            # Canvas is small enough to fit without trimming
+            # Set _forward_keypress even when returning early; keypress() silently
+            # drops input for short lists that never scroll otherwise.
+            self._forward_keypress = (
+                True if canv.cursor is not None else original_widget.selectable()
+            )
             return canv
 
         self._adjust_trim_top(canv, size)
@@ -223,6 +227,7 @@ class Scrollable(urwid.WidgetDecoration):
         # still scroll out
         if (
             self._old_cursor_coords is not None
+            and canv.cursor is not None
             and self._old_cursor_coords != canv.cursor
         ):
             self._old_cursor_coords = None
