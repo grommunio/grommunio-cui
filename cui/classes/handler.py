@@ -7,7 +7,11 @@ from pathlib import Path
 from typing import Any, Tuple
 from getpass import getuser
 
-import requests
+try:
+    import requests
+except ImportError:  # requests is optional; only the repo dialog uses it
+    requests = None
+
 import urwid
 
 import cui.classes
@@ -408,6 +412,15 @@ class ApplicationHandler(ApplicationModel):
                 self._process_changed_repo_config(height, repo_res)
 
     def _process_changed_repo_config(self, height, repo_res, raw_url: str = None):
+        if requests is None:
+            self.message_box(
+                parameter.MsgBoxParams(
+                    _('The "requests" Python package is required to download '
+                      'the repository key but is not installed.'),
+                ),
+                size=parameter.Size(height=height + 2),
+            )
+            return
         header = GText(_("One moment, please ..."))
         footer = GText(_('Fetching GPG-KEY file and refreshing '
                           'repositories. This may take a while ...'))
