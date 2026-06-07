@@ -365,6 +365,10 @@ def apply_live(iface: str = "") -> bool:
     ok = True
     if backend == "wicked":
         ok &= _run(["wicked", "ifreload", iface or "all"])
+        # ifreload only reapplies the interface files; DNS lives in
+        # NETCONFIG_DNS_STATIC_SERVERS and needs netconfig to regenerate
+        # resolv.conf. Best-effort: ignore failure if netconfig is absent.
+        _run(["netconfig", "update"])
     elif backend == "NetworkManager":
         ok &= _run(["nmcli", "connection", "reload"])
         if iface:
@@ -725,11 +729,29 @@ def _wicked_file(iface: str) -> Path:
     return _WICKED_DIR / f"ifcfg-{iface}"
 
 
+# ifcfg keys we render ourselves; everything else (ZONE, MTU, ETHTOOL_OPTIONS,
+# LLADDR, ...) is operator-authored and must be preserved on write.
+_WICKED_MANAGED_KEYS = {
+    "STARTMODE", "BOOTPROTO", "IPADDR", "NETMASK", "PREFIXLEN", "REMOTE_IPADDR",
+    "BONDING_MASTER", "BONDING_MODULE_OPTS",
+}
+_WICKED_MANAGED_PREFIXES = (
+    "IPADDR_", "NETMASK_", "PREFIXLEN_", "LABEL_", "BONDING_SLAVE_",
+)
+
+
+def _wicked_key_managed(key: str) -> bool:
+    if key in _WICKED_MANAGED_KEYS:
+        return True
+    return any(key.startswith(p) for p in _WICKED_MANAGED_PREFIXES)
+
+
 def _read_wicked(iface: str) -> InterfaceConfig:
     cfg = InterfaceConfig(name=iface)
     path = _wicked_file(iface)
     if not path.is_file():
         return cfg
+    cfg.source_file = path
     entries: Dict[str, str] = {}
     indexed: Dict[str, Dict[str, str]] = {}
     try:
@@ -747,6 +769,8 @@ def _read_wicked(iface: str) -> InterfaceConfig:
                     base = m.group(1)
                     idx = m.group(2)
                     indexed.setdefault(base, {})[idx] = val
+                if not _wicked_key_managed(key):
+                    cfg.extra_lines[key] = val
     except OSError:
         return cfg
     bootproto = entries.get("BOOTPROTO", "static").lower()
@@ -897,6 +921,9 @@ def _write_wicked(cfg: InterfaceConfig, member_for_bond: bool = False) -> bool:
         lines.append(f"IPADDR='{cfg.addresses[0]}'\n")
         for i, extra in enumerate(cfg.addresses[1:]):
             lines.append(f"IPADDR_{i}='{extra}'\n")
+    # Re-emit ifcfg keys we do not manage (ZONE, MTU, ETHTOOL_OPTIONS, ...).
+    for key, val in getattr(cfg, "extra_lines", {}).items():
+        lines.append(f"{key}='{val}'\n")
     if not _write_file(path, "".join(lines)):
         return False
     if cfg.dns:
@@ -933,12 +960,24 @@ def _write_wicked_routes(cfg: InterfaceConfig) -> bool:
     # go in /etc/sysconfig/network/ifroute-<iface>.
     routes_file = _WICKED_DIR / "routes"
     existing: List[str] = []
+    # Only replace the default route for a family when we have a value for it.
+    # Otherwise keep the existing default line so editing one family (or other
+    # interfaces sharing this file) never drops a working default gateway.
+    drop_v4 = bool(cfg.gateway4)
+    drop_v6 = bool(cfg.gateway6)
     if routes_file.is_file():
         try:
             with routes_file.open("r", encoding="utf-8") as fh:
                 for line in fh:
-                    if line.strip().startswith("default"):
-                        continue
+                    stripped = line.strip()
+                    if stripped.startswith("default"):
+                        parts = stripped.split()
+                        gw = parts[1] if len(parts) > 1 else ""
+                        is_v6 = ":" in gw
+                        if is_v6 and drop_v6:
+                            continue
+                        if not is_v6 and drop_v4:
+                            continue
                     existing.append(line.rstrip("\n"))
         except OSError:
             pass
