@@ -451,10 +451,18 @@ def _read_networkd(iface: str) -> InterfaceConfig:
         cfg.extra_network[key] = list(network.get(f"__list_{key}__", [str(vals)]))
     # Route sections: each [Route] section becomes one entry. The full section
     # dict is kept in raw_routes so attributes we do not surface in the UI
-    # (Scope, Metric, Table, GatewayOnLink, ...) are not lost on save.
-    for route in sections.get("__sections_Route__", []):
-        dest = route.get("Destination", "")
-        via = route.get("Gateway", "")
+    # (Scope, Metric, Table, GatewayOnLink, ...) are not lost on save. A default
+    # route expressed as a [Route] block is promoted to gateway4/gateway6 so it
+    # shows in the gateway field and is not written out twice.
+    for route in _iter_sections(sections, "Route"):
+        dest = str(route.get("Destination", ""))
+        via = str(route.get("Gateway", ""))
+        if dest in ("0.0.0.0/0", "0.0.0.0") and via and not cfg.gateway4:
+            cfg.gateway4 = via
+            continue
+        if dest == "::/0" and via and not cfg.gateway6:
+            cfg.gateway6 = via
+            continue
         cfg.raw_routes.append({k: v for k, v in route.items()
                                if not k.startswith("__list_")})
         if dest:
@@ -489,6 +497,22 @@ def _networkd_matches(path: Path, iface: str) -> bool:
     except OSError:
         return False
     return str(sections.get("Match", {}).get("Name", "")) == iface
+
+
+def _iter_sections(sections: Dict[str, object], name: str) -> List[Dict[str, object]]:
+    """Return every parsed section called `name`, whether it occurs once or many.
+
+    _parse_ini only fills '__sections_<name>__' once a section repeats, so a
+    file with a single [Route] would otherwise be invisible. Normalise that
+    here so callers always see a list.
+    """
+    multi = sections.get(f"__sections_{name}__")
+    if isinstance(multi, list):
+        return [s for s in multi if isinstance(s, dict)]
+    single = sections.get(name)
+    if isinstance(single, dict):
+        return [single]
+    return []
 
 
 def _parse_ini(path: Path) -> Dict[str, object]:
