@@ -1238,6 +1238,13 @@ class ApplicationHandler(ApplicationModel):
             bond_members=existing.bond_members,
             bond_master=existing.bond_master,
         )
+        # Carry over the on-disk file and the directives the editor does not
+        # surface (unmanaged [Network] keys, full route sections) so a save
+        # never drops operator-authored config.
+        cfg.source_file = existing.source_file
+        cfg.extra_network = existing.extra_network
+        cfg.extra_lines = existing.extra_lines
+        cfg.raw_routes = existing.raw_routes
         ok = cui.network.save_interface_config(cfg)
         if not ok:
             return _("Failed to write the interface configuration.")

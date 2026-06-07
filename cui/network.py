@@ -87,6 +87,20 @@ class InterfaceConfig:
         self.bond_miimon = bond_miimon
         self.bond_members = list(bond_members) if bond_members else []
         self.bond_master = bond_master
+        # Preservation state, populated by the readers and consumed by the
+        # writers so we never clobber operator-authored directives we do not
+        # manage ourselves. Not part of the public constructor on purpose.
+        # source_file: the on-disk file the config came from (write back there
+        #   instead of creating a competing 50-grommunio-*.network file).
+        self.source_file = None  # type: Optional[Path]
+        # extra_network: unmanaged "[Network]" keys (Domains, IPForward, ...),
+        #   each mapped to its list of raw string values.
+        self.extra_network = {}  # type: Dict[str, List[str]]
+        # raw_routes: the verbatim "[Route]" sections as parsed (list of dicts),
+        #   re-emitted unchanged when the operator did not edit the route list.
+        self.raw_routes = []  # type: List[Dict[str, str]]
+        # extra_lines: unmanaged "ifcfg" keys for the wicked backend.
+        self.extra_lines = {}  # type: Dict[str, str]
 
     def is_static(self) -> bool:
         return not (self.dhcp4 or self.dhcp6) and bool(self.addresses)
@@ -395,6 +409,11 @@ def _networkd_file(iface: str, ext: str = "network") -> Path:
     return _NETWORKD_DIR / f"50-grommunio-{iface}.{ext}"
 
 
+# "[Network]" keys we render ourselves; everything else in that section is an
+# operator-authored directive we must preserve verbatim on write.
+_NETWORKD_MANAGED_KEYS = {"DHCP", "Address", "Gateway", "DNS", "Bond"}
+
+
 def _read_networkd(iface: str) -> InterfaceConfig:
     cfg = InterfaceConfig(name=iface)
     path = _networkd_file(iface)
@@ -405,6 +424,7 @@ def _read_networkd(iface: str) -> InterfaceConfig:
                 break
     if not path.is_file():
         return cfg
+    cfg.source_file = path
     sections = _parse_ini(path)
     network = sections.get("Network", {})
     dhcp_val = str(network.get("DHCP", "no")).lower()
@@ -421,10 +441,22 @@ def _read_networkd(iface: str) -> InterfaceConfig:
     bond = network.get("Bond", "")
     if bond:
         cfg.bond_master = str(bond)
-    # Route sections: each [Route] section becomes one entry.
+    # Stash any "[Network]" directives we do not manage so they survive a save
+    # (e.g. Domains, IPForward, IPv6AcceptRA, LinkLocalAddressing).
+    for key, vals in network.items():
+        if key.startswith("__list_") or key.startswith("__sections_"):
+            continue
+        if key in _NETWORKD_MANAGED_KEYS:
+            continue
+        cfg.extra_network[key] = list(network.get(f"__list_{key}__", [str(vals)]))
+    # Route sections: each [Route] section becomes one entry. The full section
+    # dict is kept in raw_routes so attributes we do not surface in the UI
+    # (Scope, Metric, Table, GatewayOnLink, ...) are not lost on save.
     for route in sections.get("__sections_Route__", []):
         dest = route.get("Destination", "")
         via = route.get("Gateway", "")
+        cfg.raw_routes.append({k: v for k, v in route.items()
+                               if not k.startswith("__list_")})
         if dest:
             cfg.routes.append((dest, via))
     # If a corresponding .netdev exists, this is a bond device.
@@ -515,6 +547,19 @@ def _parse_ini(path: Path) -> Dict[str, object]:
     return out
 
 
+def _networkd_target(cfg: InterfaceConfig) -> Path:
+    """Return the file to write for cfg.
+
+    If the config was read from an operator-authored file (e.g. eth0.network),
+    write back to that same file so we do not leave two competing .network
+    files matching the interface. Otherwise own a 50-grommunio-<iface>.network.
+    """
+    src = getattr(cfg, "source_file", None)
+    if src is not None:
+        return Path(src)
+    return _networkd_file(cfg.name)
+
+
 def _write_networkd(cfg: InterfaceConfig, member_for_bond: bool = False) -> bool:
     try:
         _NETWORKD_DIR.mkdir(parents=True, exist_ok=True)
@@ -530,6 +575,7 @@ def _write_networkd(cfg: InterfaceConfig, member_for_bond: bool = False) -> bool
             f"Bond={cfg.bond_master}\n",
         ]
         return _write_file(_networkd_file(cfg.name), "".join(body))
+    target = _networkd_target(cfg)
     lines: List[str] = ["[Match]\n", f"Name={cfg.name}\n", "\n", "[Network]\n"]
     if cfg.dhcp4 and cfg.dhcp6:
         lines.append("DHCP=yes\n")
@@ -549,18 +595,64 @@ def _write_networkd(cfg: InterfaceConfig, member_for_bond: bool = False) -> bool
     for dns in cfg.dns:
         if dns.strip():
             lines.append(f"DNS={dns.strip()}\n")
-    for dest, via in cfg.routes:
-        if not dest:
-            continue
-        lines.append("\n[Route]\n")
-        lines.append(f"Destination={dest}\n")
-        if via:
-            lines.append(f"Gateway={via}\n")
-    if not _write_file(_networkd_file(cfg.name), "".join(lines)):
+    # Re-emit "[Network]" directives we do not manage but that the operator set.
+    for key, vals in getattr(cfg, "extra_network", {}).items():
+        for val in vals:
+            lines.append(f"{key}={val}\n")
+    lines.append(_networkd_routes_block(cfg))
+    if not _write_file(target, "".join(lines)):
         return False
+    # If we just wrote 50-grommunio-<iface>.network but a differently-named
+    # operator file for the same interface still exists, both would be applied
+    # by networkd (Address= is cumulative). Remove the stale duplicate.
+    _drop_conflicting_networkd_files(cfg.name, keep=target)
     if cfg.kind == "bond":
         _write_networkd_netdev_for_bond(cfg)
     return True
+
+
+def _networkd_routes_block(cfg: InterfaceConfig) -> str:
+    """Render the [Route] sections.
+
+    When the operator did not change the route list, re-emit the original
+    sections verbatim so attributes we do not surface (Scope, Metric, Table,
+    GatewayOnLink, ...) and IPv6 default routes are preserved. Otherwise emit
+    the edited destination/gateway pairs.
+    """
+    raw = getattr(cfg, "raw_routes", [])
+    raw_pairs = [(r.get("Destination", ""), r.get("Gateway", "")) for r in raw]
+    if raw and raw_pairs == list(cfg.routes):
+        out = []
+        for section in raw:
+            out.append("\n[Route]\n")
+            for key, val in section.items():
+                out.append(f"{key}={val}\n")
+        return "".join(out)
+    out = []
+    for dest, via in cfg.routes:
+        if not dest:
+            continue
+        out.append("\n[Route]\n")
+        out.append(f"Destination={dest}\n")
+        if via:
+            out.append(f"Gateway={via}\n")
+    return "".join(out)
+
+
+def _drop_conflicting_networkd_files(iface: str, keep: Path) -> None:
+    """Remove other .network files that also match `iface` via [Match] Name=.
+
+    networkd applies every matching file, so a leftover operator file plus our
+    own file would double up addresses. We only ever remove a file we are
+    replacing the role of; the file we just wrote (`keep`) is never touched.
+    """
+    if not _NETWORKD_DIR.is_dir():
+        return
+    for candidate in _NETWORKD_DIR.glob("*.network"):
+        if candidate == keep:
+            continue
+        if _networkd_matches(candidate, iface):
+            _unlink(candidate)
 
 
 def _write_networkd_netdev_for_bond(cfg: InterfaceConfig) -> bool:
