@@ -20,7 +20,6 @@ import os
 import re
 import socket
 import subprocess
-from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -42,32 +41,52 @@ BOND_MODES = [
 ]
 
 
-@dataclass
 class InterfaceConfig:
     """In-memory representation of an interface's intended configuration.
 
     Used for both ethernet links and bond devices. For bond members the
     `bond_master` field carries the parent name; for bond devices the
     `bond_mode`/`bond_miimon`/`bond_members` fields are populated.
+
+    Plain class rather than a dataclass on purpose: openSUSE Leap 15.6 ships
+    Python 3.6, where the `dataclasses` module is not available.
     """
-    name: str
-    kind: str = "ethernet"  # 'ethernet' or 'bond'
-    dhcp4: bool = False
-    dhcp6: bool = False
-    addresses: List[str] = field(default_factory=list)  # CIDR list
-    gateway4: str = ""
-    gateway6: str = ""
-    dns: List[str] = field(default_factory=list)
-    # Static routes: list of (destination_cidr, via_gateway). The via field
-    # may be empty for on-link routes; the destination must always be set.
-    routes: List[Tuple[str, str]] = field(default_factory=list)
-    enabled: bool = True
-    # Bond settings (only meaningful when kind == 'bond'):
-    bond_mode: str = "active-backup"
-    bond_miimon: int = 100
-    bond_members: List[str] = field(default_factory=list)
-    # If this interface is a bond member, this is the bond device name:
-    bond_master: str = ""
+
+    def __init__(
+        self,
+        name: str,
+        kind: str = "ethernet",  # 'ethernet' or 'bond'
+        dhcp4: bool = False,
+        dhcp6: bool = False,
+        addresses: Optional[List[str]] = None,  # CIDR list
+        gateway4: str = "",
+        gateway6: str = "",
+        dns: Optional[List[str]] = None,
+        # Static routes: list of (destination_cidr, via_gateway). The via field
+        # may be empty for on-link routes; the destination must always be set.
+        routes: Optional[List[Tuple[str, str]]] = None,
+        enabled: bool = True,
+        # Bond settings (only meaningful when kind == 'bond'):
+        bond_mode: str = "active-backup",
+        bond_miimon: int = 100,
+        bond_members: Optional[List[str]] = None,
+        # If this interface is a bond member, this is the bond device name:
+        bond_master: str = "",
+    ):
+        self.name = name
+        self.kind = kind
+        self.dhcp4 = dhcp4
+        self.dhcp6 = dhcp6
+        self.addresses = list(addresses) if addresses else []
+        self.gateway4 = gateway4
+        self.gateway6 = gateway6
+        self.dns = list(dns) if dns else []
+        self.routes = list(routes) if routes else []
+        self.enabled = enabled
+        self.bond_mode = bond_mode
+        self.bond_miimon = bond_miimon
+        self.bond_members = list(bond_members) if bond_members else []
+        self.bond_master = bond_master
 
     def is_static(self) -> bool:
         return not (self.dhcp4 or self.dhcp6) and bool(self.addresses)
@@ -296,7 +315,7 @@ def delete_interface_config(iface: str) -> bool:
     if backend == "wicked":
         for fname in (f"ifcfg-{iface}",):
             try:
-                (_WICKED_DIR / fname).unlink(missing_ok=True)
+                _unlink(_WICKED_DIR / fname)
                 ok = True
             except OSError:
                 pass
@@ -314,7 +333,7 @@ def delete_interface_config(iface: str) -> bool:
     else:
         for ext in ("network", "netdev"):
             try:
-                (_NETWORKD_DIR / f"50-grommunio-{iface}.{ext}").unlink(missing_ok=True)
+                _unlink(_NETWORKD_DIR / f"50-grommunio-{iface}.{ext}")
                 ok = True
             except OSError:
                 pass
@@ -353,6 +372,18 @@ def _run(cmd: List[str]) -> bool:
         return rc.returncode == 0
     except (OSError, subprocess.SubprocessError):
         return False
+
+
+def _unlink(path: Path) -> None:
+    """Remove `path`, ignoring a missing file.
+
+    Path.unlink(missing_ok=...) only exists from Python 3.8; openSUSE Leap
+    15.6 ships Python 3.6, so we catch FileNotFoundError instead.
+    """
+    try:
+        path.unlink()
+    except FileNotFoundError:
+        pass
 
 
 # --- systemd-networkd backend ----------------------------------------------
@@ -792,7 +823,7 @@ def _write_wicked_routes(cfg: InterfaceConfig) -> bool:
         _write_file(ifroute, body)
     else:
         try:
-            ifroute.unlink(missing_ok=True)
+            _unlink(ifroute)
         except OSError:
             pass
     return True
