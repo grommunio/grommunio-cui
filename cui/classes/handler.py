@@ -2,6 +2,7 @@
 # SPDX-FileCopyrightText: 2022–2024 grommunio GmbH
 """The module contains the handling code of grommunio-cui"""
 import os
+import re
 import subprocess
 from pathlib import Path
 from typing import Any, Tuple
@@ -1368,7 +1369,8 @@ class ApplicationHandler(ApplicationModel):
 
     def _create_bond_from_form(self) -> str:
         name = self._bond_name_edit.edit_text.strip()
-        if not name or not name.isidentifier() and not name.startswith("bond"):
+        # Bond device names must be 'bond' followed by a number (bond0, bond1).
+        if not re.match(r"^bond[0-9]+$", name):
             return _("Bond name must look like 'bond0', 'bond1', ...")
         try:
             miimon = int(self._bond_miimon_edit.edit_text.strip() or "100")
