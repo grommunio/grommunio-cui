@@ -190,7 +190,10 @@ def check_repo_dialog(app, height):
         base = _distro.get_repo_baseurl(channel="supported", user=user, password=password)
         # Build a probe URL for the repodata index; format differs by family.
         if _distro.is_debian_family():
-            probe = f"{base.rstrip('/')}/Release"
+            # Standard apt layout: dists/<suite>/Release, where the suite name
+            # is the last path segment of the base url (e.g. Debian_13).
+            suite = base.rstrip('/').split('/')[-1]
+            probe = f"{base.rstrip('/')}/dists/{suite}/Release"
         else:
             probe = f"{base.rstrip('/')}/repodata/repomd.xml"
         # The credentials are embedded in `base`; strip them for the requests
