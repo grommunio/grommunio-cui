@@ -693,12 +693,26 @@ def _write_networkd_netdev_for_bond(cfg: InterfaceConfig) -> bool:
 
 
 def _write_file(path: Path, body: str) -> bool:
+    """Atomically replace `path` with `body`.
+
+    Write to a temp file in the same directory, fsync, then rename over the
+    target so an interrupted write (disk full, kill) can never leave a
+    truncated config behind — losing the interface config would cut the box off.
+    """
+    tmp = path.with_name(f".{path.name}.tmp")
     try:
-        with path.open("w", encoding="utf-8") as fh:
+        with tmp.open("w", encoding="utf-8") as fh:
             fh.write(body)
-        os.chmod(path, 0o644)
+            fh.flush()
+            os.fsync(fh.fileno())
+        os.chmod(tmp, 0o644)
+        os.replace(str(tmp), str(path))
         return True
     except OSError:
+        try:
+            _unlink(tmp)
+        except OSError:
+            pass
         return False
 
 
