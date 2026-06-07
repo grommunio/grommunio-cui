@@ -252,10 +252,16 @@ def get_keyfile_destination() -> str:
     apt (>= 2.4) accepts ASCII-armored keys at that path when referenced via
     `signed-by=`. Older releases need a dearmored .gpg file; download.grommunio
     .com publishes the ASCII-armored variant and we install it as-is.
+
+    For rpm distros the key must live somewhere persistent, because the repo
+    file's `gpgkey=` references it on every refresh — a /tmp path would vanish
+    on reboot and break `zypper`/`dnf` with a missing-key error. /etc/pki/rpm-gpg
+    is the conventional location and exists (or is safe to create) on SUSE,
+    RHEL and Fedora alike.
     """
     if is_debian_family():
         return "/etc/apt/keyrings/grommunio.asc"
-    return "/tmp/RPM-GPG-KEY-grommunio"
+    return "/etc/pki/rpm-gpg/RPM-GPG-KEY-grommunio"
 
 
 def render_repo_file(baseurl: str, key_destination: str) -> str:
@@ -263,9 +269,12 @@ def render_repo_file(baseurl: str, key_destination: str) -> str:
     if is_debian_family():
         # Debian/Ubuntu use deb822/sources.list flat format.
         # We use the simpler one-line form, signed-by the key we placed.
-        suite = baseurl.rstrip('/').split('/')[-1]
+        # `?ssl_verify=no` is a zypper-ism; apt would treat it as part of the
+        # URL/suite, so strip any query string before building the entry.
+        clean = baseurl.split('?', 1)[0].split('#', 1)[0]
+        suite = clean.rstrip('/').split('/')[-1]
         return (
-            f"deb [signed-by={key_destination}] {baseurl} {suite} main\n"
+            f"deb [signed-by={key_destination}] {clean} {suite} main\n"
         )
     # rpm-md style for zypper/dnf/yum
     return (
