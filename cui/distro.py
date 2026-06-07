@@ -189,16 +189,21 @@ def _repo_code() -> str:
     if distro_id == "opensuse-tumbleweed":
         return "openSUSE_Tumbleweed"
     if distro_id in ("sles", "sled"):
-        return f"SLE_{version}" if version else "SLE_15"
+        # download.grommunio.com publishes SLE_<major>_SP<minor>, e.g. SLE_15_SP6.
+        minor = version.split(".")[1] if "." in version else ""
+        if major and minor:
+            return f"SLE_{major}_SP{minor}"
+        return f"SLE_{major}" if major else "SLE_15_SP6"
     if distro_id == "debian":
         return f"Debian_{major}" if major else "Debian_13"
     if distro_id == "ubuntu":
-        # uses xx.yy
-        return f"xUbuntu_{version}" if version else "xUbuntu_24.04"
+        # download.grommunio.com publishes Ubuntu_xx.yy (no leading x).
+        return f"Ubuntu_{version}" if version else "Ubuntu_24.04"
     if distro_id in ("rhel", "centos", "rocky", "almalinux", "ol"):
-        return f"RHEL_{major}" if major else "RHEL_10"
+        # download.grommunio.com publishes EL<major>, e.g. EL10, EL9.
+        return f"EL{major}" if major else "EL10"
     if distro_id == "fedora":
-        return f"Fedora_{version}" if version else "Fedora_42"
+        return f"Fedora_{version}" if version else "Fedora_43"
     # Best-effort fallback
     return "openSUSE_Leap_15.6"
 
