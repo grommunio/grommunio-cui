@@ -9,7 +9,7 @@ import urwid
 from cui import classes
 from cui.classes.gwidgets import GText, GEdit
 from cui import util, parameter
-from cui import distro, network, sysconfig  # noqa: F401  pulled in for `cui.distro` etc.
+from cui import distro, localetime, network  # noqa: F401  pulled in for `cui.distro` etc.
 import cui.classes.parser
 from cui.classes.application import Header, MainFrame, GScreen, ButtonStore
 from cui.classes.handler import ApplicationHandler

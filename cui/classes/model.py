@@ -554,8 +554,8 @@ class ApplicationModel(BaseApplication):
             # urwid.AttrMap wrapping a RadioButton.
             widget = getattr(layout, "base_widget", layout)
             layout = getattr(widget, "label", str(widget))
-        from cui import sysconfig as _sysconfig
-        ok = _sysconfig.set_keymap(layout)
+        from cui import localetime as _localetime
+        ok = _localetime.set_keymap(layout)
         if not ok:
             file = "/etc/vconsole.conf"
             var = util.minishell_read(file)
@@ -582,8 +582,8 @@ class ApplicationModel(BaseApplication):
         # `localectl list-keymaps` works on every supported distro and is the
         # canonical answer. /usr/share/kbd/keymaps is the openSUSE/Fedora layout
         # but Debian places the same data under /usr/share/keymaps.
-        from cui import sysconfig as _sysconfig
-        all_kbds = _sysconfig.list_keymaps()
+        from cui import localetime as _localetime
+        all_kbds = _localetime.list_keymaps()
         if not all_kbds:
             for base in ("/usr/share/kbd/keymaps", "/usr/share/keymaps"):
                 if os.path.isdir(base):

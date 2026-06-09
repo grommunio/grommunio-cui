@@ -960,8 +960,8 @@ def get_current_kbdlayout():
     available we prefer it, since it always reflects the running state.
     """
     try:
-        from cui import sysconfig as _sysconfig  # local import to avoid cycles
-        layout = _sysconfig.get_current_keymap()
+        from cui import localetime as _localetime  # local import to avoid cycles
+        layout = _localetime.get_current_keymap()
         if layout:
             return layout
     except Exception:
