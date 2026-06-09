@@ -20,7 +20,6 @@ import os
 import re
 import socket
 import subprocess
-from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -42,32 +41,53 @@ BOND_MODES = [
 ]
 
 
-@dataclass
 class InterfaceConfig:
     """In-memory representation of an interface's intended configuration.
 
     Used for both ethernet links and bond devices. For bond members the
     `bond_master` field carries the parent name; for bond devices the
     `bond_mode`/`bond_miimon`/`bond_members` fields are populated.
+
+    Deliberately a plain class rather than a dataclass: openSUSE Leap 15.6
+    ships python 3.6, which has no dataclasses module, and this keeps 15.6
+    and 16.0 on one code path.
     """
-    name: str
-    kind: str = "ethernet"  # 'ethernet' or 'bond'
-    dhcp4: bool = False
-    dhcp6: bool = False
-    addresses: List[str] = field(default_factory=list)  # CIDR list
-    gateway4: str = ""
-    gateway6: str = ""
-    dns: List[str] = field(default_factory=list)
-    # Static routes: list of (destination_cidr, via_gateway). The via field
-    # may be empty for on-link routes; the destination must always be set.
-    routes: List[Tuple[str, str]] = field(default_factory=list)
-    enabled: bool = True
-    # Bond settings (only meaningful when kind == 'bond'):
-    bond_mode: str = "active-backup"
-    bond_miimon: int = 100
-    bond_members: List[str] = field(default_factory=list)
-    # If this interface is a bond member, this is the bond device name:
-    bond_master: str = ""
+
+    def __init__(
+        self,
+        name: str,
+        kind: str = "ethernet",  # 'ethernet' or 'bond'
+        dhcp4: bool = False,
+        dhcp6: bool = False,
+        addresses: Optional[List[str]] = None,  # CIDR list
+        gateway4: str = "",
+        gateway6: str = "",
+        dns: Optional[List[str]] = None,
+        # Static routes: list of (destination_cidr, via_gateway). The via
+        # field may be empty for on-link routes; destination must always be set.
+        routes: Optional[List[Tuple[str, str]]] = None,
+        enabled: bool = True,
+        # Bond settings (only meaningful when kind == 'bond'):
+        bond_mode: str = "active-backup",
+        bond_miimon: int = 100,
+        bond_members: Optional[List[str]] = None,
+        # If this interface is a bond member, this is the bond device name:
+        bond_master: str = "",
+    ):
+        self.name = name
+        self.kind = kind
+        self.dhcp4 = dhcp4
+        self.dhcp6 = dhcp6
+        self.addresses = addresses if addresses is not None else []
+        self.gateway4 = gateway4
+        self.gateway6 = gateway6
+        self.dns = dns if dns is not None else []
+        self.routes = routes if routes is not None else []
+        self.enabled = enabled
+        self.bond_mode = bond_mode
+        self.bond_miimon = bond_miimon
+        self.bond_members = bond_members if bond_members is not None else []
+        self.bond_master = bond_master
 
     def is_static(self) -> bool:
         return not (self.dhcp4 or self.dhcp6) and bool(self.addresses)
