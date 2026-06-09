@@ -97,7 +97,7 @@ mkdir -p "${TMPDIR_REL}"
 
 cat > "${TMPDIR_REL}/${WRAPPER}" <<EOF
 #!/bin/bash
-export PYTHONPATH="\${PYTHONPATH:-}:$(pwd):$(pwd)/cui"
+export PYTHONPATH="\${PYTHONPATH:-}:$(pwd)"
 exec python3 "$(pwd)/cui/__init__.py" "\$@"
 EOF
 chmod 755 "${TMPDIR_REL}/${WRAPPER}"
