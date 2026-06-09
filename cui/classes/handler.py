@@ -13,7 +13,7 @@ import urwid
 import cui.classes
 import cui.distro
 import cui.network
-import cui.sysconfig
+import cui.localetime
 from cui.classes.application import setup_state
 from cui.classes.menu import MenuItem
 from cui.symbol import LOG_VIEWER, MAIN, MESSAGE_BOX, INPUT_BOX, TERMINAL, PASSWORD, LOGIN, \
@@ -899,7 +899,7 @@ class ApplicationHandler(ApplicationModel):
         self._reset_layout()
         self.print(_("Opening language selection"))
         self.control.app_control.current_window = LOCALE_SELECTION
-        locales = cui.sysconfig.list_locales()
+        locales = cui.localetime.list_locales()
         if not locales:
             self.message_box(
                 parameter.MsgBoxParams(
@@ -909,7 +909,7 @@ class ApplicationHandler(ApplicationModel):
                 size=parameter.Size(height=10),
             )
             return
-        current = cui.sysconfig.get_current_locale()
+        current = cui.localetime.get_current_locale()
         self._locale_choices = locales
         self._locale_radiogroup = []
         items = []
@@ -950,7 +950,7 @@ class ApplicationHandler(ApplicationModel):
                 (rb.label for rb in self._locale_radiogroup if rb.state),
                 "",
             )
-            if selected and cui.sysconfig.set_locale(selected):
+            if selected and cui.localetime.set_locale(selected):
                 self.message_box(
                     parameter.MsgBoxParams(
                         _("System language set to %s.") % selected,
@@ -979,7 +979,7 @@ class ApplicationHandler(ApplicationModel):
         self._reset_layout()
         self.print(_("Opening timezone selection"))
         self.control.app_control.current_window = TIMEZONE_SELECTION
-        timezones = cui.sysconfig.list_timezones()
+        timezones = cui.localetime.list_timezones()
         if not timezones:
             self.message_box(
                 parameter.MsgBoxParams(
@@ -989,7 +989,7 @@ class ApplicationHandler(ApplicationModel):
                 size=parameter.Size(height=10),
             )
             return
-        current = cui.sysconfig.get_current_timezone()
+        current = cui.localetime.get_current_timezone()
         self._timezone_choices = timezones
         self._timezone_radiogroup = []
         items = []
@@ -1030,7 +1030,7 @@ class ApplicationHandler(ApplicationModel):
                 (rb.label for rb in self._timezone_radiogroup if rb.state),
                 "",
             )
-            if selected and cui.sysconfig.set_timezone(selected):
+            if selected and cui.localetime.set_timezone(selected):
                 self.message_box(
                     parameter.MsgBoxParams(
                         _("System timezone set to %s.") % selected,
