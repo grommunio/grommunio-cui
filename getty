@@ -6,6 +6,6 @@ echo
 echo " [36m▼[0m Loading grommunio console user interface"
 echo
 if [ -d /usr/libexec/grommunio-cui ]; then
-	PYTHONPATH="/usr/libexec/grommunio-cui:/usr/libexec/grommunio-cui/cui" exec "/usr/bin/python3" \
+	PYTHONPATH="/usr/libexec/grommunio-cui" exec "/usr/bin/python3" \
 		"/usr/libexec/grommunio-cui/__init__.py"
 fi
