@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 grommunio GmbH
-"""Wrappers around localectl / timedatectl.
+"""Wrappers around localectl / timedatectl / hostnamectl.
 
-Previously the CUI shelled out to yast2 for language, keyboard and timezone
-configuration. yast2 is openSUSE-specific; the systemd tools used here work on
-all supported distributions (openSUSE, Debian, Ubuntu, RHEL, Fedora).
+Previously the CUI shelled out to yast2 for language, keyboard, timezone and
+hostname configuration. yast2 is openSUSE-specific; the systemd tools used here
+work on all supported distributions (openSUSE, Debian, Ubuntu, RHEL, Fedora).
 """
 import subprocess
 from typing import List
@@ -109,6 +109,31 @@ def set_timezone(tz: str) -> bool:
     try:
         rc = subprocess.run(
             ["timedatectl", "set-timezone", tz],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            check=False, timeout=15,
+        )
+        return rc.returncode == 0
+    except (OSError, subprocess.SubprocessError):
+        return False
+
+
+def get_hostname() -> str:
+    raw = _run(["hostnamectl", "--static"]).strip()
+    if raw and raw not in ("(unset)", "n/a", "-"):
+        return raw
+    try:
+        with open("/etc/hostname", encoding="utf-8") as fh:
+            return fh.read().strip()
+    except OSError:
+        return ""
+
+
+def set_hostname(name: str) -> bool:
+    if not name:
+        return False
+    try:
+        rc = subprocess.run(
+            ["hostnamectl", "set-hostname", name],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
             check=False, timeout=15,
         )
