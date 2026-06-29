@@ -797,7 +797,12 @@ class ApplicationHandler(ApplicationModel):
         return idx
 
     def _handle_standard_tab_behaviour(self, key: str = "tab"):
-        """Handle Tab / Shift+Tab in dialogs: switch focus between body and footer."""
+        """Cycle dialog focus with Tab: body, then each footer button, wrap.
+
+        Tab used to toggle only between the body and the footer, so switching
+        from one footer button to the next ([ OK ] -> [ Cancel ]) needed the
+        arrow keys. Step through the footer buttons as well, then wrap to body.
+        """
         if key not in ("tab", "shift tab", "meta tab"):
             return
 
@@ -811,16 +816,48 @@ class ApplicationHandler(ApplicationModel):
         if not (has_footer and has_body):
             return
 
-        current = layout.focus_position
+        forward = key in ("tab", "meta tab")
+        columns = self._footer_button_columns(layout.footer)
+        buttons = []
+        if columns is not None:
+            buttons = [i for i, (widget, _opts) in enumerate(columns.contents)
+                       if widget.selectable()]
 
-        if key in ("tab", "meta tab"):
-            if current == "body":
-                layout.focus_position = "footer"
-            elif current == "footer":
-                layout.focus_position = "body"
-        elif key == "shift tab":
-            if current == "footer":
-                layout.focus_position = "body"
+        if layout.focus_position == "body":
+            layout.focus_position = "footer"
+            if buttons:
+                columns.focus_position = buttons[0] if forward else buttons[-1]
+            return
+
+        # Focus is on the footer: step through the buttons before leaving it.
+        if not buttons:
+            layout.focus_position = "body"
+            return
+        try:
+            pos = buttons.index(columns.focus_position)
+        except ValueError:
+            pos = 0
+        nxt = pos + 1 if forward else pos - 1
+        if 0 <= nxt < len(buttons):
+            columns.focus_position = buttons[nxt]
+        else:
+            layout.focus_position = "body"
+
+    def _footer_button_columns(self, footer):
+        """Return the urwid.Columns holding a footer's buttons, or None.
+
+        Footers are built as AttrMap(Columns(...)); unwrap the decoration
+        widgets to reach the column bar so its buttons can be focused directly.
+        """
+        widget = footer
+        for _ in range(8):
+            if isinstance(widget, urwid.Columns):
+                return widget
+            inner = getattr(widget, "original_widget", None)
+            if inner is None or inner is widget:
+                break
+            widget = inner
+        return None
     # ------------------------------------------------------------------
     # Helpers for matching translated button labels in a case-/locale-safe way.
     # ------------------------------------------------------------------
