@@ -158,7 +158,7 @@ def get_distribution_level():
 
     Kept for backwards compatibility; new code should use cui.distro.
     """
-    return _distro.get_distro_version() or "15.6"
+    return _distro.get_distro_version() or "16.0"
 
 
 def get_repo_url(user: str = None, password: str = None):

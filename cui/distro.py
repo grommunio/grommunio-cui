@@ -7,6 +7,7 @@ zypper. We support Debian, Ubuntu, RHEL and Fedora flavors as well, so each
 operation that touches the host (package install, network config, locale,
 timezone, repo file) needs to dispatch to the right backend.
 """
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -192,19 +193,57 @@ def get_repo_baseurl(channel: str = "community",
     return f"https://download.grommunio.com/community/{code}/"
 
 
+def _read_base_product_version() -> str:
+    """Return the openSUSE base product point-release (e.g. '16.0'), or ''.
+
+    The grommunio appliance reports ID=grommunio-lds with a VERSION_ID that does
+    not track the Leap base it is built on, so query the base product directly:
+    the openSUSE-release package version, falling back to /etc/products.d/
+    baseproduct (Leap 16.0 no longer ships the openSUSE-release package).
+    """
+    try:
+        out = subprocess.run(
+            ["rpm", "-q", "--qf", "%{VERSION}", "openSUSE-release"],
+            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+            check=False, timeout=5,
+        ).stdout.decode(errors="replace").strip()
+        if re.match(r"^\d+\.\d+$", out):
+            return out
+    except (OSError, subprocess.SubprocessError):
+        pass
+    try:
+        with open("/etc/products.d/baseproduct", "r", encoding="utf-8") as fh:
+            match = re.search(r"<version>(\d+\.\d+)", fh.read())
+        if match:
+            return match.group(1)
+    except OSError:
+        pass
+    return ""
+
+
+def _opensuse_leap_release() -> str:
+    """Return the openSUSE Leap point-release used in the repo path."""
+    version = get_distro_version()
+    if get_distro_id().startswith("opensuse") and re.match(r"^\d+\.\d+$", version):
+        return version
+    base = _read_base_product_version()
+    if base:
+        return base
+    return version if re.match(r"^\d+\.\d+$", version) else "16.0"
+
+
 def _repo_code() -> str:
     """Return the URL-segment grommunio uses for this distro's repo path.
 
-    Lines up with download.grommunio.com layout. Falls back to openSUSE_Leap_15.6
-    on unknown distros — matches what older grommunio-cui releases did.
+    Lines up with download.grommunio.com layout. Falls back to openSUSE_Leap_16.0
+    on unknown distros.
     """
     distro_id = get_distro_id()
     version = get_distro_version()
     major = version.split(".")[0] if version else ""
 
     if distro_id == "opensuse-leap":
-        # 15.4 -> openSUSE_Leap_15.4 ; 16.0 -> openSUSE_Leap_16.0 etc.
-        return f"openSUSE_Leap_{version}" if version else "openSUSE_Leap_15.6"
+        return f"openSUSE_Leap_{_opensuse_leap_release()}"
     if distro_id == "opensuse-tumbleweed":
         return "openSUSE_Tumbleweed"
     if distro_id in ("sles", "sled"):
@@ -223,8 +262,13 @@ def _repo_code() -> str:
         return f"EL{major}" if major else "EL10"
     if distro_id == "fedora":
         return f"Fedora_{version}" if version else "Fedora_43"
+    # The grommunio appliance (grommunio-lds) and other SUSE-family systems we
+    # don't match by ID are Leap-based; derive the base version instead of
+    # writing a stale code.
+    if is_suse_family():
+        return f"openSUSE_Leap_{_opensuse_leap_release()}"
     # Best-effort fallback
-    return "openSUSE_Leap_15.6"
+    return "openSUSE_Leap_16.0"
 
 
 def pkg_refresh_cmd() -> List[str]:
