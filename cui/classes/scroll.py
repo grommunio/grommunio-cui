@@ -158,8 +158,10 @@ class Scrollable(urwid.WidgetDecoration):
 
         elif command_map[key] == urwid.CURSOR_PAGE_UP:
             self._scroll_action = SCROLL_PAGE_UP
+            self._move_focus_by_page(size, "up")
         elif command_map[key] == urwid.CURSOR_PAGE_DOWN:
             self._scroll_action = SCROLL_PAGE_DOWN
+            self._move_focus_by_page(size, "down")
 
         elif command_map[key] == urwid.CURSOR_MAX_LEFT:  # 'home'
             self._scroll_action = SCROLL_TO_TOP
@@ -170,6 +172,21 @@ class Scrollable(urwid.WidgetDecoration):
             return key
 
         return self._invalidate()
+
+    def _move_focus_by_page(self, size, direction):
+        """Move the wrapped widget's focus by a page on page up/down.
+
+        Page up/down only shifts the viewport, leaving the selection behind.
+        Only acts when keypresses are forwarded to a selectable inner widget.
+        """
+        if not self._forward_keypress:
+            return
+        original_widget = self._original_widget
+        ow_size = self._get_original_widget_size(size)
+        move_key = "up" if direction == "up" else "down"
+        for _ in range(max(1, size[1] - 1)):
+            if original_widget.keypress(ow_size, move_key) is not None:
+                break
 
     # pylint: disable=too-many-arguments
     # because mouse_event method on urwid is the same
