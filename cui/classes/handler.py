@@ -857,6 +857,20 @@ class ApplicationHandler(ApplicationModel):
         aliases = self._button_aliases(_("Cancel"), _("cancel"))
         return button_type.lower() in aliases
 
+    def _focused_scroll_list(self, items, choices, current):
+        """Wrap radio items in a scrollable list focused on the current value.
+
+        Opening a long picker at the top forces the user to scroll down to
+        their current entry; start the focus and the viewport on it instead.
+        """
+        pile = urwid.Pile(items)
+        scrollable = cui.classes.scroll.Scrollable(pile)
+        if items and current in choices:
+            idx = choices.index(current)
+            pile.focus_position = idx
+            scrollable.set_scrollpos(idx)
+        return cui.classes.scroll.ScrollBar(scrollable)
+
     # ------------------------------------------------------------------
     # Locale selection dialog
     # ------------------------------------------------------------------
@@ -883,9 +897,7 @@ class ApplicationHandler(ApplicationModel):
         for loc in locales:
             rb = urwid.RadioButton(self._locale_radiogroup, loc, state=(loc == current))
             items.append(urwid.AttrMap(rb, "selectable", "focus"))
-        body = cui.classes.scroll.ScrollBar(
-            cui.classes.scroll.Scrollable(urwid.Pile(items))
-        )
+        body = self._focused_scroll_list(items, locales, current)
         footer = urwid.AttrMap(
             urwid.Columns([
                 self.view.button_store.save_button,
@@ -963,9 +975,7 @@ class ApplicationHandler(ApplicationModel):
         for tz in timezones:
             rb = urwid.RadioButton(self._timezone_radiogroup, tz, state=(tz == current))
             items.append(urwid.AttrMap(rb, "selectable", "focus"))
-        body = cui.classes.scroll.ScrollBar(
-            cui.classes.scroll.Scrollable(urwid.Pile(items))
-        )
+        body = self._focused_scroll_list(items, timezones, current)
         footer = urwid.AttrMap(
             urwid.Columns([
                 self.view.button_store.save_button,
