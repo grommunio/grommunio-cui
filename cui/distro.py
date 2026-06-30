@@ -146,6 +146,25 @@ def get_network_backend() -> str:
     return backend
 
 
+def is_resolved_active() -> bool:
+    """True if systemd-resolved is currently running.
+
+    When active, systemd-resolved owns /etc/resolv.conf (it consumes the
+    networkd DNS= keys and regenerates its stub file), so a backend must not
+    write resolv.conf itself.
+    """
+    return _is_unit_active("systemd-resolved.service")
+
+
+def is_resolved_enabled() -> bool:
+    """True if systemd-resolved is enabled (will own resolv.conf once started).
+
+    Distinguishes "installed but not yet started" (common mid-provisioning,
+    where we should trust resolved to take over) from "genuinely absent".
+    """
+    return _is_unit_enabled("systemd-resolved.service")
+
+
 def get_repo_file_path() -> str:
     """Return the path to the grommunio repository config file for this distro."""
     if is_suse_family():

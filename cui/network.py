@@ -378,6 +378,12 @@ def apply_live(iface: str = "") -> bool:
         ok &= _run(["networkctl", "reload"])
         if iface:
             _run(["networkctl", "reconfigure", iface])
+        # networkd hands DNS= to systemd-resolved and never writes
+        # /etc/resolv.conf itself. When resolved is absent nothing regenerates
+        # it, so static DNS silently fails to resolve. Synthesize resolv.conf
+        # ourselves — the networkd analogue of the wicked branch's
+        # `netconfig update` above. Self-gates on resolved state and ownership.
+        _networkd_sync_resolv_conf()
     return ok
 
 
@@ -694,6 +700,186 @@ def _write_networkd_netdev_for_bond(cfg: InterfaceConfig) -> bool:
         f"MIIMonitorSec={cfg.bond_miimon}ms\n",
     ]
     return _write_file(_networkd_file(cfg.name, "netdev"), "".join(body))
+
+
+# --- networkd DNS / resolv.conf -------------------------------------------
+#
+# networkd only feeds DNS= to systemd-resolved; it never writes
+# /etc/resolv.conf. On a box without systemd-resolved the operator's static DNS
+# is therefore inert and name resolution fails. We synthesise /etc/resolv.conf
+# ourselves in that case, the networkd analogue of the wicked backend's
+# `netconfig update`. resolv.conf is a single global file, so DNS is aggregated
+# across every *.network file rather than taken from one interface's config.
+
+_RESOLV_CONF = Path("/etc/resolv.conf")
+_RESOLV_MARKER = "# Managed by grommunio-cui"
+_RESOLVED_RUN_PREFIX = "/run/systemd/resolve"
+
+
+def _resolv_conf_is_ours_to_write(path: Path) -> bool:
+    """Decide whether we may replace `path` (/etc/resolv.conf) with a real file.
+
+    True for: a regular file, a missing file, a dangling symlink, or a symlink
+    whose target points into /run/systemd/resolve (resolved-owned, but resolved
+    is off here so that stub is stale/absent). False only for a symlink to an
+    existing, non-resolved target — an active external manager (resolvconf,
+    openresolv, a hand-rolled link) we must not fight.
+
+    A *live* resolved stub symlink also returns True here; that case is guarded
+    upstream by the resolved-active/enabled check in _networkd_sync_resolv_conf,
+    so this helper never has to tell a live stub from a stale one.
+
+    _write_file does os.replace(tmp, path) on this PATH, so when we return True
+    the symlink itself is atomically replaced by a real file (the link target is
+    never followed or written through).
+    """
+    p = str(path)
+    if not os.path.islink(p):
+        # Regular file or missing: safe to create / atomically replace.
+        return True
+    try:
+        raw = os.readlink(p)
+    except OSError:
+        # Unreadable link; replacing the link itself is safe.
+        return True
+    if os.path.isabs(raw):
+        target = os.path.normpath(raw)
+    else:
+        target = os.path.normpath(os.path.join(os.path.dirname(p), raw))
+    # resolved-owned target (resolved is off, so the stub is stale): ours to take.
+    if target.startswith(_RESOLVED_RUN_PREFIX):
+        return True
+    # Dangling symlink (os.path.exists follows the link; False means dangling):
+    # nothing live behind it, so ours to take.
+    if not os.path.exists(p):
+        return True
+    # Symlink to a live, non-resolved target: an active external manager. Leave.
+    return False
+
+
+def _networkd_aggregate_dns():
+    # type: () -> Tuple[List[str], List[str]]
+    """Aggregate DNS= and Domains= from every *.network file (operator + ours).
+
+    resolv.conf is a single global file, so an operator's own DNS= is also
+    legitimately theirs to apply; we only READ these files and never write them.
+    Scanning all *.network (not just 50-grommunio-*) also picks up an interface
+    saved into an operator-named file via _networkd_target, so the DNS the
+    operator just set always reaches resolv.conf without threading the saved
+    path through apply_live. Order follows the sorted filename; duplicates are
+    dropped preserving first-seen order.
+    """
+    servers = []  # type: List[str]
+    domains = []  # type: List[str]
+    seen_s = set()  # type: set
+    seen_d = set()  # type: set
+    if not _NETWORKD_DIR.is_dir():
+        return servers, domains
+    for f in sorted(_NETWORKD_DIR.glob("*.network")):
+        network = _parse_ini(f).get("Network", {})
+        if not isinstance(network, dict):
+            continue
+        for s in network.get("__list_DNS__", []):
+            s = str(s).strip()
+            if s and s not in seen_s:
+                seen_s.add(s)
+                servers.append(s)
+        for d in network.get("__list_Domains__", []):
+            for tok in str(d).split():
+                # "~example.com" routing-only domains are a resolved concept;
+                # strip the leading '~' so glibc's `search` gets a plain name.
+                if tok.startswith("~"):
+                    tok = tok[1:]
+                if tok and tok not in seen_d:
+                    seen_d.add(tok)
+                    domains.append(tok)
+    return servers, domains
+
+
+def _resolv_conf_has_marker(path: Path) -> bool:
+    """True if `path` is a regular file whose first non-blank line is our marker."""
+    if os.path.islink(str(path)) or not path.is_file():
+        return False
+    try:
+        with path.open("r", encoding="utf-8") as fh:
+            for raw in fh:
+                line = raw.strip()
+                if not line:
+                    continue
+                return line == _RESOLV_MARKER
+    except OSError:
+        return False
+    return False
+
+
+def _resolv_conf_preserved_lines(path: Path) -> List[str]:
+    """Return operator-authored lines from a regular resolv.conf, verbatim.
+
+    Everything except our marker and the nameserver/search/domain directives we
+    manage (options, sortlist, comments, blank lines, ...) is preserved so an
+    operator's `options edns0` survives our rewrite. The nameserver/search/
+    domain lines are considered ours to regenerate.
+    """
+    if os.path.islink(str(path)) or not path.is_file():
+        return []
+    preserved = []  # type: List[str]
+    try:
+        with path.open("r", encoding="utf-8") as fh:
+            for raw in fh:
+                line = raw.rstrip("\n")
+                stripped = line.strip()
+                if stripped == _RESOLV_MARKER:
+                    continue
+                low = stripped.lower()
+                if low.startswith("nameserver") or low.startswith("search") \
+                        or low.startswith("domain"):
+                    continue
+                preserved.append(line)
+    except OSError:
+        return []
+    # Trim a trailing run of blank lines so the file does not grow each pass.
+    while preserved and not preserved[-1].strip():
+        preserved.pop()
+    return preserved
+
+
+def _networkd_sync_resolv_conf() -> None:
+    """Synthesise /etc/resolv.conf from networkd DNS when resolved is absent.
+
+    No-op unless systemd-resolved is neither active nor enabled (genuinely
+    absent): if resolved is enabled it will own resolv.conf once it starts, so
+    we do not fight it. Best-effort and never raises. Mirrors the wicked branch
+    of apply_live regenerating resolv.conf via `netconfig update`.
+    """
+    if distro.is_resolved_active() or distro.is_resolved_enabled():
+        return
+    servers, domains = _networkd_aggregate_dns()
+    if servers:
+        if not _resolv_conf_is_ours_to_write(_RESOLV_CONF):
+            return  # active external manager owns it; leave alone
+        # Carry over operator-authored non-DNS lines (options, sortlist, ...)
+        # from a pre-existing regular file, marked or not, so we never drop them.
+        preserved = _resolv_conf_preserved_lines(_RESOLV_CONF)
+        lines = [_RESOLV_MARKER + "\n"]
+        for s in servers:
+            lines.append("nameserver {}\n".format(s))
+        if domains:
+            lines.append("search {}\n".format(" ".join(domains)))
+        for line in preserved:
+            lines.append(line + "\n")
+        _write_file(_RESOLV_CONF, "".join(lines))
+        return
+    # No DNS configured anywhere. Only clean up a file WE wrote (our marker);
+    # an unmarked file or external symlink is never blanked.
+    if not _resolv_conf_has_marker(_RESOLV_CONF):
+        return
+    preserved = _resolv_conf_preserved_lines(_RESOLV_CONF)
+    if any(line.strip() for line in preserved):
+        # Operator lines remain; drop our marker and managed DNS lines only.
+        _write_file(_RESOLV_CONF, "\n".join(preserved) + "\n")
+    else:
+        # Nothing operator-authored left; remove so resolved/DHCP can recreate.
+        _unlink(_RESOLV_CONF)
 
 
 def _write_file(path: Path, body: str) -> bool:
