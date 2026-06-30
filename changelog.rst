@@ -14,8 +14,8 @@ unreleased
   addresses, separate v4/v6 default gateways, static routes, DNS servers
   and bond devices (mode, MIIMON, members). Changes are written in the
   backend's native format and applied live.
-* New language and timezone dialogs backed by ``localectl`` and
-  ``timedatectl``.
+* New language, keyboard layout and timezone dialogs backed by
+  ``localectl`` and ``timedatectl``.
 * ``zypper`` calls in "Update the system" and "Select software repositories"
   are routed through the platform's package manager.
 * The ``install.sh`` helper now detects the package manager and installs the

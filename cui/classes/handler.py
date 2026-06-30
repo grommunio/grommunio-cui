@@ -23,8 +23,9 @@ from cui.classes.application import setup_state
 from cui.classes.menu import MenuItem
 from cui.symbol import LOG_VIEWER, MAIN, MESSAGE_BOX, INPUT_BOX, TERMINAL, PASSWORD, LOGIN, \
     REBOOT, SHUTDOWN, MAIN_MENU, UNSUPPORTED, ADMIN_WEB_PW, TIMESYNCD, REPO_SELECTION, \
-    KEYBOARD_SWITCH, PRODUCTION, LOCALE_SELECTION, TIMEZONE_SELECTION, \
-    NETWORK_INTERFACE_SELECT, NETWORK_INTERFACE_EDIT, NETWORK_BOND_CREATE
+    KEYBOARD_SWITCH, PRODUCTION, LOCALE_SELECTION, KEYBOARD_SELECTION, \
+    TIMEZONE_SELECTION, NETWORK_INTERFACE_SELECT, NETWORK_INTERFACE_EDIT, \
+    NETWORK_BOND_CREATE
 from cui import util, parameter
 from cui.classes.model import ApplicationModel
 from cui.util import _
@@ -78,6 +79,7 @@ class ApplicationHandler(ApplicationModel):
             REPO_SELECTION: (self._key_ev_repo_selection, key),
             KEYBOARD_SWITCH: (self._key_ev_kbd_switch, key),
             LOCALE_SELECTION: (self._key_ev_locale_selection, key),
+            KEYBOARD_SELECTION: (self._key_ev_keyboard_selection, key),
             TIMEZONE_SELECTION: (self._key_ev_timezone_selection, key),
             NETWORK_INTERFACE_SELECT: (self._key_ev_network_iface_select, key),
             NETWORK_INTERFACE_EDIT: (self._key_ev_network_iface_edit, key),
@@ -254,18 +256,19 @@ class ApplicationHandler(ApplicationModel):
         if key.endswith("enter") or key in range(ord("1"), ord("9") + 1):
             (func, val) = {
                 1: (menu_language, None),
-                2: (self._open_change_password, None),
-                3: (self._open_network_interface_select, None),
-                4: (self._open_timezone_selection, None),
-                5: (self._open_timesyncd_conf, None),
-                6: (self._open_repo_conf, None),
-                7: (self._run_update, None),
-                8: (self._open_setup_wizard, None),
-                9: (self._open_reset_aapi_pw, None),
-                10: (self._open_terminal, None),
-                11: (self._reboot_confirm, None),
-                12: (self._shutdown_confirm, None),
-                13: (exit_main_loop, None),
+                2: (self._open_keyboard_selection, None),
+                3: (self._open_change_password, None),
+                4: (self._open_network_interface_select, None),
+                5: (self._open_timezone_selection, None),
+                6: (self._open_timesyncd_conf, None),
+                7: (self._open_repo_conf, None),
+                8: (self._run_update, None),
+                9: (self._open_setup_wizard, None),
+                10: (self._open_reset_aapi_pw, None),
+                11: (self._open_terminal, None),
+                12: (self._reboot_confirm, None),
+                13: (self._shutdown_confirm, None),
+                14: (exit_main_loop, None),
             }.get(menu_selected)
             if val:
                 func(val)
@@ -979,6 +982,78 @@ class ApplicationHandler(ApplicationModel):
                     parameter.MsgBoxParams(
                         _("Failed to set the system language."),
                         _("Language configuration"),
+                    ),
+                    size=parameter.Size(height=10),
+                )
+            self._open_main_menu()
+        elif self._is_cancel_or_esc(button_type, key):
+            self._open_main_menu()
+
+    # ------------------------------------------------------------------
+    # Keyboard layout selection dialog
+    # ------------------------------------------------------------------
+
+    def _open_keyboard_selection(self):
+        """Open the keymap-picker dialog backed by localectl."""
+        self._reset_layout()
+        self.print(_("Opening keyboard layout selection"))
+        self.control.app_control.current_window = KEYBOARD_SELECTION
+        keymaps = cui.localetime.list_keymaps()
+        if not keymaps:
+            self.message_box(
+                parameter.MsgBoxParams(
+                    _("Could not enumerate keymaps (is localectl installed?)."),
+                    _("Keyboard configuration"),
+                ),
+                size=parameter.Size(height=10),
+            )
+            return
+        current = util.get_current_kbdlayout()
+        self._keymap_choices = keymaps
+        self._keymap_radiogroup = []
+        items = []
+        for keymap in keymaps:
+            rb = urwid.RadioButton(self._keymap_radiogroup, keymap,
+                                   state=(keymap == current))
+            items.append(urwid.AttrMap(rb, "selectable", "focus"))
+        body = self._focused_scroll_list(items, keymaps, current)
+        footer = urwid.AttrMap(
+            urwid.Columns([
+                self.view.button_store.save_button,
+                self.view.button_store.cancel_button,
+            ]),
+            "buttonbar",
+        )
+        frame = parameter.Frame(
+            body=urwid.AttrMap(body, "body"),
+            footer=footer,
+            focus_part="body",
+        )
+        self.dialog(
+            frame,
+            alignment=parameter.Alignment(urwid.CENTER, urwid.MIDDLE),
+            size=parameter.Size(width=60, height=20),
+            title=_("Select keyboard layout"),
+        )
+
+    def _key_ev_keyboard_selection(self, key: str):
+        """Handle key events on the keyboard layout selection dialog."""
+        self._handle_standard_tab_behaviour(key)
+        button_type = util.get_button_type(
+            key, self._open_main_menu, None, None,
+            size=parameter.Size(height=10),
+        )
+        if self._is_save_or_ok(button_type):
+            selected = next(
+                (rb.label for rb in self._keymap_radiogroup if rb.state),
+                "",
+            )
+            if selected:
+                self._set_kbd_layout(selected)
+                self.message_box(
+                    parameter.MsgBoxParams(
+                        _("Keyboard layout set to %s.") % selected,
+                        _("Keyboard configuration"),
                     ),
                     size=parameter.Size(height=10),
                 )

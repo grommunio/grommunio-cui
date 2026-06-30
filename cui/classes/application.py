@@ -418,6 +418,11 @@ class MainMenu:
                 _("Language"),
                 _("Opens a dialog for selecting the system language via localectl.")
             ),
+            _("Keyboard configuration"): create_menu_description(
+                _("Keyboard"),
+                _("Opens a dialog for selecting the console keyboard layout via "
+                   "localectl.")
+            ),
             _("Change system password"): create_menu_description(
                 _("Password change"),
                 _("Opens a dialog for changing the password of the system root user. "
