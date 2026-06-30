@@ -1145,21 +1145,29 @@ class ApplicationHandler(ApplicationModel):
     # Hostname configuration dialog
     # ------------------------------------------------------------------
 
-    def _open_hostname_config(self):
-        """Open the hostname dialog backed by hostnamectl."""
+    def _open_hostname_config(self, error="", value=None):
+        """Open the hostname dialog backed by hostnamectl.
+
+        On a rejected value the dialog is reopened with the offending input
+        preserved and the reason shown inline, so it can be corrected.
+        """
         self._reset_layout()
         self.print(_("Opening hostname configuration"))
         self.control.app_control.current_window = HOSTNAME_CONFIG
-        current = cui.localetime.get_hostname()
+        current = value if value is not None else cui.localetime.get_hostname()
         self._hostname_edit = cui.classes.gwidgets.GEdit(
             (18, _("Hostname: ")), edit_text=current,
         )
-        body = urwid.Padding(urwid.Filler(urwid.Pile([
+        pile_items = [
             GText(_("Enter the system hostname. Letters, digits, hyphens and "
                     "dots are allowed."), urwid.CENTER),
             urwid.Divider(),
             self._hostname_edit,
-        ]), urwid.TOP))
+        ]
+        if error:
+            pile_items.append(urwid.Divider())
+            pile_items.append(GText(("important", error), urwid.CENTER))
+        body = urwid.Padding(urwid.Filler(urwid.Pile(pile_items), urwid.TOP))
         footer = urwid.AttrMap(
             urwid.Columns([
                 self.view.button_store.save_button,
@@ -1175,7 +1183,7 @@ class ApplicationHandler(ApplicationModel):
         self.dialog(
             frame,
             alignment=parameter.Alignment(urwid.CENTER, urwid.MIDDLE),
-            size=parameter.Size(width=60, height=11),
+            size=parameter.Size(width=60, height=13 if error else 11),
             title=_("Configure hostname"),
         )
 
@@ -1197,38 +1205,31 @@ class ApplicationHandler(ApplicationModel):
     def _key_ev_hostname_config(self, key: str):
         """Handle key events on the hostname configuration dialog."""
         self._handle_standard_tab_behaviour(key)
+        # A single-line edit does not consume Enter, so a bare Enter in the
+        # field submits like the Save button instead of falling through to
+        # Cancel.
+        if key.lower() == "enter":
+            self._apply_hostname()
+            return
         button_type = util.get_button_type(
             key, self._open_main_menu, None, None,
             size=parameter.Size(height=10),
         )
         if self._is_save_or_ok(button_type):
-            name = self._hostname_edit.edit_text.strip()
-            err = self._validate_hostname(name)
-            if err:
-                self.message_box(
-                    parameter.MsgBoxParams(err, _("Hostname configuration")),
-                    size=parameter.Size(height=10),
-                )
-                return
-            if cui.localetime.set_hostname(name):
-                self.message_box(
-                    parameter.MsgBoxParams(
-                        _("Hostname set to %s.") % name,
-                        _("Hostname configuration"),
-                    ),
-                    size=parameter.Size(height=10),
-                )
-            else:
-                self.message_box(
-                    parameter.MsgBoxParams(
-                        _("Failed to set the hostname."),
-                        _("Hostname configuration"),
-                    ),
-                    size=parameter.Size(height=10),
-                )
-            self._open_main_menu()
+            self._apply_hostname()
         elif self._is_cancel_or_esc(button_type, key):
             self._open_main_menu()
+
+    def _apply_hostname(self):
+        """Validate and apply the hostname; reopen with the reason on failure."""
+        name = self._hostname_edit.edit_text.strip()
+        err = self._validate_hostname(name)
+        if not err and not cui.localetime.set_hostname(name):
+            err = _("Failed to set the hostname.")
+        if err:
+            self._open_hostname_config(error=err, value=name)
+            return
+        self._open_main_menu()
 
     # ------------------------------------------------------------------
     # Network interface configuration dialogs
