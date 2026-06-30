@@ -165,8 +165,10 @@ class Scrollable(urwid.WidgetDecoration):
 
         elif command_map[key] == urwid.CURSOR_MAX_LEFT:  # 'home'
             self._scroll_action = SCROLL_TO_TOP
+            self._move_focus_to_edge(size, "up")
         elif command_map[key] == urwid.CURSOR_MAX_RIGHT:  # 'end'
             self._scroll_action = SCROLL_TO_END
+            self._move_focus_to_edge(size, "down")
 
         else:
             return key
@@ -185,6 +187,21 @@ class Scrollable(urwid.WidgetDecoration):
         ow_size = self._get_original_widget_size(size)
         move_key = "up" if direction == "up" else "down"
         for _ in range(max(1, size[1] - 1)):
+            if original_widget.keypress(ow_size, move_key) is not None:
+                break
+
+    def _move_focus_to_edge(self, size, direction):
+        """Move the wrapped widget's focus to the first/last selectable row.
+
+        Mirrors _move_focus_by_page for Home/End. The loop is bounded by the
+        row count and stops once the focus can no longer advance.
+        """
+        if not self._forward_keypress:
+            return
+        original_widget = self._original_widget
+        ow_size = self._get_original_widget_size(size)
+        move_key = "up" if direction == "up" else "down"
+        for _ in range(max(1, self.rows_max(size))):
             if original_widget.keypress(ow_size, move_key) is not None:
                 break
 
