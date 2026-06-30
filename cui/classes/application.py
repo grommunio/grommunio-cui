@@ -434,6 +434,11 @@ class MainMenu:
                    "gateway, DNS). Uses systemd-networkd, NetworkManager or wicked depending "
                    "on what is active.")
             ),
+            _("Change hostname"): create_menu_description(
+                _("Hostname"),
+                _("Opens a dialog for changing the system hostname via "
+                   "hostnamectl.")
+            ),
             _("Timezone configuration"): create_menu_description(
                 _("Timezone"),
                 _("Opens a dialog for selecting the system timezone via timedatectl.")

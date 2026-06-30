@@ -24,8 +24,8 @@ from cui.classes.menu import MenuItem
 from cui.symbol import LOG_VIEWER, MAIN, MESSAGE_BOX, INPUT_BOX, TERMINAL, PASSWORD, LOGIN, \
     REBOOT, SHUTDOWN, MAIN_MENU, UNSUPPORTED, ADMIN_WEB_PW, TIMESYNCD, REPO_SELECTION, \
     KEYBOARD_SWITCH, PRODUCTION, LOCALE_SELECTION, KEYBOARD_SELECTION, \
-    TIMEZONE_SELECTION, NETWORK_INTERFACE_SELECT, NETWORK_INTERFACE_EDIT, \
-    NETWORK_BOND_CREATE
+    TIMEZONE_SELECTION, HOSTNAME_CONFIG, NETWORK_INTERFACE_SELECT, \
+    NETWORK_INTERFACE_EDIT, NETWORK_BOND_CREATE
 from cui import util, parameter
 from cui.classes.model import ApplicationModel
 from cui.util import _
@@ -81,6 +81,7 @@ class ApplicationHandler(ApplicationModel):
             LOCALE_SELECTION: (self._key_ev_locale_selection, key),
             KEYBOARD_SELECTION: (self._key_ev_keyboard_selection, key),
             TIMEZONE_SELECTION: (self._key_ev_timezone_selection, key),
+            HOSTNAME_CONFIG: (self._key_ev_hostname_config, key),
             NETWORK_INTERFACE_SELECT: (self._key_ev_network_iface_select, key),
             NETWORK_INTERFACE_EDIT: (self._key_ev_network_iface_edit, key),
             NETWORK_BOND_CREATE: (self._key_ev_network_bond_create, key),
@@ -259,16 +260,17 @@ class ApplicationHandler(ApplicationModel):
                 2: (self._open_keyboard_selection, None),
                 3: (self._open_change_password, None),
                 4: (self._open_network_interface_select, None),
-                5: (self._open_timezone_selection, None),
-                6: (self._open_timesyncd_conf, None),
-                7: (self._open_repo_conf, None),
-                8: (self._run_update, None),
-                9: (self._open_setup_wizard, None),
-                10: (self._open_reset_aapi_pw, None),
-                11: (self._open_terminal, None),
-                12: (self._reboot_confirm, None),
-                13: (self._shutdown_confirm, None),
-                14: (exit_main_loop, None),
+                5: (self._open_hostname_config, None),
+                6: (self._open_timezone_selection, None),
+                7: (self._open_timesyncd_conf, None),
+                8: (self._open_repo_conf, None),
+                9: (self._run_update, None),
+                10: (self._open_setup_wizard, None),
+                11: (self._open_reset_aapi_pw, None),
+                12: (self._open_terminal, None),
+                13: (self._reboot_confirm, None),
+                14: (self._shutdown_confirm, None),
+                15: (exit_main_loop, None),
             }.get(menu_selected)
             if val:
                 func(val)
@@ -1132,6 +1134,95 @@ class ApplicationHandler(ApplicationModel):
                     parameter.MsgBoxParams(
                         _("Failed to set the system timezone."),
                         _("Timezone configuration"),
+                    ),
+                    size=parameter.Size(height=10),
+                )
+            self._open_main_menu()
+        elif self._is_cancel_or_esc(button_type, key):
+            self._open_main_menu()
+
+    # ------------------------------------------------------------------
+    # Hostname configuration dialog
+    # ------------------------------------------------------------------
+
+    def _open_hostname_config(self):
+        """Open the hostname dialog backed by hostnamectl."""
+        self._reset_layout()
+        self.print(_("Opening hostname configuration"))
+        self.control.app_control.current_window = HOSTNAME_CONFIG
+        current = cui.localetime.get_hostname()
+        self._hostname_edit = cui.classes.gwidgets.GEdit(
+            (18, _("Hostname: ")), edit_text=current,
+        )
+        body = urwid.Padding(urwid.Filler(urwid.Pile([
+            GText(_("Enter the system hostname. Letters, digits, hyphens and "
+                    "dots are allowed."), urwid.CENTER),
+            urwid.Divider(),
+            self._hostname_edit,
+        ]), urwid.TOP))
+        footer = urwid.AttrMap(
+            urwid.Columns([
+                self.view.button_store.save_button,
+                self.view.button_store.cancel_button,
+            ]),
+            "buttonbar",
+        )
+        frame = parameter.Frame(
+            body=urwid.AttrMap(body, "body"),
+            footer=footer,
+            focus_part="body",
+        )
+        self.dialog(
+            frame,
+            alignment=parameter.Alignment(urwid.CENTER, urwid.MIDDLE),
+            size=parameter.Size(width=60, height=11),
+            title=_("Configure hostname"),
+        )
+
+    @staticmethod
+    def _validate_hostname(name: str) -> str:
+        """Return an error message for an invalid hostname, or ''."""
+        if not name:
+            return _("The hostname must not be empty.")
+        if len(name) > 253:
+            return _("The hostname must not exceed 253 characters.")
+        for label in name.split("."):
+            if not 1 <= len(label) <= 63:
+                return _("Each hostname label must be 1 to 63 characters long.")
+            if not re.match(r"^[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?$", label):
+                return _("Hostname labels may only contain letters, digits and "
+                         "hyphens, and must not start or end with a hyphen.")
+        return ""
+
+    def _key_ev_hostname_config(self, key: str):
+        """Handle key events on the hostname configuration dialog."""
+        self._handle_standard_tab_behaviour(key)
+        button_type = util.get_button_type(
+            key, self._open_main_menu, None, None,
+            size=parameter.Size(height=10),
+        )
+        if self._is_save_or_ok(button_type):
+            name = self._hostname_edit.edit_text.strip()
+            err = self._validate_hostname(name)
+            if err:
+                self.message_box(
+                    parameter.MsgBoxParams(err, _("Hostname configuration")),
+                    size=parameter.Size(height=10),
+                )
+                return
+            if cui.localetime.set_hostname(name):
+                self.message_box(
+                    parameter.MsgBoxParams(
+                        _("Hostname set to %s.") % name,
+                        _("Hostname configuration"),
+                    ),
+                    size=parameter.Size(height=10),
+                )
+            else:
+                self.message_box(
+                    parameter.MsgBoxParams(
+                        _("Failed to set the hostname."),
+                        _("Hostname configuration"),
                     ),
                     size=parameter.Size(height=10),
                 )
