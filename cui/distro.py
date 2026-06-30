@@ -229,7 +229,9 @@ def _opensuse_leap_release() -> str:
     base = _read_base_product_version()
     if base:
         return base
-    return version if re.match(r"^\d+\.\d+$", version) else "16.0"
+    # No reliable base version (e.g. an appliance whose VERSION_ID does not
+    # track Leap): default to the current release rather than a stale one.
+    return "16.0"
 
 
 def _repo_code() -> str:
