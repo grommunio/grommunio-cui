@@ -10,6 +10,14 @@ Wants=setlogcons.service
 Before=getty.target
 IgnoreOnIsolate=yes
 
+# Take over the VT exclusively. Without this, the distro's stock
+# getty@%i.service (enabled by preset on e.g. openSUSE Leap) also claims
+# the same tty: agetty grabs the controlling terminal first, so the cui
+# renders but never receives keyboard input. Conflicts stops/blocks the
+# getty when we start, Before orders us ahead of it.
+Conflicts=getty@%i.service
+Before=getty@%i.service
+
 # IgnoreOnIsolate causes issues with sulogin, if someone isolates
 # rescue.target or starts rescue.service from multi-user.target or
 # graphical.target.
