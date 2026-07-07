@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# SPDX-FileCopyrightText: 2022–2024 grommunio GmbH
+# SPDX-FileCopyrightText: 2022-2026–2024 grommunio GmbH
 """The module contains the handling code of grommunio-cui"""
 import os
 import re

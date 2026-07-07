@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# SPDX-FileCopyrightText: 2022 grommunio GmbH
+# SPDX-FileCopyrightText: 2022-2026 grommunio GmbH
 """In this module all application classes are hold."""
 import os
 import subprocess

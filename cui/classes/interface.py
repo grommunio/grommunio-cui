@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# SPDX-FileCopyrightText: 2021 grommunio GmbH
+# SPDX-FileCopyrightText: 2021-2026 grommunio GmbH
 """The module contains the BaseApplication that provides the common interface of Application."""
 from typing import Any
 import urwid
