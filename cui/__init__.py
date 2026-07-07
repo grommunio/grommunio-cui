@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# SPDX-FileCopyrightText: 2021 grommunio GmbH
+# SPDX-FileCopyrightText: 2021-2026 grommunio GmbH
 """The main module of grommunio-cui."""
 import sys
 from typing import Tuple, Union

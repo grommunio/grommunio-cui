@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# SPDX-FileCopyrightText: 2021 grommunio GmbH
+# SPDX-FileCopyrightText: 2021-2026 grommunio GmbH
 """Module containing different parameter classes to reduce needed parameter per call."""
 
 import collections

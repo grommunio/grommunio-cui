@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# SPDX-FileCopyrightText: 2021 grommunio GmbH
+# SPDX-FileCopyrightText: 2021-2026 grommunio GmbH
 """The module contains all cui utilities/functions"""
 import cffi
 import os
@@ -656,7 +656,7 @@ def get_system_info_top():
     ret_val += [
         "Console User Interface",
         "\n",
-        "© 2020-2025 ",
+        "© 2020-2026 ",
         "grommunio GmbH",
         "\n",
     ]
