@@ -1005,11 +1005,16 @@ def reset_aapi_passwd(new_pw: str) -> bool:
     if exe is None:
         return False
     try:
+        # The password is fed through stdin rather than argv: /proc/<pid>/cmdline
+        # is world readable, so any local account could read it off the process
+        # list while the command runs.
         with subprocess.Popen(
-            [exe, "passwd", "--password", new_pw],
+            [exe, "passwd", "--password-stdin"],
+            stdin=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
             stdout=subprocess.DEVNULL,
         ) as proc:
-            return proc.wait() == 0
+            proc.communicate(f"{new_pw}\n".encode())
+            return proc.returncode == 0
     except OSError:
         return False
