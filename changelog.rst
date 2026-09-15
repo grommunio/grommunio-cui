@@ -20,6 +20,12 @@ unreleased
   are routed through the platform's package manager.
 * The ``install.sh`` helper now detects the package manager and installs the
   matching system packages.
+* Security: the admin-API password is no longer passed to
+  ``grommunio-admin passwd`` on the command line, where any local user could
+  read it from ``/proc/<pid>/cmdline`` while the command ran. It is handed over
+  on stdin via the new ``--password-stdin`` option instead. Requires an
+  admin-api that supports that option; against an older one the reset fails
+  visibly rather than falling back to the unsafe invocation.
 * Bug fixes: invalid escape ``\\s`` regex, ``cffi.FFI.NULL`` (use ``bld.NULL``),
   tab/space mixing in ``get_last_login_time``, format-string-in-translation
   patterns that prevented gettext extraction.
