@@ -15,7 +15,9 @@ Implemented backends:
 For each backend we own a file prefix (50-grommunio-...) and never touch
 files we did not create, so operator-authored configs stay intact.
 """
+import fnmatch
 import ipaddress
+import json
 import os
 import re
 import socket
@@ -262,11 +264,13 @@ def load_interface_config(iface: str) -> InterfaceConfig:
     if not cfg.addresses and not (cfg.dhcp4 or cfg.dhcp6):
         rt = current_runtime_state(iface)
         cfg.addresses = list(rt.get("addresses_v4", [])) + list(rt.get("addresses_v6", []))
+    # Gateways and DNS servers learned via DHCP are not shown as static values:
+    # saving the form would otherwise pin the current lease into the file.
     if not cfg.gateway4 and not cfg.gateway6:
         gws = current_default_gateways()
-        cfg.gateway4 = gws["v4"]
-        cfg.gateway6 = gws["v6"]
-    if not cfg.dns:
+        cfg.gateway4 = "" if cfg.dhcp4 else gws["v4"]
+        cfg.gateway6 = "" if cfg.dhcp6 else gws["v6"]
+    if not cfg.dns and not (cfg.dhcp4 or cfg.dhcp6):
         cfg.dns = current_dns_servers()
     # Reflect kernel state: this is a bond device?
     if cfg.kind == "ethernet" and _is_bond_device(iface):
@@ -413,6 +417,14 @@ def _unlink(path: Path) -> None:
 # --- systemd-networkd backend ----------------------------------------------
 
 _NETWORKD_DIR = Path("/etc/systemd/network")
+# Search path in networkd's precedence order: a file in an earlier directory
+# masks a same-named file in a later one.
+_NETWORKD_SEARCH_DIRS = (
+    _NETWORKD_DIR,
+    Path("/run/systemd/network"),
+    Path("/usr/local/lib/systemd/network"),
+    Path("/usr/lib/systemd/network"),
+)
 
 
 def _networkd_file(iface: str, ext: str = "network") -> Path:
@@ -426,15 +438,22 @@ _NETWORKD_MANAGED_KEYS = {"DHCP", "Address", "Gateway", "DNS", "Bond"}
 
 def _read_networkd(iface: str) -> InterfaceConfig:
     cfg = InterfaceConfig(name=iface)
+    # Our own file shows what was last saved, even if networkd has not picked
+    # it up yet. Otherwise use the file networkd itself applied to the link;
+    # that also covers generic files matching by Type=/Kind= (e.g. the
+    # image's 89-ethernet.network symlink) rather than by Name=.
     path = _networkd_file(iface)
-    if not path.is_file() and _NETWORKD_DIR.is_dir():
-        for candidate in sorted(_NETWORKD_DIR.glob("*.network")):
-            if _networkd_matches(candidate, iface):
-                path = candidate
-                break
     if not path.is_file():
+        path = _networkd_applied_file(iface) or _networkd_find_matching(iface)
+    if path is None or not path.is_file():
         return cfg
-    cfg.source_file = path
+    # Only write back to a per-interface file of our own config dir. A
+    # generic file (or a symlink into /usr/lib) also serves other links, so
+    # saving must create 50-grommunio-<iface>.network instead, which sorts
+    # before the 89-* catch-all and therefore wins the first-match lookup.
+    if (path.parent == _NETWORKD_DIR and not path.is_symlink()
+            and _networkd_matches(path, iface)):
+        cfg.source_file = path
     sections = _parse_ini(path)
     network = sections.get("Network", {})
     dhcp_val = str(network.get("DHCP", "no")).lower()
@@ -507,6 +526,118 @@ def _networkd_matches(path: Path, iface: str) -> bool:
     except OSError:
         return False
     return str(sections.get("Match", {}).get("Name", "")) == iface
+
+
+def _networkd_applied_file(iface: str) -> Optional[Path]:
+    """Return the .network file networkd applied to iface, if it says so."""
+    try:
+        out = subprocess.run(
+            ["networkctl", "status", iface, "--json=short", "--no-pager"],
+            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+            check=False, timeout=10,
+        ).stdout.decode(errors="replace")
+        data = json.loads(out)
+    except (OSError, subprocess.SubprocessError, ValueError):
+        return None
+    # Depending on the systemd version this is the link object itself or a
+    # wrapper with an "Interfaces" list.
+    links = data.get("Interfaces", [data]) if isinstance(data, dict) else []
+    for link in links:
+        if isinstance(link, dict) and link.get("Name") == iface:
+            network_file = link.get("NetworkFile")
+            if network_file:
+                return Path(network_file)
+    return None
+
+
+def _networkd_find_matching(iface: str) -> Optional[Path]:
+    """Fallback when networkctl cannot tell: first matching .network file.
+
+    networkd sorts all files of its search path by file name (an /etc file
+    masking a same-named one further down) and applies only the first one
+    whose [Match] section fits. Only Name=, Type= and Kind= are evaluated;
+    files using other match keys, or keys whose link value is unknown, are
+    skipped as not decidable here.
+    """
+    files: Dict[str, Path] = {}
+    for directory in _NETWORKD_SEARCH_DIRS:
+        if not directory.is_dir():
+            continue
+        for candidate in directory.glob("*.network"):
+            files.setdefault(candidate.name, candidate)
+    for name in sorted(files):
+        candidate = files[name]
+        # A symlink to /dev/null or an empty file masks the name.
+        if os.path.realpath(str(candidate)) == os.devnull:
+            continue
+        try:
+            if candidate.stat().st_size == 0:
+                continue
+        except OSError:
+            continue
+        if _networkd_match_section(candidate, iface):
+            return candidate
+    return None
+
+
+def _networkd_match_section(path: Path, iface: str) -> bool:
+    """Evaluate the [Match] section of path for iface (subset of networkd)."""
+    sections = _parse_ini(path)
+    match = sections.get("Match")
+    if not isinstance(match, dict):
+        return False
+    link_type, link_kind = _networkd_link_type_kind(iface)
+    link_values = {"Name": iface, "Type": link_type, "Kind": link_kind}
+    for key, val in match.items():
+        if key.startswith("__list_"):
+            continue
+        if link_values.get(key) is None:
+            return False
+        if not _networkd_glob_match(str(val), link_values[key]):
+            return False
+    return True
+
+
+def _networkd_link_type_kind(iface: str) -> Tuple[Optional[str], Optional[str]]:
+    """Approximate networkd's Type= and Kind= for iface from sysfs.
+
+    Type is the udev DEVTYPE (wlan, bridge, vlan, bond, ...) or else derived
+    from the ARPHRD type. Kind is the netdev kind: "" for a physical NIC
+    (which '!*' matches), the DEVTYPE for well-known virtual devices, None
+    when it cannot be told.
+    """
+    base = Path(f"/sys/class/net/{iface}")
+    devtype = ""
+    try:
+        with (base / "uevent").open("r", encoding="utf-8") as fh:
+            for line in fh:
+                if line.startswith("DEVTYPE="):
+                    devtype = line.strip().partition("=")[2]
+    except OSError:
+        pass
+    try:
+        arphrd = (base / "type").read_text(encoding="utf-8").strip()
+    except OSError:
+        arphrd = ""
+    link_type = devtype or {"1": "ether", "772": "loopback"}.get(arphrd)
+    if (base / "device").exists():
+        link_kind = ""  # type: Optional[str]
+    elif devtype in ("bond", "bridge", "vlan"):
+        link_kind = devtype
+    else:
+        link_kind = None
+    return link_type, link_kind
+
+
+def _networkd_glob_match(patterns: str, value: str) -> bool:
+    """networkd-style match: whitespace-separated globs, '!' inverts the list."""
+    invert = patterns.startswith("!")
+    if invert:
+        patterns = patterns[1:]
+    # An unset property (e.g. no Kind on a physical NIC) matches no glob.
+    hit = bool(value) and any(fnmatch.fnmatchcase(value, pat)
+                              for pat in patterns.split())
+    return hit != invert
 
 
 def _iter_sections(sections: Dict[str, object], name: str) -> List[Dict[str, object]]:

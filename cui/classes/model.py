@@ -15,6 +15,7 @@ from systemd import journal
 
 import cui.classes
 import cui.classes.button
+import cui.localetime
 from cui.symbol import LOG_VIEWER, MAIN, MESSAGE_BOX, INPUT_BOX, PASSWORD, \
     MAIN_MENU, ADMIN_WEB_PW, TIMESYNCD, REPO_SELECTION, KEYBOARD_SWITCH
 from cui import util, parameter
@@ -366,24 +367,26 @@ class ApplicationModel(BaseApplication):
     def _prepare_timesyncd_config(self):
         """Prepare timesyncd configuration form."""
         ntp_server: List[str] = [
-            "0.arch.pool.ntp.org",
-            "1.arch.pool.ntp.org",
-            "2.arch.pool.ntp.org",
-            "3.arch.pool.ntp.org",
-        ]
-        fallback_server: List[str] = [
             "0.opensuse.pool.ntp.org",
             "1.opensuse.pool.ntp.org",
             "2.opensuse.pool.ntp.org",
             "3.opensuse.pool.ntp.org",
         ]
-        self.control.menu_control.timesyncd_vars = util.lineconfig_read(
-            "/etc/systemd/timesyncd.conf"
+        fallback_server: List[str] = [
+            "0.pool.ntp.org",
+            "1.pool.ntp.org",
+            "2.pool.ntp.org",
+            "3.pool.ntp.org",
+        ]
+        # Effective [Time] values from timesyncd.conf and its drop-ins; unset
+        # keys fall back to the defaults above.
+        self.control.menu_control.timesyncd_vars = cui.localetime.get_ntp_config()
+        ntp_from_file = self.control.menu_control.timesyncd_vars.get("NTP") or " ".join(
+            ntp_server
         )
-        ntp_from_file = self.control.menu_control.timesyncd_vars.get("NTP", " ".join(ntp_server))
         fallback_from_file = self.control.menu_control.timesyncd_vars.get(
-            "FallbackNTP", " ".join(fallback_server)
-        )
+            "FallbackNTP"
+        ) or " ".join(fallback_server)
         ntp_server = ntp_from_file.split(" ")
         fallback_server = fallback_from_file.split(" ")
         text = _("Insert the NTP servers separated by <SPACE> char.")

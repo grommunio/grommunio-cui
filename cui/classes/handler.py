@@ -579,18 +579,13 @@ class ApplicationHandler(ApplicationModel):
             self.control.menu_control.timesyncd_vars[
                 "FallbackNTP"
             ] = self.timesyncd_body.base_widget[2].edit_text
-            util.lineconfig_write(
-                "/etc/systemd/timesyncd.conf", self.control.menu_control.timesyncd_vars
+            res = cui.localetime.set_ntp_config(
+                self.control.menu_control.timesyncd_vars["NTP"],
+                self.control.menu_control.timesyncd_vars["FallbackNTP"],
             )
-            with subprocess.Popen(
-                ["timedatectl", "set-ntp", "true"],
-                stderr=subprocess.DEVNULL,
-                stdout=subprocess.DEVNULL,
-            ) as ret_code:
-                res = ret_code.wait() == 0
-                success_msg = _("was successful")
-                if not res:
-                    success_msg = _("failed")
+            success_msg = _("was successful")
+            if not res:
+                success_msg = _("failed")
             self.message_box(
                 parameter.MsgBoxParams(
                     _("Timesyncd configuration change %s!") % success_msg,
@@ -1226,6 +1221,9 @@ class ApplicationHandler(ApplicationModel):
         err = self._validate_hostname(name)
         if not err and not cui.localetime.set_hostname(name):
             err = _("Failed to set the hostname.")
+        # `hostname -f` (grommunio-setup's FQDN) needs an /etc/hosts entry.
+        elif not err and not cui.localetime.set_hosts_entry(name):
+            err = _("Hostname set, but /etc/hosts could not be updated.")
         if err:
             self._open_hostname_config(error=err, value=name)
             return
